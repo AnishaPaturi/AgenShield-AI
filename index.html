@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Habitat AI — Judge Q&A Prep Guide</title>
-    <meta name="description" content="An interactive preparation dashboard for the Habitat AI Pitch. Answer questions, fill placeholders, track progress, and practice for your project presentation.">
+    <title>4-1 Project Hub — College AI Workspaces</title>
+    <meta name="description" content="Central Hub for 4-1 Semester Project Workspaces, including EvilTwin-AI, Habitat-AI, Medicare-AI, and Nexus-AI.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,342 +14,115 @@
     
     <style>
         :root {
-            --bg-base: #080c16;
-            --bg-surface: rgba(17, 24, 39, 0.7);
-            --bg-surface-hover: rgba(26, 36, 56, 0.85);
+            --bg-base: #060913;
+            --bg-surface: rgba(13, 20, 38, 0.7);
+            --bg-surface-hover: rgba(22, 32, 60, 0.9);
             --border-color: rgba(255, 255, 255, 0.08);
             --border-hover: rgba(255, 255, 255, 0.18);
             --text-primary: #f3f4f6;
             --text-secondary: #9ca3af;
             --text-muted: #6b7280;
-            --accent-primary: #4f46e5;
-            --accent-primary-hover: #6366f1;
-            --accent-glow: rgba(79, 70, 229, 0.4);
+            --accent-primary: #6366f1;
+            --accent-primary-hover: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.25);
             
-            /* Category Accent Colors */
-            --color-problem: #f97316;
-            --glow-problem: rgba(249, 115, 22, 0.12);
-            --color-solution: #a855f7;
-            --glow-solution: rgba(168, 85, 247, 0.12);
-            --color-technical: #06b6d4;
-            --glow-technical: rgba(6, 182, 212, 0.12);
-            --color-market: #10b981;
-            --glow-market: rgba(16, 185, 129, 0.12);
-            --color-business: #eab308;
-            --glow-business: rgba(234, 179, 8, 0.12);
-            --color-tricky: #f43f5e;
-            --glow-tricky: rgba(244, 63, 94, 0.12);
+            /* Project Accents */
+            --color-eviltwin: #ef4444;
+            --glow-eviltwin: rgba(239, 68, 68, 0.15);
+            --color-habitat: #10b981;
+            --glow-habitat: rgba(16, 185, 129, 0.15);
+            --color-medicare: #06b6d4;
+            --glow-medicare: rgba(6, 182, 212, 0.15);
+            --color-nexus: #a855f7;
+            --glow-nexus: rgba(168, 85, 247, 0.15);
         }
 
-        /* Reset & Base Styles */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: var(--bg-base);
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 20% 15%, rgba(99, 102, 241, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 80% 85%, rgba(168, 85, 247, 0.06) 0%, transparent 40%);
             background-attachment: fixed;
         }
 
-        /* Sidebar Styling */
-        aside {
-            width: 320px;
-            background-color: rgba(10, 15, 30, 0.8);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 1.5rem;
+        header {
+            padding: 4rem 2rem 2rem 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
             display: flex;
             flex-direction: column;
-            gap: 2rem;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            backdrop-filter: blur(20px);
-            z-index: 100;
-        }
-
-        .logo-area {
-            display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--color-technical));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .logo-text h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.25rem;
+        .hub-tag {
+            font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: -0.025em;
-            background: linear-gradient(to right, #ffffff, #9ca3af);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.5; }
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .logo-text p {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-        }
-
-        /* Navigation Links */
-        .nav-section-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-muted);
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-        }
-
-        .category-filters {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filter-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1rem;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 8px;
+        header p.subtitle {
+            font-size: 1.15rem;
             color: var(--text-secondary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.2s ease;
-        }
-
-        .filter-btn:hover {
-            background-color: var(--bg-surface-hover);
-            color: var(--text-primary);
-        }
-
-        .filter-btn.active {
-            background-color: rgba(79, 70, 229, 0.15);
-            border-color: rgba(79, 70, 229, 0.3);
-            color: #c7d2fe;
-            box-shadow: 0 0 10px rgba(79, 70, 229, 0.1);
-        }
-
-        .filter-btn-left {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .filter-badge {
-            font-size: 0.75rem;
-            padding: 0.1rem 0.5rem;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* Stats Card in Sidebar */
-        .stats-container {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .stat-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
-
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .stat-value {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .progress-bar-bg {
-            height: 6px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent-primary), var(--color-technical));
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-
-        .progress-bar-fill.fill-ins {
-            background: linear-gradient(90deg, var(--color-problem), var(--color-business));
-        }
-
-        /* Action Buttons */
-        .actions-container {
-            margin-top: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .action-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.85rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-            border: none;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), #3b82f6);
-            color: white;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 4px 18px rgba(79, 70, 229, 0.35);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--border-hover);
-        }
-
-        /* Main Content Panel */
-        main {
-            margin-left: 320px;
-            flex-grow: 1;
-            padding: 2.5rem 3rem;
-            max-width: 1400px;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* Header Info Card */
-        .info-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            backdrop-filter: blur(16px);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .info-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--accent-primary), var(--color-technical));
-        }
-
-        .info-card h2 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
-
-        .info-card p.subtitle {
-            font-size: 1.05rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-        }
-
-        .info-card .extension-badge {
-            align-self: flex-start;
-            padding: 0.35rem 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-style: italic;
-        }
-
-        .info-card .description-text {
-            font-size: 0.925rem;
-            color: var(--text-muted);
+            max-width: 600px;
             line-height: 1.6;
-            margin-top: 0.5rem;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px dashed rgba(255, 255, 255, 0.04);
         }
 
-        /* Search & Filter Controls */
-        .controls-wrapper {
+        /* Search and Filter Area */
+        .search-section {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 2rem;
             display: flex;
-            gap: 1.5rem;
-            align-items: center;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar {
+            position: relative;
+            max-width: 500px;
             width: 100%;
         }
 
-        .search-container {
-            position: relative;
-            flex-grow: 1;
-        }
-
-        .search-container input {
+        .search-bar input {
             width: 100%;
             padding: 0.9rem 1rem 0.9rem 2.75rem;
             background: var(--bg-surface);
@@ -361,14 +134,14 @@
             font-family: 'Inter', sans-serif;
         }
 
-        .search-container input:focus {
+        .search-bar input:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 15px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 15px var(--accent-glow);
             background: var(--bg-surface-hover);
         }
 
-        .search-icon {
+        .search-bar i {
             position: absolute;
             left: 1rem;
             top: 50%;
@@ -379,1644 +152,451 @@
             height: 18px;
         }
 
-        .filter-select-container {
-            display: flex;
-            gap: 0.5rem;
+        /* Projects Section Grid */
+        main {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 2rem 5rem 2rem;
+            flex-grow: 1;
         }
 
-        .select-filter-btn {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 0.9rem 1.25rem;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .select-filter-btn:hover {
-            border-color: var(--border-hover);
-            color: var(--text-primary);
-            background-color: var(--bg-surface-hover);
-        }
-
-        .select-filter-btn.active {
-            background-color: rgba(79, 70, 229, 0.1);
-            border-color: var(--accent-primary);
-            color: var(--text-primary);
-        }
-
-        /* Q&A Cards List */
-        .cards-grid {
+        .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
         }
 
-        /* Card Custom Styles based on category */
-        .qa-card {
+        @media (max-width: 900px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2.25rem;
+            }
+        }
+
+        /* Card Styles */
+        .project-card {
             background: var(--bg-surface);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 1.75rem;
-            backdrop-filter: blur(16px);
+            border-radius: 20px;
+            padding: 2.25rem;
+            backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1.5rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
         }
 
-        .qa-card::after {
+        .project-card::after {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 3px;
-            background: var(--cat-color, var(--accent-primary));
-            opacity: 0.6;
+            height: 4px;
+            background: var(--proj-color, var(--accent-primary));
+            opacity: 0.65;
         }
 
-        .qa-card:hover {
-            transform: translateY(-2px);
+        .project-card:hover {
+            transform: translateY(-3px);
             border-color: var(--border-hover);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px var(--cat-glow, var(--accent-glow));
+            box-shadow: 
+                0 15px 35px -10px rgba(0, 0, 0, 0.5), 
+                0 0 20px var(--proj-glow, var(--accent-glow));
         }
 
-        .card-header {
+        .card-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .card-badge-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-num {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            letter-spacing: 0.05em;
-        }
-
-        .cat-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.6rem;
-            border-radius: 20px;
-            color: var(--cat-color);
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        .card-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0.35rem;
-            border-radius: 6px;
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            color: white;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
         }
 
-        .icon-btn:hover {
-            color: var(--text-primary);
-            background-color: rgba(255, 255, 255, 0.06);
+        .project-card:hover .card-icon {
+            background: var(--proj-color);
+            box-shadow: 0 0 15px var(--proj-glow);
+            border-color: transparent;
         }
 
-        .icon-btn.active.bookmark-btn {
-            color: #fbbf24;
-        }
-
-        .icon-btn.active.review-btn {
-            color: #10b981;
-        }
-
-        /* Q&A Content */
-        .card-question {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.15rem;
+        .status-badge {
+            font-size: 0.75rem;
             font-weight: 600;
-            line-height: 1.4;
-            color: var(--text-primary);
+            padding: 0.3rem 0.75rem;
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
         }
 
-        .card-answer {
-            font-size: 0.95rem;
+        .status-badge.active {
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .card-title-group h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title-group p.desc {
+            font-size: 0.925rem;
             line-height: 1.6;
             color: var(--text-secondary);
         }
 
-        /* Inline Fill-In styles */
-        .inline-fill-in {
-            display: inline;
-            padding: 0.1rem 0.3rem;
-            border-radius: 4px;
+        /* Tech Stack Badges */
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tech-badge {
+            font-size: 0.75rem;
             font-weight: 500;
-            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
             transition: all 0.2s ease;
+            cursor: default;
         }
 
-        .inline-fill-in.empty {
-            background-color: rgba(244, 63, 94, 0.15);
-            color: #fda4af;
-            border-bottom: 2px dashed #f43f5e;
+        .tech-badge:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
         }
 
-        .inline-fill-in.empty:hover {
-            background-color: rgba(244, 63, 94, 0.25);
-        }
-
-        .inline-fill-in.filled {
-            background-color: rgba(16, 185, 129, 0.15);
-            color: #a7f3d0;
-            border-bottom: 2px solid #10b981;
-        }
-
-        .inline-fill-in.filled:hover {
-            background-color: rgba(16, 185, 129, 0.25);
-        }
-
-        /* Fill-In Editor (Card Bottom area) */
-        .fill-in-editor {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 0.5rem;
+        /* Links area */
+        .project-links {
+            margin-top: auto;
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1.25rem;
         }
 
-        .editor-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--color-problem);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .editor-header.tricky {
-            color: var(--color-tricky);
-        }
-
-        .editor-header.solution {
-            color: var(--color-solution);
-        }
-
-        .editor-header.technical {
-            color: var(--color-technical);
-        }
-
-        .editor-header.market {
-            color: var(--color-market);
-        }
-
-        .editor-header.business {
-            color: var(--color-business);
-        }
-
-        .fill-in-instruction {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            line-height: 1.4;
-            font-style: italic;
-        }
-
-        .fill-in-textarea {
-            width: 100%;
-            min-height: 80px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 0.6rem 0.8rem;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            resize: vertical;
-            transition: all 0.2s ease;
-        }
-
-        .fill-in-textarea:focus {
-            outline: none;
-            border-color: var(--cat-color, var(--accent-primary));
-            background: rgba(255, 255, 255, 0.04);
-        }
-
-        /* Card Footer Utility bar */
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.04);
-            padding-top: 1rem;
-            margin-top: auto;
-        }
-
-        .card-footer-action-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .card-footer-action-btn:hover {
-            color: var(--text-primary);
-        }
-
-        /* Checklist Section (Rendered on Checklist page view) */
-        .checklist-view {
-            display: none;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .checklist-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 2rem;
-            backdrop-filter: blur(16px);
-        }
-
-        .checklist-card h3 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .checklist-items {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .checklist-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .checklist-item:hover {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: var(--border-hover);
-        }
-
-        .checklist-checkbox {
-            margin-top: 0.2rem;
-            width: 18px;
-            height: 18px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .checklist-item.checked .checklist-checkbox {
-            background-color: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-
-        .checklist-checkbox i {
-            display: none;
-            width: 12px;
-            height: 12px;
-            color: white;
-        }
-
-        .checklist-item.checked .checklist-checkbox i {
-            display: block;
-        }
-
-        .checklist-content {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-        }
-
-        .checklist-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .checklist-item.checked .checklist-title {
-            text-decoration: line-through;
-            color: var(--text-muted);
-        }
-
-        .checklist-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            line-height: 1.4;
-        }
-
-        .checklist-link {
-            font-size: 0.75rem;
-            color: var(--accent-primary-hover);
-            margin-top: 0.25rem;
+        .action-link {
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            font-weight: 500;
-        }
-
-        /* Empty State */
-        .empty-state {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 5rem 2rem;
-            text-align: center;
-            background: var(--bg-surface);
-            border: 1px dashed var(--border-color);
-            border-radius: 14px;
-            gap: 1rem;
-        }
-
-        .empty-state i {
-            width: 48px;
-            height: 48px;
-            color: var(--text-muted);
-        }
-
-        .empty-state h3 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.25rem;
-        }
-
-        .empty-state p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            max-width: 400px;
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: rgba(17, 24, 39, 0.9);
+            justify-content: space-between;
+            text-decoration: none;
+            color: var(--text-primary);
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .action-link i.arrow-icon {
+            transition: transform 0.2s ease;
+        }
+
+        .action-link:hover {
+            background: var(--proj-color);
             color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-color: transparent;
+            box-shadow: 0 4px 15px var(--proj-glow);
+        }
+
+        .action-link:hover i.arrow-icon {
+            transform: translateX(3px);
+        }
+
+        .file-links-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .sub-file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px dashed rgba(255,255,255,0.03);
+            transition: all 0.2s ease;
+        }
+
+        .sub-file-link:hover {
+            color: white;
+            background: rgba(255,255,255,0.04);
+            border-color: var(--proj-color);
+        }
+
+        .sub-file-link span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            background: rgba(4, 7, 16, 0.9);
+        }
+        
+        .empty-status-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            z-index: 1000;
-            transform: translateY(100px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(10px);
-        }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast i {
-            color: #10b981;
-        }
-
-        /* Responsive Layout */
-        @media (max-width: 1024px) {
-            aside {
-                width: 280px;
-            }
-            main {
-                margin-left: 280px;
-                padding: 2rem;
-            }
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            aside {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                padding: 1.5rem;
-            }
-            main {
-                margin-left: 0;
-                padding: 1.5rem;
-            }
-            .controls-wrapper {
-                flex-direction: column;
-                align-items: stretch;
-            }
+            gap: 0.4rem;
+            margin: 0.5rem 0;
         }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <aside>
-        <div class="logo-area">
-            <div class="logo-icon">
-                <i data-lucide="shield-check"></i>
-            </div>
-            <div class="logo-text">
-                <h1>Habitat AI</h1>
-                <p>Judge Q&A Prep Tool</p>
-            </div>
-        </div>
+    <!-- Header Section -->
+    <header>
+        <div class="hub-tag">Active Project Workspace</div>
+        <h1>4-1 Project Hub</h1>
+        <p class="subtitle">Anisha Paturi &bull; Semester Portfolio workspace for AI, Network Cybersecurity, and Blockchain applications.</p>
+    </header>
 
-        <!-- Progress Widget -->
-        <div class="stats-container">
-            <div class="stat-row">
-                <div class="stat-header">
-                    <span>Reviewed Questions</span>
-                    <span id="reviewed-count-text" class="stat-value">0 / 60</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div id="reviewed-progress-fill" class="progress-bar-fill" style="width: 0%"></div>
-                </div>
-            </div>
-            <div class="stat-row">
-                <div class="stat-header">
-                    <span>Completed Fill-ins</span>
-                    <span id="fillin-count-text" class="stat-value">0 / 17</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div id="fillin-progress-fill" class="progress-bar-fill fill-ins" style="width: 0%"></div>
-                </div>
-            </div>
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-bar">
+            <i data-lucide="search"></i>
+            <input type="text" id="project-search" placeholder="Search tech stacks or project titles..." oninput="filterProjects()">
         </div>
+    </section>
 
-        <!-- Category Sidebar Navigation -->
-        <div>
-            <h3 class="nav-section-title">Navigation</h3>
-            <div class="category-filters">
-                <button class="filter-btn active" data-tab="all" onclick="changeCategoryTab('all')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="layers" style="width: 16px; height: 16px;"></i>
-                        <span>All Sections</span>
-                    </div>
-                    <span class="filter-badge" id="badge-all">60</span>
-                </button>
-                <button class="filter-btn" data-tab="problem" onclick="changeCategoryTab('problem')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="puzzle" style="width: 16px; height: 16px; color: var(--color-problem);"></i>
-                        <span>1. Problem & Validation</span>
-                    </div>
-                    <span class="filter-badge" id="badge-problem">10</span>
-                </button>
-                <button class="filter-btn" data-tab="solution" onclick="changeCategoryTab('solution')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="rocket" style="width: 16px; height: 16px; color: var(--color-solution);"></i>
-                        <span>2. Solution & Fit</span>
-                    </div>
-                    <span class="filter-badge" id="badge-solution">10</span>
-                </button>
-                <button class="filter-btn" data-tab="technical" onclick="changeCategoryTab('technical')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="cpu" style="width: 16px; height: 16px; color: var(--color-technical);"></i>
-                        <span>3. Technical Feasibility</span>
-                    </div>
-                    <span class="filter-badge" id="badge-technical">10</span>
-                </button>
-                <button class="filter-btn" data-tab="market" onclick="changeCategoryTab('market')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="bar-chart-3" style="width: 16px; height: 16px; color: var(--color-market);"></i>
-                        <span>4. Market & Users</span>
-                    </div>
-                    <span class="filter-badge" id="badge-market">10</span>
-                </button>
-                <button class="filter-btn" data-tab="business" onclick="changeCategoryTab('business')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="dollar-sign" style="width: 16px; height: 16px; color: var(--color-business);"></i>
-                        <span>5. Business Model</span>
-                    </div>
-                    <span class="filter-badge" id="badge-business">10</span>
-                </button>
-                <button class="filter-btn" data-tab="tricky" onclick="changeCategoryTab('tricky')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="zap" style="width: 16px; height: 16px; color: var(--color-tricky);"></i>
-                        <span>6. Tricky Questions</span>
-                    </div>
-                    <span class="filter-badge" id="badge-tricky">10</span>
-                </button>
-                <button class="filter-btn" data-tab="checklist" onclick="changeCategoryTab('checklist')">
-                    <div class="filter-btn-left">
-                        <i data-lucide="check-square" style="width: 16px; height: 16px; color: #a7f3d0;"></i>
-                        <span>7. Presentation Checklist</span>
-                    </div>
-                    <span class="filter-badge" id="badge-checklist">17</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Action Items -->
-        <div class="actions-container">
-            <button class="action-btn btn-primary" onclick="exportUpdatedMarkdown()">
-                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
-                <span>Export Markdown</span>
-            </button>
-            <button class="action-btn btn-secondary" onclick="copyAllQAs()">
-                <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
-                <span>Copy All Q&As</span>
-            </button>
-            <button class="action-btn btn-secondary" style="color: #fda4af;" onclick="resetProgress()">
-                <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
-                <span>Reset Progress</span>
-            </button>
-        </div>
-    </aside>
-
-    <!-- Main Workspace -->
+    <!-- Projects Grid -->
     <main>
-        
-        <!-- Header Info Card -->
-        <header class="info-card">
-            <h2>Habitat AI — Judge Q&A Prep Guide</h2>
-            <p class="subtitle">An AI, Blockchain & Cybersecurity-powered Property Planning Ecosystem</p>
-            <div class="extension-badge">Extending: "Home Interior Design Suggestion System using Deep Learning" (IEEE ICCCNT 2024)</div>
-            <p class="description-text">
-                <i data-lucide="info" style="display: inline-block; width: 14px; height: 14px; vertical-align: middle; margin-right: 4px; color: #60a5fa;"></i>
-                Answers below are grounded in your actual PPT + Word doc — modules, tech stack, architecture, and novelty claims. Anywhere a real number (market size, pricing, funding ask, user-research count) isn't in your materials, it's marked <strong>[FILL IN]</strong> with guidance on what to plug in. Type in the input fields below to fill them in; your entries will auto-save to local storage and apply dynamically.
-            </p>
-        </header>
-
-        <!-- Search and Filter Bar -->
-        <section class="controls-wrapper" id="search-controls-row">
-            <div class="search-container">
-                <i data-lucide="search" class="search-icon"></i>
-                <input type="text" id="qa-search-input" placeholder="Search questions or answers..." oninput="handleFilterChange()">
-            </div>
+        <div class="projects-grid" id="projects-container">
             
-            <div class="filter-select-container">
-                <button class="select-filter-btn" id="filter-all" onclick="setViewFilter('all')">
-                    <span>All</span>
-                </button>
-                <button class="select-filter-btn" id="filter-fillin" onclick="setViewFilter('fillin')">
-                    <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
-                    <span>Fill-ins Only</span>
-                </button>
-                <button class="select-filter-btn" id="filter-bookmark" onclick="setViewFilter('bookmark')">
-                    <i data-lucide="star" style="width: 14px; height: 14px;"></i>
-                    <span>Bookmarked</span>
-                </button>
-                <button class="select-filter-btn" id="filter-unreviewed" onclick="setViewFilter('unreviewed')">
-                    <i data-lucide="eye-off" style="width: 14px; height: 14px;"></i>
-                    <span>Unreviewed</span>
-                </button>
-            </div>
-        </section>
+            <!-- Card 1: EvilTwin-AI -->
+            <div class="project-card" style="--proj-color: var(--color-eviltwin); --proj-glow: var(--glow-eviltwin);" data-title="eviltwin-ai" data-tech="python tensorflow scikit-learn scapy node.js">
+                <div class="card-top">
+                    <div class="card-icon" style="color: var(--color-eviltwin);">
+                        <i data-lucide="shield-alert"></i>
+                    </div>
+                    <span class="status-badge">
+                        <i data-lucide="settings" style="width: 12px; height: 12px; animation: spin 4s linear infinite;"></i>
+                        Planning Phase
+                    </span>
+                </div>
+                
+                <div class="card-title-group">
+                    <h2>EvilTwin-AI</h2>
+                    <p class="desc">An AI-powered cybersecurity scanner that models wireless network vulnerabilities and runs digital-twin simulations of Evil Twin access-point spoofing to predict threat susceptibility.</p>
+                </div>
 
-        <!-- Q&A List view -->
-        <section id="qa-cards-section" class="cards-grid">
-            <!-- Dynamic elements will be inserted here -->
-        </section>
+                <div class="tech-stack">
+                    <span class="tech-badge">Python</span>
+                    <span class="tech-badge">TensorFlow</span>
+                    <span class="tech-badge">Scikit-learn</span>
+                    <span class="tech-badge">Scapy</span>
+                    <span class="tech-badge">Node.js</span>
+                </div>
 
-        <!-- Checklist view -->
-        <section id="checklist-section" class="checklist-view">
-            <div class="checklist-card">
-                <h3><i data-lucide="check-square" style="color: #10b981;"></i> Before you present checklist</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5;">
-                    These checklist items represent the specific custom numbers, roles, and project facts that you must decide and write down prior to the pitch. Completing the text boxes on the relevant Q&As will automatically tick these items off.
-                </p>
-                <div class="checklist-items" id="checklist-items-container">
-                    <!-- Checklist items rendered dynamically -->
+                <div class="project-links">
+                    <div class="empty-status-text">
+                        <i data-lucide="folder-open" style="width: 14px; height: 14px;"></i>
+                        No active workspace files found. Ready for setup.
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Empty State -->
-        <div class="empty-state" id="empty-state-view">
-            <i data-lucide="alert-circle"></i>
-            <h3>No results found</h3>
-            <p>We couldn't find any questions matching your query. Try clearing the search bar or changing the filter options.</p>
+            <!-- Card 2: Habitat-AI -->
+            <div class="project-card" style="--proj-color: var(--color-habitat); --proj-glow: var(--glow-habitat);" data-title="habitat-ai" data-tech="react spring boot yolov8 langchain polygon solidity three.js">
+                <div class="card-top">
+                    <div class="card-icon" style="color: var(--color-habitat);">
+                        <i data-lucide="home"></i>
+                    </div>
+                    <span class="status-badge active">
+                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+                        Active Prototype
+                    </span>
+                </div>
+                
+                <div class="card-title-group">
+                    <h2>Habitat-AI</h2>
+                    <p class="desc">A property planning ecosystem combining computer vision architecture suggestions, blockchain property registration, GIS empty-plot analytics, and Three.js 3D walkthroughs.</p>
+                </div>
+
+                <div class="tech-stack">
+                    <span class="tech-badge">React</span>
+                    <span class="tech-badge">Spring Boot</span>
+                    <span class="tech-badge">YOLOv8</span>
+                    <span class="tech-badge">Polygon</span>
+                    <span class="tech-badge">Solidity</span>
+                    <span class="tech-badge">Three.js</span>
+                </div>
+
+                <div class="project-links">
+                    <a href="Habitat-AI/index.html" class="action-link">
+                        <span>Open Prep Guide & Dashboard</span>
+                        <i data-lucide="arrow-right" class="arrow-icon" style="width: 16px; height: 16px;"></i>
+                    </a>
+                    
+                    <div class="file-links-list">
+                        <a href="Habitat-AI/Habitat AI.pptx" class="sub-file-link" title="Open Presentation Deck">
+                            <i data-lucide="presentation" style="width: 14px; height: 14px; color: #f43f5e;"></i>
+                            <span>Project Deck (PPTX)</span>
+                        </a>
+                        <a href="Habitat-AI/Habitat AI.docx" class="sub-file-link" title="Open Project Report">
+                            <i data-lucide="file-text" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+                            <span>Project Report (DOCX)</span>
+                        </a>
+                        <a href="Habitat-AI/Home_Interior_Design_Suggestion_System_using_Deep_Learning.pdf" class="sub-file-link" title="Open IEEE Base Paper">
+                            <i data-lucide="file-digit" style="width: 14px; height: 14px; color: #10b981;"></i>
+                            <span>IEEE Base Paper</span>
+                        </a>
+                        <a href="Habitat-AI/document.md" class="sub-file-link" title="Open Raw Q&A markdown text">
+                            <i data-lucide="code" style="width: 14px; height: 14px; color: #eab308;"></i>
+                            <span>Raw Prep Guide</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Medicare-AI -->
+            <div class="project-card" style="--proj-color: var(--color-medicare); --proj-glow: var(--glow-medicare);" data-title="medicare-ai" data-tech="react pytorch python spring boot postgresql">
+                <div class="card-top">
+                    <div class="card-icon" style="color: var(--color-medicare);">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <span class="status-badge">
+                        <i data-lucide="settings" style="width: 12px; height: 12px; animation: spin 4s linear infinite;"></i>
+                        Planning Phase
+                    </span>
+                </div>
+                
+                <div class="card-title-group">
+                    <h2>Medicare-AI</h2>
+                    <p class="desc">An AI-powered clinical diagnostics system designed to analyze medical imaging data and integrate securely with existing Electronic Health Records (EHR) frameworks.</p>
+                </div>
+
+                <div class="tech-stack">
+                    <span class="tech-badge">React</span>
+                    <span class="tech-badge">PyTorch</span>
+                    <span class="tech-badge">Spring Boot</span>
+                    <span class="tech-badge">PostgreSQL</span>
+                </div>
+
+                <div class="project-links">
+                    <div class="empty-status-text">
+                        <i data-lucide="folder-open" style="width: 14px; height: 14px;"></i>
+                        No active workspace files found. Ready for setup.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Nexus-AI -->
+            <div class="project-card" style="--proj-color: var(--color-nexus); --proj-glow: var(--glow-nexus);" data-title="nexus-ai" data-tech="go grpc docker kubernetes langgraph">
+                <div class="card-top">
+                    <div class="card-icon" style="color: var(--color-nexus);">
+                        <i data-lucide="network"></i>
+                    </div>
+                    <span class="status-badge">
+                        <i data-lucide="settings" style="width: 12px; height: 12px; animation: spin 4s linear infinite;"></i>
+                        Planning Phase
+                    </span>
+                </div>
+                
+                <div class="card-title-group">
+                    <h2>Nexus-AI</h2>
+                    <p class="desc">A multi-agent network orchestration engine designed to optimize distributed data flows and coordinate parallel LLM reasoning paths across cloud microservices.</p>
+                </div>
+
+                <div class="tech-stack">
+                    <span class="tech-badge">Go</span>
+                    <span class="tech-badge">gRPC</span>
+                    <span class="tech-badge">Docker</span>
+                    <span class="tech-badge">Kubernetes</span>
+                    <span class="tech-badge">LangGraph</span>
+                </div>
+
+                <div class="project-links">
+                    <div class="empty-status-text">
+                        <i data-lucide="folder-open" style="width: 14px; height: 14px;"></i>
+                        No active workspace files found. Ready for setup.
+                    </div>
+                </div>
+            </div>
+
         </div>
-
     </main>
 
-    <!-- Toast Notification -->
-    <div class="toast" id="toast-notif">
-        <i data-lucide="check-circle-2"></i>
-        <span id="toast-text">Progress Saved!</span>
-    </div>
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2026 Anisha Paturi &bull; college project workspace portfolio hub.</p>
+    </footer>
 
     <!-- Script Block -->
     <script>
-        // Full Question & Answer Prep Guide Dataset
-        const qaData = [
-          {
-            id: 1,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "Why this problem? Why now?",
-            a: "Property planning today is split across six disconnected players — architects, interior designers, contractors, financial advisors, insurance providers, and government agencies. AI interior-design tools (like the base IEEE paper) are maturing fast, but they only touch the design step. With GIS, blockchain, and AI financial tooling now mature enough to combine, this is the moment to unify the *entire* property lifecycle instead of just one slice of it."
-          },
-          {
-            id: 2,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "Who exactly faces this problem?",
-            a: "Six concrete groups, mapped directly in our target-user funnel: homeowners, landowners, architects & designers, contractors & builders, banks & financial institutions, and insurance companies — each currently served by a separate tool or professional."
-          },
-          {
-            id: 3,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "How did you validate it's real?",
-            a: "We built a gap-analysis directly against the IEEE base paper: it only modifies existing room images and stops there — no land analysis, no ownership verification, no financial planning, no security layer. That gap, mapped against all six stakeholder groups, is our validation starting point. **[FILL IN: if you've also spoken to real homeowners/landowners/architects, add the number and the repeated pain point you heard — this is the line judges will push on hardest.]**",
-            checklistDesc: "Speak to landowners or design professionals, gather count, and define their most repeated planning blocker."
-          },
-          {
-            id: 4,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "Isn't this already solved?",
-            a: "Pieces of it are. Interior-design AI tools solve the design step (that's literally our base paper). Property portals, separate EMI calculators, and government land registries solve other single steps. Nobody combines GIS land intelligence + blockchain-secured ownership + AI financial planning + a 3D digital twin into one ecosystem — that's the gap we're closing."
-          },
-          {
-            id: 5,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "Why did you pick this problem statement?",
-            a: "It lets us extend a real, published IEEE paper rather than starting from a blank page, and it matches our team's combined skill spread — AI/ML, blockchain, cybersecurity, GIS, and fintech — across four novel modules."
-          },
-          {
-            id: 6,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "How critical is this issue?",
-            a: "Construction budget overruns, poor land utilization, and property document fraud are well-documented pain points in the property sector — they're literally the four outcomes listed under \"Fragmented Process Leads To\" on our problem slide. **[FILL IN: cite a national/regional stat on construction cost overruns or property-fraud cases if you have one — it makes this concrete instead of generic.]**",
-            checklistDesc: "Research a national or local statistic on building budget overruns or land dispute cases to quote."
-          },
-          {
-            id: 7,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "Who will benefit the most?",
-            a: "Primary: homeowners and landowners making planning, renovation, or land-investment decisions. Secondary: architects, contractors, banks, and insurers, who get cleaner, verified data flowing into their own workflows."
-          },
-          {
-            id: 8,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "How common is this problem?",
-            a: "Every one of the eight items on our problem slide — high planning costs, budget overruns, construction delays, poor land utilization, property documentation fraud, lack of personalization, complex approvals — recurs across nearly every property project, which is exactly why six separate professions exist just to manage it. **[FILL IN: a survey/interview percentage strengthens this if you've collected one.]**",
-            checklistDesc: "Gather a concrete percentage (e.g. '82% of homeowners we spoke to experienced overruns') to strengthen local backing."
-          },
-          {
-            id: 9,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "How is this problem being solved today?",
-            a: "Manually, through six disconnected services (per our problem slide), or partially through point-AI tools like the base paper's system — which only edits existing room images and never touches land, finance, ownership, or security."
-          },
-          {
-            id: 10,
-            category: "problem",
-            categoryName: "Problem & Validation",
-            q: "What's at stake if this isn't solved?",
-            a: "Budget overruns, fraud-exposed ownership records, poorly utilized land, and slow, opaque approvals — all four flow directly from the fragmentation we mapped on the problem slide."
-          },
-          {
-            id: 11,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "What exactly is your solution?",
-            a: "A unified AI + Blockchain + Cybersecurity property planning ecosystem: from land analysis, to AI-generated architecture and interior design, to financial planning, to blockchain-secured ownership records, to a fully walkable 3D digital twin — one platform instead of six."
-          },
-          {
-            id: 12,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "What's your USP?",
-            a: "Breadth of integration with real technical depth at each layer: a GIS-based land intelligence engine, a blockchain property registry (Polygon/Solidity/IPFS), an AI financial agent, and an interactive digital twin — all layered on top of, not replacing, state-of-the-art interior-design AI."
-          },
-          {
-            id: 13,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "What's innovative here?",
-            a: "Four concrete novelties beyond the base paper: (1) GIS-based land intelligence for *empty* plots (the base paper only works on existing room images), (2) a blockchain property registry for tamper-proof ownership, (3) an AI financial planning agent for EMI/ROI/loan decisions, (4) a full interactive 3D digital twin via Three.js — versus the base paper's 2D-image-only output."
-          },
-          {
-            id: 14,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "Show us your demo.",
-            a: "User inputs lifestyle preferences, plot size, budget, and location → the AI Architect generates a floor plan and layout → the Interior Design AI (YOLOv8, Stable Diffusion, ControlNet, DeepFill) suggests furniture and themes → the Financial Agent computes EMI/ROI → the Blockchain Registry logs ownership → the Digital Twin renders a 3D walkthrough. **[FILL IN: trim this to whichever piece is actually wired up and demoable live.]**",
-            checklistDesc: "Review and narrow down the live demo steps so you don't overpromise what runs on screen."
-          },
-          {
-            id: 15,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "Is this feasible in real life?",
-            a: "Yes — every layer rests on proven, modular tooling rather than research-stage tech: React/Spring Boot for the app, established CV models (YOLOv8, Stable Diffusion, SAM) for design, Polygon/Solidity/IPFS for blockchain, AWS/Docker/Kubernetes for deployment. Each layer is an independently deployable microservice."
-          },
-          {
-            id: 16,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "What stage is your product in?",
-            a: "Working prototype. The architecture and module boundaries are fully defined; the design-AI pipeline builds directly on the base paper's proven methodology. Our architecture diagram includes a dedicated \"Synthetic Data Generation\" layer (Faker/pandas/NumPy), so be ready to say plainly which modules run on real vs. simulated data right now. **[FILL IN: name the specific module(s) that are live end-to-end.]**",
-            checklistDesc: "Explicitly declare which software pipelines are fully wired vs. simulated with mockup data."
-          },
-          {
-            id: 17,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "How will you take this beyond hackathon?",
-            a: "Pilot the strongest single module (likely land planning or interior design, since it builds directly on the IEEE paper) with a small group of real landowners/architects, refine based on feedback, then layer in blockchain registry and financial agent for v1."
-          },
-          {
-            id: 18,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "How did you test usability?",
-            a: "**[FILL IN — if you haven't yet, the safest honest answer is:]** \"We haven't run formal usability testing yet; our next step is sharing the three use-case flows — land planning, AI renovation, and security & finance — with a handful of target users and fixing what breaks.\"",
-            checklistDesc: "Structure your stance on user feedback testing (can use the default template provided)."
-          },
-          {
-            id: 19,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "What makes your approach different?",
-            a: "We didn't add features to an interior-design tool — we mapped the full property lifecycle across all six stakeholder groups first, then built each missing layer (land, ownership, finance, security, visualization) around that journey."
-          },
-          {
-            id: 20,
-            category: "solution",
-            categoryName: "Solution & Product Fit",
-            q: "How do you know this works?",
-            a: "The design layer inherits a published, peer-reviewed methodology (the IEEE base paper) rather than unproven research, and every other layer — blockchain, GIS, fintech APIs — uses production-grade, widely deployed technology, which lowers technical risk versus building everything from scratch."
-          },
-          {
-            id: 21,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "What stack are you using? Why?",
-            a: "Frontend: React, Next.js, Tailwind CSS. Backend: Spring Boot/Java REST APIs with JWT security. AI & LLM layer: GPT/Gemini orchestrated via LangChain with a multi-agent setup (retrieval, debate, judge, planning agents). Computer vision: YOLOv8, Stable Diffusion, ControlNet, DeepFill, SAM. GIS: Google Maps API, OpenStreetMap, QGIS. Blockchain: Polygon, Solidity, IPFS, Web3j. Data: PostgreSQL, MongoDB, Redis, FAISS vector store. Visualization: Three.js, Blender, WebGL. Security: AES-256, OAuth 2.0, Keycloak. Cloud: AWS, Docker, Kubernetes, GitHub Actions. Each choice is the standard, scalable tool for that layer rather than a novel/unproven one."
-          },
-          {
-            id: 22,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "Why didn't you use X tech?",
-            a: "Hackathon time constraints drove most choices — we picked the most widely supported option per layer (e.g., Polygon over Ethereum mainnet for lower gas costs). **[FILL IN: name the specific \"X\" a judge raises and have one sentence on the swap path ready.]**",
-            checklistDesc: "Prepare a defense/alternative route for other blockchain/AI frameworks a technical judge might suggest."
-          },
-          {
-            id: 23,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "Is this working live or simulated?",
-            a: "Be specific and honest here rather than vague: **[FILL IN]** — e.g., \"The frontend flow and [interior design module, since it's closest to the published base paper] are live; the GIS/financial modules currently run on synthetic data generated via Faker/pandas/NumPy for the demo, with real Maps/banking API integration planned for the pilot phase.\"",
-            checklistDesc: "Map out the live status of backend APIs vs static/synthesized responses."
-          },
-          {
-            id: 24,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "How will it scale?",
-            a: "Spring Boot microservices, containerized via Docker and orchestrated with Kubernetes on AWS, with Redis caching and a FAISS vector store for fast retrieval — the architecture is decomposed by layer specifically so each can scale independently."
-          },
-          {
-            id: 25,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "Can this handle 10k users at once?",
-            a: "Not load-tested yet at hackathon stage, but the architecture — Kubernetes orchestration, Redis caching, decoupled REST microservices — is designed to add horizontal scaling and load balancing without redesign."
-          },
-          {
-            id: 26,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "How secure is this?",
-            a: "A dedicated security layer: AES-256 encryption, OAuth 2.0, Keycloak identity management, JWT authentication, plus fraud detection and monitoring/logging built in as first-class architecture components, not bolted on."
-          },
-          {
-            id: 27,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "Did you train your AI model?",
-            a: "No — we use pretrained foundation models for both computer vision (YOLOv8, Stable Diffusion, ControlNet, DeepFill, SAM) and language (GPT/Gemini), the same approach the base IEEE paper takes, to save time. Fine-tuning on domain-specific land/property data is a planned next step, not a blocker today."
-          },
-          {
-            id: 28,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "What if the AI fails?",
-            a: "The core platform — property records, the blockchain ownership registry, document storage, the security layer — keeps functioning independently. The AI layer (design suggestions, financial recommendations) is additive intelligence on top, not the backbone the system depends on to stay correct or secure."
-          },
-          {
-            id: 29,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "Can this integrate with govt/industry platforms?",
-            a: "Yes — our architecture's \"External Services & APIs\" block already includes Government APIs alongside Maps, Weather, and Payment Gateway, so integration points were designed in from day one, not retrofitted."
-          },
-          {
-            id: 30,
-            category: "technical",
-            categoryName: "Technical Feasibility",
-            q: "Show your system architecture.",
-            a: "Users sit at the top, feeding into a frontend/3D-visualization/external-APIs layer, which feeds an AI & LLM layer, backend microservices, and databases, which feed a blockchain layer, cloud/DevOps layer, and security layer — all converging on system outputs: floor plans, 3D models, interior designs, cost estimates, ROI/financial plans, insurance plans, blockchain records, and virtual walkthroughs."
-          },
-          {
-            id: 31,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "Who is your primary user?",
-            a: "Homeowners and landowners making planning, renovation, or land-investment decisions — the entry point of our target-user funnel."
-          },
-          {
-            id: 32,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "Why would they care?",
-            a: "One platform replaces what would otherwise be six separate professional engagements, while reducing fraud risk and replacing guesswork with GIS- and AI-backed land and financial decisions."
-          },
-          {
-            id: 33,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "How big is the market?",
-            a: "**[FILL IN — don't present a guessed number as fact.]** Frame it directionally: the real estate, construction, and proptech sector in your target geography is large and growing; even a small percentage of homeowners/landowners actively planning or renovating in your target city/state is a meaningful addressable market. Pull the latest sector report for your region before presenting a number.",
-            checklistDesc: "Query current regional real estate, building, or proptech market valuation figures."
-          },
-          {
-            id: 34,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "Who are your competitors?",
-            a: "Point solutions, not full-stack competitors: interior-design AI apps (the category our base paper sits in), property listing platforms, standalone EMI/loan calculators, and separate insurance aggregators or land-record portals. None combine GIS + blockchain + finance + design + digital twin in one ecosystem."
-          },
-          {
-            id: 35,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "How will you reach users?",
-            a: "Partnerships with architecture firms, contractors, and developers; campus drives through architecture/civil engineering departments; and local government land offices as a channel for pilot GIS access."
-          },
-          {
-            id: 36,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "What adoption do you expect in 6 months?",
-            a: "**[FILL IN with a real pilot target]** — e.g., a defined number of landowner/architect partners in one target city for a pilot, before scaling.",
-            checklistDesc: "Decide on a concrete six-month pilot adoption milestone (e.g. 5 local agencies, 100 mock properties)."
-          },
-          {
-            id: 37,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "What's your edge over competitors?",
-            a: "We don't compete on one feature — we unify six fragmented services into one ecosystem, with blockchain-grade trust and AI-backed financial intelligence neither pure design tools nor pure fintech tools offer."
-          },
-          {
-            id: 38,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "How will you build trust?",
-            a: "A blockchain-based, tamper-proof ownership registry plus a transparent fraud-detection layer are trust mechanisms built into the architecture itself, not just marketing claims. **[FILL IN: add pilot testimonials once you have them.]**",
-            checklistDesc: "Design a plan for pilot testimonial collection or verification."
-          },
-          {
-            id: 39,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "Who influences your users' decisions?",
-            a: "Architects, contractors, and financial advisors — the same professionals our \"Proposed Solution\" wheel embeds as stakeholder nodes. They're positioned to become referral sources rather than displaced competitors."
-          },
-          {
-            id: 40,
-            category: "market",
-            categoryName: "Market & Users",
-            q: "How do you keep users engaged?",
-            a: "Immersive 3D digital-twin walkthroughs and ongoing lifecycle touchpoints — loan tracking, fraud monitoring alerts, document vault access — turn this into a recurring relationship rather than a one-time design session."
-          },
-          {
-            id: 41,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "How will you make money?",
-            a: "Freemium: basic AI design and land insights free, with premium access to the financial agent, blockchain registry, and digital-twin walkthroughs — plus B2B licensing to the architects, contractors, banks, and insurers already embedded as stakeholders in our solution model."
-          },
-          {
-            id: 42,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "Who pays – users or orgs?",
-            a: "Both: individual homeowners/landowners for premium personal use, and institutions (banks, insurers, developers) paying for bulk or integrated access for their own clients."
-          },
-          {
-            id: 43,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "What's your pricing?",
-            a: "**[FILL IN with a real number]** — anchor it to the cost the platform is replacing (a fraction of typical architect/consultant fees) rather than picking an arbitrary figure.",
-            checklistDesc: "Anchor your pricing levels to real-world consultant fees or standard SaaS baselines."
-          },
-          {
-            id: 44,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "How do you sustain if users don't pay?",
-            a: "B2B and B2B2C partnerships — banks and insurers benefit from cleaner, verified leads and risk data; government partners benefit from fraud-reduction in land records — give revenue paths independent of direct consumer payment."
-          },
-          {
-            id: 45,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "What's your long-term vision?",
-            a: "Grow from a hackathon prototype into a full property-lifecycle platform aligned with smart-city and smart-home initiatives, supporting the entire journey from empty land to a lived-in, securely-owned home."
-          },
-          {
-            id: 46,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "How much funding would you need?",
-            a: "**[FILL IN with a real ask]** tied to a concrete milestone — e.g., piloting the GIS and blockchain modules with real data partners.",
-            checklistDesc: "Define a clear investment figure paired with exact operational roadmap milestones."
-          },
-          {
-            id: 47,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "What if a big company copies?",
-            a: "Depth is the moat: replicating four integrated novel modules (GIS land intelligence, blockchain registry, financial agent, digital twin) on top of an already-validated design pipeline takes real time, and blockchain-secured registry data builds a switching-cost moat as it accumulates."
-          },
-          {
-            id: 48,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "How soon will you break even?",
-            a: "**[FILL IN with real unit economics]** once pricing and a realistic paid-user target are set — don't quote a horizon you can't defend under follow-up questions.",
-            checklistDesc: "Estimate cash runway, operating margins, and the user count required to hit breakeven."
-          },
-          {
-            id: 49,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "Do you have partnerships in mind?",
-            a: "Architecture/civil engineering colleges, local developers and contractors for pilots, and potentially banks, insurers, or government land-record offices for GIS data access. **[FILL IN: name any conversations actually in progress.]**",
-            checklistDesc: "Outline active/intended dialogues with potential pilot firms or organizations."
-          },
-          {
-            id: 50,
-            category: "business",
-            categoryName: "Business & Sustainability",
-            q: "What's your 5-year plan?",
-            a: "Hackathon prototype → incubator → single-city/state pilot → national scale as a smart-city-aligned proptech platform, with the four novel modules also pursued for conference/journal publication per our research-gap analysis."
-          },
-          {
-            id: 51,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "Why your team? Why not others?",
-            a: "Habitat AI's six architectural layers — AI/CV, GIS, blockchain, fintech, cybersecurity, 3D visualization — need a rare skill spread for a four-person team, backed by domain mentorship from Dr. Vishal Reddy."
-          },
-          {
-            id: 52,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "What if nobody wants this?",
-            a: "We'd validate fastest by isolating the single sub-use-case closest to market-ready — likely the interior-design/land-planning module, since it builds directly on a published methodology — with a small group of real landowners or architects before investing further in the other three novelty modules."
-          },
-          {
-            id: 53,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "What if a competitor launches tomorrow?",
-            a: "The integration depth (GIS + blockchain + finance + digital twin layered on proven design AI) isn't an overnight build. Our edge would be speed to pilot and trust built with the architect/contractor network already embedded in our solution model."
-          },
-          {
-            id: 54,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "What's your Plan B if this fails?",
-            a: "Pivot to whichever single module shows the strongest standalone demand — most likely the blockchain property registry or the GIS land-intelligence engine — reusing the same team skillset and architecture."
-          },
-          {
-            id: 55,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "How will you execute after hackathon?",
-            a: "Two parallel tracks: a pilot with real users on the strongest module, and pursuing the four novel contributions (GIS intelligence, blockchain registry, financial agent, digital twin) for conference/journal publication, since we've already framed them as extensions of a peer-reviewed base paper."
-          },
-          {
-            id: 56,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "Did you use version control?",
-            a: "**[FILL IN — confirm with your actual repo.]** GitHub Actions is already part of our DevOps stack for CI/CD, so this should be a yes with commit history to point to.",
-            checklistDesc: "Double check your team's Git branch structure and verify GitHub Actions setup is ready to claim."
-          },
-          {
-            id: 57,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "What was your biggest technical bottleneck?",
-            a: "Integrating six distinct technical layers — AI/CV, GIS, blockchain, fintech logic, cybersecurity, 3D visualization — into one coherent pipeline within hackathon time. We mitigated this by keeping each layer as an independent microservice and using a multi-agent LLM layer (retrieval, debate, judge, planning agents) to coordinate decisions across modules rather than hard-coding cross-module logic."
-          },
-          {
-            id: 58,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "Which part of the solution did each member build?",
-            a: "**[FILL IN with actual roles]** — e.g., \"AI/Design pipeline: [name], Blockchain/Security: [name], GIS/Financial Agent: [name], Frontend/3D Visualization: [name].\" Have this ready verbatim; it's one of the most commonly asked questions and a vague answer here reads badly.",
-            checklistDesc: "Clearly delegate and list exact features built by each developer in the pitch team."
-          },
-          {
-            id: 59,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "What if regulations block you?",
-            a: "We're aware property registration and financial advice are regulated activities. Our blockchain registry is designed to complement, not replace, statutory government land records, and the financial agent is positioned as advisory/decision-support rather than a licensed lending product — that separation is already built into the architecture, not an afterthought."
-          },
-          {
-            id: 60,
-            category: "tricky",
-            categoryName: "Tricky & Brain-Stuck Qs",
-            q: "Why should we care about your solution?",
-            a: "Buying or building a property is one of the largest financial and emotional decisions a person makes, and today it's handled across six disconnected, often untrusted parties. Habitat AI brings AI-driven design intelligence, blockchain-grade trust, and clear financial planning into one ecosystem — extending real, peer-reviewed research into something people can actually use across their property's full lifecycle."
-          }
-        ];
-
-        // Active State variables
-        let activeTab = 'all';
-        let currentFilter = 'all'; // all, fillin, bookmark, unreviewed
-        let searchQ = '';
-        
-        // Load data on startup
+        // Initialize lucide icons
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            renderDashboard();
-            updateProgressCounters();
         });
 
-        // HTML escaping helper
-        function escapeHTML(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        // Check if card contains fill-in
-        function hasFillInPlaceholder(text) {
-            return /\*\*\[FILL\s+IN(?:\s*[:\—\-]\s*(.*?))?\]\*\*/i.test(text);
-        }
-
-        // Generate card HTML content, parsing placeholders into editable inline elements
-        function parseAnswerToHTML(text, qId) {
-            const regex = /\*\*\[FILL\s+IN(?:\s*[:\—\-]\s*(.*?))?\]\*\*/gi;
-            let match;
-            let formattedText = text;
-            const matches = [...text.matchAll(regex)];
+        // Filter projects by search query (title or tech stack)
+        function filterProjects() {
+            const query = document.getElementById('project-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.project-card');
             
-            if (matches.length > 0) {
-                formattedText = text.replace(regex, (fullMatch, instructionText) => {
-                    const savedVal = localStorage.getItem(`fill_in_${qId}`) || '';
-                    const hasVal = savedVal.trim() !== '';
-                    const displayVal = hasVal ? savedVal : `[FILL IN: ${instructionText || 'Double-click to fill'}]`;
-                    const statusClass = hasVal ? 'filled' : 'empty';
-                    return `<span class="inline-fill-in ${statusClass}" onclick="focusFillIn(${qId})">${escapeHTML(displayVal)}</span>`;
-                });
-            }
-            return formattedText;
-        }
-
-        // Focus fill-in textarea
-        function focusFillIn(qId) {
-            const textarea = document.getElementById(`editor-text-${qId}`);
-            if (textarea) {
-                textarea.focus();
-                textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-
-        // Tab state management
-        function changeCategoryTab(tabName) {
-            activeTab = tabName;
-            
-            // Toggle active styles on sidebar filters
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                if (btn.getAttribute('data-tab') === tabName) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-
-            // Adjust main layouts based on Tab type
-            const controls = document.getElementById('search-controls-row');
-            const cardGrid = document.getElementById('qa-cards-section');
-            const checklistSec = document.getElementById('checklist-section');
-
-            if (tabName === 'checklist') {
-                controls.style.display = 'none';
-                cardGrid.style.display = 'none';
-                checklistSec.style.display = 'flex';
-                renderChecklist();
-            } else {
-                controls.style.display = 'flex';
-                cardGrid.style.display = 'grid';
-                checklistSec.style.display = 'none';
-                renderDashboard();
-            }
-        }
-
-        // Search & Filter controls
-        function setViewFilter(filterType) {
-            currentFilter = filterType;
-            document.querySelectorAll('.select-filter-btn').forEach(btn => {
-                if (btn.id === `filter-${filterType}`) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            renderDashboard();
-        }
-
-        function handleFilterChange() {
-            searchQ = document.getElementById('qa-search-input').value.toLowerCase();
-            renderDashboard();
-        }
-
-        // Get count details for category badges
-        function getCounts() {
-            let counts = {
-                all: 60,
-                problem: 0,
-                solution: 0,
-                technical: 0,
-                market: 0,
-                business: 0,
-                tricky: 0
-            };
-            qaData.forEach(item => {
-                if (counts[item.category] !== undefined) {
-                    counts[item.category]++;
-                }
-            });
-            return counts;
-        }
-
-        // Progress bar status update
-        function updateProgressCounters() {
-            let totalReviewed = 0;
-            let totalFilled = 0;
-            let expectedFillIns = 0;
-
-            qaData.forEach(item => {
-                const reviewed = localStorage.getItem(`reviewed_${item.id}`) === 'true';
-                if (reviewed) totalReviewed++;
-
-                const hasFill = hasFillInPlaceholder(item.a);
-                if (hasFill) {
-                    expectedFillIns++;
-                    const userVal = localStorage.getItem(`fill_in_${item.id}`) || '';
-                    if (userVal.trim() !== '') {
-                        totalFilled++;
-                    }
-                }
-            });
-
-            // Update UI elements
-            document.getElementById('reviewed-count-text').innerText = `${totalReviewed} / 60`;
-            const reviewedPct = (totalReviewed / 60) * 100;
-            document.getElementById('reviewed-progress-fill').style.width = `${reviewedPct}%`;
-
-            document.getElementById('fillin-count-text').innerText = `${totalFilled} / ${expectedFillIns}`;
-            const fillInPct = (totalFilled / expectedFillIns) * 100;
-            document.getElementById('fillin-progress-fill').style.width = `${fillInPct}%`;
-        }
-
-        // Handle Text Area change
-        function handleFillInInput(qId, value) {
-            localStorage.setItem(`fill_in_${qId}`, value);
-            
-            // Re-render answer inline values inside Q&A card
-            const answerElement = document.getElementById(`answer-text-${qId}`);
-            const baseItem = qaData.find(x => x.id === qId);
-            if (answerElement && baseItem) {
-                answerElement.innerHTML = parseAnswerToHTML(baseItem.a, qId);
-            }
-
-            updateProgressCounters();
-        }
-
-        // Copy item to clipboard
-        function copyQA(qId) {
-            const item = qaData.find(x => x.id === qId);
-            if (!item) return;
-
-            // Substitute filled value if any
-            const regex = /\*\*\[FILL\s+IN(?:\s*[:\—\-]\s*(.*?))?\]\*\*/gi;
-            const rawAns = item.a;
-            const finalAnsText = rawAns.replace(regex, (fullMatch, instructionText) => {
-                const savedVal = localStorage.getItem(`fill_in_${qId}`) || '';
-                return savedVal.trim() !== '' ? savedVal.trim() : fullMatch;
-            });
-
-            const copyString = `Q: ${item.q}\n\nA: ${finalAnsText}`;
-            navigator.clipboard.writeText(copyString).then(() => {
-                showToast("Copied Q&A to clipboard!");
-            });
-        }
-
-        // Toggle bookmarks
-        function toggleBookmark(qId) {
-            const key = `bookmark_${qId}`;
-            const isBookmarked = localStorage.getItem(key) === 'true';
-            localStorage.setItem(key, !isBookmarked);
-            
-            const btn = document.getElementById(`bookmark-btn-${qId}`);
-            if (btn) {
-                if (!isBookmarked) {
-                    btn.classList.add('active');
-                    btn.innerHTML = `<i data-lucide="star" style="width: 18px; height: 18px; fill: #fbbf24; color: #fbbf24;"></i>`;
-                } else {
-                    btn.classList.remove('active');
-                    btn.innerHTML = `<i data-lucide="star" style="width: 18px; height: 18px;"></i>`;
-                }
-            }
-            lucide.createIcons();
-            if (currentFilter === 'bookmark') renderDashboard();
-        }
-
-        // Toggle review status
-        function toggleReviewed(qId) {
-            const key = `reviewed_${qId}`;
-            const isReviewed = localStorage.getItem(key) === 'true';
-            localStorage.setItem(key, !isReviewed);
-            
-            const btn = document.getElementById(`review-btn-${qId}`);
-            if (btn) {
-                if (!isReviewed) {
-                    btn.classList.add('active');
-                    btn.innerHTML = `<i data-lucide="eye" style="width: 18px; height: 18px; color: #10b981;"></i>`;
-                } else {
-                    btn.classList.remove('active');
-                    btn.innerHTML = `<i data-lucide="eye-off" style="width: 18px; height: 18px;"></i>`;
-                }
-            }
-            updateProgressCounters();
-            lucide.createIcons();
-            if (currentFilter === 'unreviewed') renderDashboard();
-        }
-
-        // Show Toast Notifications
-        function showToast(message) {
-            const toast = document.getElementById('toast-notif');
-            document.getElementById('toast-text').innerText = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2500);
-        }
-
-        // Render main Cards list based on tab, category, search filters
-        function renderDashboard() {
-            const cardsGrid = document.getElementById('qa-cards-section');
-            const emptyState = document.getElementById('empty-state-view');
-            cardsGrid.innerHTML = '';
-            
-            let filteredData = qaData.filter(item => {
-                // Category tabs
-                if (activeTab !== 'all' && item.category !== activeTab) return false;
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                const tech = card.getAttribute('data-tech');
                 
-                // Sidebar search filters
-                if (searchQ !== '') {
-                    const matchQ = item.q.toLowerCase().includes(searchQ);
-                    const matchA = item.a.toLowerCase().includes(searchQ);
-                    if (!matchQ && !matchA) return false;
+                if (title.includes(query) || tech.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
                 }
-
-                // Header toggle buttons filters
-                if (currentFilter === 'fillin') {
-                    return hasFillInPlaceholder(item.a);
-                } else if (currentFilter === 'bookmark') {
-                    return localStorage.getItem(`bookmark_${item.id}`) === 'true';
-                } else if (currentFilter === 'unreviewed') {
-                    return localStorage.getItem(`reviewed_${item.id}`) !== 'true';
-                }
-
-                return true;
             });
-
-            if (filteredData.length === 0) {
-                cardsGrid.style.display = 'none';
-                emptyState.style.display = 'flex';
-                return;
-            }
-
-            cardsGrid.style.display = 'grid';
-            emptyState.style.display = 'none';
-
-            filteredData.forEach(item => {
-                const isBookmarked = localStorage.getItem(`bookmark_${item.id}`) === 'true';
-                const isReviewed = localStorage.getItem(`reviewed_${item.id}`) === 'true';
-                const hasFill = hasFillInPlaceholder(item.a);
-                
-                let fillInInstruction = '';
-                if (hasFill) {
-                    const regex = /\*\*\[FILL\s+IN(?:\s*[:\—\-]\s*(.*?))?\]\*\*/i;
-                    const match = item.a.match(regex);
-                    if (match && match[1]) {
-                        fillInInstruction = match[1];
-                    } else {
-                        // Extract fallback if format differs slightly
-                        const detailsRegex = /FILL IN\s*[:\—\-]?\s*(.*?)(?=\])/i;
-                        const fallbackMatch = item.a.match(detailsRegex);
-                        fillInInstruction = fallbackMatch ? fallbackMatch[1] : "Provide custom stats/details";
-                    }
-                }
-
-                const savedFillVal = localStorage.getItem(`fill_in_${item.id}`) || '';
-
-                const card = document.createElement('div');
-                card.className = `qa-card`;
-                card.style.setProperty('--cat-color', `var(--color-${item.category})`);
-                card.style.setProperty('--cat-glow', `var(--glow-${item.category})`);
-                
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div class="card-badge-row">
-                            <span class="card-num">Q${item.id}</span>
-                            <span class="cat-badge" style="--cat-color: var(--color-${item.category})">
-                                <i data-lucide="${getCategoryIcon(item.category)}" style="width: 12px; height: 12px;"></i>
-                                ${item.categoryName}
-                            </span>
-                        </div>
-                        <div class="card-actions">
-                            <button class="icon-btn ${isBookmarked ? 'active' : ''} bookmark-btn" id="bookmark-btn-${item.id}" onclick="toggleBookmark(${item.id})" title="Bookmark Question">
-                                <i data-lucide="star" style="width: 18px; height: 18px; ${isBookmarked ? 'fill: #fbbf24; color: #fbbf24;' : ''}"></i>
-                            </button>
-                            <button class="icon-btn ${isReviewed ? 'active' : ''} review-btn" id="review-btn-${item.id}" onclick="toggleReviewed(${item.id})" title="Mark Reviewed">
-                                <i data-lucide="${isReviewed ? 'eye' : 'eye-off'}" style="width: 18px; height: 18px; ${isReviewed ? 'color: #10b981;' : ''}"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <h4 class="card-question">${escapeHTML(item.q)}</h4>
-                    
-                    <p class="card-answer" id="answer-text-${item.id}">
-                        ${parseAnswerToHTML(item.a, item.id)}
-                    </p>
-                    
-                    ${hasFill ? `
-                    <div class="fill-in-editor">
-                        <div class="editor-header ${item.category}">
-                            <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
-                            <span>Fill-in requirement</span>
-                        </div>
-                        <p class="fill-in-instruction"><strong>Prompt:</strong> ${escapeHTML(fillInInstruction)}</p>
-                        <textarea class="fill-in-textarea" id="editor-text-${item.id}" 
-                            placeholder="Type here to replace placeholder in the markdown output..." 
-                            oninput="handleFillInInput(${item.id}, this.value)">${escapeHTML(savedFillVal)}</textarea>
-                    </div>
-                    ` : ''}
-                    
-                    <div class="card-footer">
-                        <button class="card-footer-action-btn" onclick="copyQA(${item.id})">
-                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
-                            <span>Copy Q&A</span>
-                        </button>
-                        
-                        <button class="card-footer-action-btn" onclick="toggleReviewed(${item.id})">
-                            <i data-lucide="check" style="width: 14px; height: 14px; color: #10b981;"></i>
-                            <span>${isReviewed ? 'Reviewed' : 'Mark Reviewed'}</span>
-                        </button>
-                    </div>
-                `;
-                cardsGrid.appendChild(card);
-            });
-            lucide.createIcons();
-        }
-
-        // Get category icon mapping
-        function getCategoryIcon(cat) {
-            switch(cat) {
-                case 'problem': return 'puzzle';
-                case 'solution': return 'rocket';
-                case 'technical': return 'cpu';
-                case 'market': return 'bar-chart-3';
-                case 'business': return 'dollar-sign';
-                case 'tricky': return 'zap';
-                default: return 'help-circle';
-            }
-        }
-
-        // Render checklist tab content
-        function renderChecklist() {
-            const container = document.getElementById('checklist-items-container');
-            container.innerHTML = '';
-
-            const fillInQs = qaData.filter(item => hasFillInPlaceholder(item.a));
-
-            fillInQs.forEach((item, index) => {
-                const userVal = localStorage.getItem(`fill_in_${item.id}`) || '';
-                const isCompleted = userVal.trim() !== '';
-
-                const el = document.createElement('div');
-                el.className = `checklist-item ${isCompleted ? 'checked' : ''}`;
-                el.onclick = () => {
-                    // Navigate to specific card in "All Tab" and focus editor
-                    changeCategoryTab('all');
-                    setTimeout(() => {
-                        focusFillIn(item.id);
-                    }, 100);
-                };
-
-                el.innerHTML = `
-                    <div class="checklist-checkbox">
-                        <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-                    </div>
-                    <div class="checklist-content">
-                        <div class="checklist-title">Q${item.id}: ${escapeHTML(item.q)}</div>
-                        <div class="checklist-desc">${escapeHTML(item.checklistDesc || 'Define details for this Q&A placeholder.')}</div>
-                        <div class="checklist-link">
-                            <i data-lucide="arrow-right" style="width: 10px; height: 10px;"></i>
-                            <span>Go to Question (${isCompleted ? 'Edit response' : 'Fill now'})</span>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(el);
-            });
-            lucide.createIcons();
-        }
-
-        // Clear user local storage progress
-        function resetProgress() {
-            if (confirm("Are you sure you want to reset all progress? This will delete all your custom fill-ins, bookmarks, and reviewed statuses.")) {
-                // Clear keys matching our patterns
-                for (let i = localStorage.length - 1; i >= 0; i--) {
-                    const key = localStorage.key(i);
-                    if (key.startsWith('fill_in_') || key.startsWith('bookmark_') || key.startsWith('reviewed_')) {
-                        localStorage.removeItem(key);
-                    }
-                }
-                showToast("All progress reset successfully!");
-                renderDashboard();
-                updateProgressCounters();
-                if (activeTab === 'checklist') renderChecklist();
-            }
-        }
-
-        // Copy all Q&As to clipboard
-        function copyAllQAs() {
-            let compiledText = "# Habitat AI — Judge Q&A Prep Guide\n\n";
-            let currentCategory = '';
-            
-            qaData.forEach(item => {
-                if (currentCategory !== item.categoryName) {
-                    currentCategory = item.categoryName;
-                    compiledText += `\n## ${currentCategory}\n\n`;
-                }
-
-                const regex = /\*\*\[FILL\s+IN(?:\s*[:\—\-]\s*(.*?))?\]\*\*/gi;
-                const finalAnsText = item.a.replace(regex, (fullMatch, instructionText) => {
-                    const savedVal = localStorage.getItem(`fill_in_${item.id}`) || '';
-                    return savedVal.trim() !== '' ? savedVal.trim() : fullMatch;
-                });
-
-                compiledText += `**Q${item.id}. ${item.q}**\n${finalAnsText}\n\n`;
-            });
-
-            navigator.clipboard.writeText(compiledText).then(() => {
-                showToast("Copied all Q&As to clipboard!");
-            });
-        }
-
-        // Export updated markdown back to disk / client browser downloads folder
-        function exportUpdatedMarkdown() {
-            let compiledText = "# Habitat AI — Judge Q&A Prep Guide\n\n";
-            compiledText += "*An AI, Blockchain & Cybersecurity-powered Property Planning Ecosystem*\n";
-            compiledText += "*Extending: \"Home Interior Design Suggestion System using Deep Learning\" (IEEE ICCCNT 2024)*\n\n";
-            compiledText += "> Answers below are grounded in your actual PPT + Word doc — modules, tech stack, architecture, and novelty claims. Anywhere a real number (market size, pricing, funding ask, user-research count) isn't in your materials, it's marked **[FILL IN]** with guidance on what to plug in — don't present a placeholder as fact on stage.\n\n---\n";
-
-            let currentCategory = '';
-            
-            qaData.forEach(item => {
-                if (currentCategory !== item.categoryName) {
-                    currentCategory = item.categoryName;
-                    // Adding icons matching raw document headers
-                    let headerEmoji = '🧩';
-                    if (item.category === 'solution') headerEmoji = '🚀';
-                    else if (item.category === 'technical') headerEmoji = '⚙️';
-                    else if (item.category === 'market') headerEmoji = '📊';
-                    else if (item.category === 'business') headerEmoji = '💰';
-                    else if (item.category === 'tricky') headerEmoji = '🌀';
-
-                    compiledText += `\n## ${headerEmoji} ${currentCategory} (Q${getStartNum(item.category)}–Q${getEndNum(item.category)})\n\n`;
-                }
-
-                const regex = /\*\*\[FILL\s+IN(?:\s*[:\—\-]\s*(.*?))?\]\*\*/gi;
-                const finalAnsText = item.a.replace(regex, (fullMatch, instructionText) => {
-                    const savedVal = localStorage.getItem(`fill_in_${item.id}`) || '';
-                    return savedVal.trim() !== '' ? `**${savedVal.trim()}**` : fullMatch;
-                });
-
-                compiledText += `**Q${item.id}. ${item.q}**\n${finalAnsText}\n\n`;
-            });
-
-            compiledText += "---\n\n### Before you present\n";
-            compiledText += "Fill in every **[FILL IN]** above with real numbers/names — judges will follow up on exactly those points (validation counts, live-vs-simulated specifics, pricing, funding ask, team roles). Everything else is already grounded in your deck and document and should hold up under questioning as-is.\n";
-
-            // Trigger file download in client browser
-            const blob = new Blob([compiledText], { type: 'text/markdown;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", "Habitat_AI_Judge_QA_Prep_Guide_Updated.md");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("Exported Markdown document!");
-        }
-
-        // Helpers to get correct ranges for Markdown formatting
-        function getStartNum(category) {
-            switch(category) {
-                case 'problem': return 1;
-                case 'solution': return 11;
-                case 'technical': return 21;
-                case 'market': return 31;
-                case 'business': return 41;
-                case 'tricky': return 51;
-            }
-        }
-
-        function getEndNum(category) {
-            switch(category) {
-                case 'problem': return 10;
-                case 'solution': return 20;
-                case 'technical': return 30;
-                case 'market': return 40;
-                case 'business': return 50;
-                case 'tricky': return 60;
-            }
         }
     </script>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </body>
 </html>
