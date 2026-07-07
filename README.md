@@ -18,6 +18,7 @@ AgentShield AI is an advanced, autonomous multi-agent framework designed to secu
 * **Domain of the Project:** Cyber Security + AI
 * **Team Number:** 13
 * **Project Status:** Under Active Planning / Development
+* **GitHub Repository Topics:** `iac-security`, `infrastructure-as-code`, `terraform`, `cloudformation`, `kubernetes`, `helm`, `multi-cloud`, `aws`, `azure`, `gcp`, `llm-agents`, `langgraph`, `rag`, `retrieval-augmented-generation`, `devsecops`, `static-analysis`, `checkov`, `cyber-security`, `ai-agents`, `security-automation`
 * **Contributors (Team Members):**
   * **Anisha Paturi** (Roll No: `23BD1A050E`) - *Contact: 8639781680*
   * **Parinamika Bhanu** (Roll No: `23BD1A0518`) - *Contact: 9392508430*
