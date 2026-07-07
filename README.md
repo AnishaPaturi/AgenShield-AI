@@ -112,29 +112,29 @@ graph TD
 ## 📅 Implementation Roadmap
 
 ### Phase 1: Foundation and Ingestion Parsers (Weeks 1-3)
-* Project structure setup and CLI skeleton.
-* Implementation of local HCL, JSON, and YAML parsers.
-* Static scanner integration for resource attribute enrichment.
+* [x] Project structure setup and CLI skeleton.
+* [x] Implementation of local HCL, JSON, and YAML parsers.
+* [x] Static scanner integration for resource attribute enrichment.
 
 ### Phase 2: Multi-Cloud Knowledge Base & RAG (Weeks 4-6)
-* Setup of the vector database and scraping scheduler.
-* Ingestion of CIS Benchmarks and cloud provider security documentation.
-* Optimization of semantic retrieval matching algorithms.
+* [ ] Setup of the vector database and scraping scheduler.
+* [ ] Ingestion of CIS Benchmarks and cloud provider security documentation.
+* [ ] Optimization of semantic retrieval matching algorithms.
 
 ### Phase 3: Core Multi-Agent Network (Weeks 7-9)
-* Implementation of the LangGraph state machine.
-* Prompt engineering and validation of Analyst and Remediation Agents.
-* JSON schema output structures (Pydantic models).
+* [ ] Implementation of the LangGraph state machine.
+* [ ] Prompt engineering and validation of Analyst and Remediation Agents.
+* [ ] JSON schema output structures (Pydantic models).
 
 ### Phase 4: Patching & Auto-Validation (Weeks 10-12)
-* AST-level patch application logic.
-* Auto-validation harness using local toolchains (`terraform validate`, `cfn-lint`).
-* Developer feedback loop schema implementation.
+* [ ] AST-level patch application logic.
+* [ ] Auto-validation harness using local toolchains (`terraform validate`, `cfn-lint`).
+* [ ] Developer feedback loop schema implementation.
 
 ### Phase 5: CI/CD Plugins & Reporting (Weeks 13-14)
-* GitHub Actions runner setup.
-* Final reports generation (Markdown & JSON exports).
-* System benchmarking against vulnerable repository datasets (e.g., Terragoat).
+* [ ] GitHub Actions runner setup.
+* [ ] Final reports generation (Markdown & JSON exports).
+* [ ] System benchmarking against vulnerable repository datasets (e.g., Terragoat).
 
 ---
 
@@ -158,13 +158,29 @@ AgentShield-AI/
     │   ├── agents/          # Autonomous agents modules
     │   ├── knowledge_base/  # Vector storage and ingestion
     │   ├── parsers/         # Ingestion and syntax parsing (HCL, YAML, JSON)
+    │   │   ├── __init__.py
+    │   │   ├── cfn_parser.py # CloudFormation JSON/YAML parser
+    │   │   ├── k8s_parser.py # Kubernetes multi-document YAML parser
+    │   │   ├── tf_parser.py  # HCL/Terraform parser
+    │   │   ├── line_loader.py# Custom line number tracking SafeLoader
+    │   │   └── schemas.py    # Shared Pydantic data schemas
     │   └── utils/           # Utility helpers
+    │       ├── __init__.py
+    │       └── checkov_runner.py # Checkov static analysis runner
     ├── tests/               # Unit and integration test suite
     │   ├── __init__.py
-    │   └── test_cli.py
+    │   ├── fixtures/
+    │   ├── test_checkov_runner.py # Checkov integration tests
+    │   ├── test_cli.py            # CLI command tests
+    │   ├── test_parsers.py        # CloudFormation and Kubernetes parser tests
+    │   └── tf_parser_test.py      # HCL/Terraform parser tests
     └── infrastructure/      # Test IaC files
-        └── terraform/
-            └── main.tf      # Sample vulnerable AWS S3 bucket template
+        ├── terraform/
+        │   └── main.tf      # Sample vulnerable AWS S3 bucket template
+        ├── cloudformation/
+        │   └── s3_bucket.json # Sample vulnerable CloudFormation JSON template
+        └── kubernetes/
+            └── pod_root.yaml  # Sample vulnerable/safe Kubernetes YAML manifests
 ```
 
 ---
@@ -209,6 +225,12 @@ OPENROUTER_API_KEY=your-openrouter-api-key-here
 Run the minimal CLI scanner using `uv`:
 ```bash
 uv run python -m agentshield scan --path ./infrastructure/terraform/
+```
+
+### 5. Run the Test Suite
+To verify that all parsers, integration runners, and CLI command bindings work properly, execute the test suite:
+```bash
+uv run pytest
 ```
 
 ---

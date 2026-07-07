@@ -21,22 +21,37 @@ import hcl2
 from pathlib import Path
 
 
-def _strip_quotes(value):
+def _strip_quotes_and_unpack(value):
     """
-    python-hcl2 sometimes returns plain string values with literal
-    surrounding quotes still attached (e.g. '"us-east-1"' instead of
-    'us-east-1'). Clean that up recursively across nested structures.
+    python-hcl2 (specifically bc-python-hcl2) wraps scalar attributes in single-element
+    lists (e.g. bucket = ["my-bucket"]), block declarations in lists of dicts, and list
+    attributes in list-of-lists (e.g. cidr_blocks = [["0.0.0.0/0"]]).
+    
+    This function recursively strips surrounding quotes from keys and string values,
+    and unpacks lists to match expected standard shapes.
     """
     if isinstance(value, str):
         if len(value) >= 2 and value.startswith('"') and value.endswith('"'):
             return value[1:-1]
         return value
     elif isinstance(value, list):
-        return [_strip_quotes(v) for v in value]
+        if len(value) == 1:
+            item = value[0]
+            if isinstance(item, dict):
+                # List wrapping a dictionary (block representation). Keep list structure.
+                return [_strip_quotes_and_unpack(item)]
+            elif isinstance(item, list):
+                # List wrapping a list (e.g. list attribute). Unpack outer list and clean items.
+                return [_strip_quotes_and_unpack(x) for x in item]
+            else:
+                # List wrapping a scalar. Unpack the list.
+                return _strip_quotes_and_unpack(item)
+        else:
+            return [_strip_quotes_and_unpack(v) for v in value]
     elif isinstance(value, dict):
         return {
             (k[1:-1] if isinstance(k, str) and k.startswith('"') and k.endswith('"') else k):
-            _strip_quotes(v)
+            _strip_quotes_and_unpack(v)
             for k, v in value.items()
             if k != "__is_block__"
         }
@@ -61,7 +76,7 @@ def parse_terraform_file(filepath: str) -> list[dict]:
 
             for raw_name, attrs in named_resources.items():
                 resource_name = raw_name.strip('"')
-                clean_attrs = _strip_quotes(attrs)
+                clean_attrs = _strip_quotes_and_unpack(attrs)
 
                 normalized_resources.append({
                     "resource_type": resource_type,

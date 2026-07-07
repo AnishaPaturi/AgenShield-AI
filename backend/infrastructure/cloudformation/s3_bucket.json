@@ -1,0 +1,13 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Vulnerable CloudFormation S3 Bucket",
+  "Resources": {
+    "VulnerableS3Bucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "agentshield-cfn-vulnerable-bucket",
+        "AccessControl": "PublicRead"
+      }
+    }
+  }
+}

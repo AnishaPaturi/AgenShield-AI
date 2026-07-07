@@ -24,3 +24,14 @@ class ScanReport(BaseModel):
     check_type: str
     findings: List[CheckovFinding] = Field(default_factory=list)
     summary: ScanSummary
+
+class ParsedResource(BaseModel):
+    resource_id: str
+    resource_type: str          # e.g. "aws_s3_bucket", "AWS::S3::Bucket", "Deployment"
+    cloud_provider: str         # "aws" | "azure" | "gcp" | "k8s" | "unknown"
+    iac_format: str             # "terraform" | "cloudformation" | "kubernetes" | "helm"
+    properties: Dict[str, Any]
+    raw_snippet: str
+    file_path: str
+    line_range: Optional[tuple[int, int]] = None
+

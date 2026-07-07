@@ -1,8 +1,7 @@
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "my-app-data-bucket"
-}resource "aws_s3_bucket" "data_bucket" {
-  bucket = "my-app-data-bucket"
 }
+
 
 resource "aws_security_group" "web_sg" {
   name        = "web-sg"
