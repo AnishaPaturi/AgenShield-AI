@@ -152,6 +152,8 @@ graph TD
 AgentShield-AI/
 ├── .gitignore               # Root gitignore file
 ├── README.md                # Project documentation
+├── LLM_Agentic_Workflow_for_Automated_Vulnerability_Detection_and_Remediation_in_Infrastructure-as-Code.pdf # Research base paper
+├── project abstract.docx    # Project abstract document
 └── backend/
     ├── .python-version
     ├── .env                 # Local environment config (API keys, ports)
@@ -178,6 +180,8 @@ AgentShield-AI/
     ├── tests/               # Unit and integration test suite
     │   ├── __init__.py
     │   ├── fixtures/
+    │   │   └── terraform/
+    │   │       └── sample.tf # Sample Terraform template for parser testing
     │   ├── test_checkov_runner.py # Checkov integration tests
     │   ├── test_cli.py            # CLI command tests
     │   ├── test_parsers.py        # CloudFormation and Kubernetes parser tests
