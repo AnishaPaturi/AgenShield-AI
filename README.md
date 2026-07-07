@@ -222,10 +222,33 @@ OPENROUTER_API_KEY=your-openrouter-api-key-here
 ```
 
 ### 4. Run the Scan Command
-Run the minimal CLI scanner using `uv`:
+To run a scan, navigate to the `backend/` folder and execute the CLI using `uv`. Below is a detailed breakdown of how to execute scans for each framework, what they return, and what those results mean:
+
+#### A. Scanning Terraform (HCL)
+**Command:**
 ```bash
 uv run python -m agentshield scan --path ./infrastructure/terraform/
 ```
+* **What it returns:** Findings targeting HCL resource blocks (such as `aws_s3_bucket` and `aws_s3_bucket_public_access_block`).
+* **What it means:** These findings identify instances where resource configurations violate cloud provider security best practices (e.g., exposing an S3 bucket publicly, missing server-side encryption, or lack of bucket access logs).
+
+#### B. Scanning CloudFormation (JSON)
+**Command:**
+```bash
+uv run python -m agentshield scan --path ./infrastructure/cloudformation/
+```
+* **What it returns:** Findings targeting resources declared under the `"Resources"` section of the JSON/YAML template (such as `AWS::S3::Bucket`).
+* **What it means:** Identifies that your CloudFormation JSON template will provision insecure infrastructure once deployed (e.g., missing block public access defaults, disabled versioning, or lack of read-permission locks).
+
+#### C. Scanning Kubernetes (YAML)
+**Command:**
+```bash
+uv run python -m agentshield scan --path ./infrastructure/kubernetes/
+```
+* **What it returns:** Findings targeting workload manifest documents (such as `Pod` specifications), including multi-document files separated by `---`.
+* **What it means:** Evaluates pod specifications against standard Pod Security Standards (PSS). It flags containers running in privileged mode (which could allow container escaping), running as the root user `0`, lacking CPU/memory limits, or missing network policies.
+
+---
 
 ### 5. Run the Test Suite
 To verify that all parsers, integration runners, and CLI command bindings work properly, execute the test suite:
