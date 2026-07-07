@@ -221,6 +221,14 @@ We use `uv` for python environment and dependency management.
    uv sync
    ```
 
+Alternatively, if you prefer installing package requirements manually using standard `pip`:
+```bash
+pip install python-hcl2 pytest
+```
+> [!IMPORTANT]
+> Since Checkov depends on Bridgecrew's fork (`bc-python-hcl2`) for line number tracking in HCL files, if you encounter an error saying `ImportError: cannot import name 'START_LINE' from 'hcl2'`, please uninstall `python-hcl2` and install `bc-python-hcl2` instead.
+
+
 ### 3. Configure Environment Variables
 Create a `.env` file in the `backend` folder and supply your API keys (e.g. Gemini, OpenRouter, etc.):
 ```bash
