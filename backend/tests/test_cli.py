@@ -12,3 +12,10 @@ def test_cli_scan_with_path(tmp_path):
     result = runner.invoke(main, ["scan", "--path", str(tmp_path)])
     assert result.exit_code == 0
     assert "Scanning path:" in result.output
+
+def test_cli_scan_real_path():
+    runner = CliRunner()
+    result = runner.invoke(main, ["scan", "--path", "./infrastructure/terraform"])
+    assert result.exit_code == 0
+    assert "=== Framework: TERRAFORM ===" in result.output
+    assert "CKV_AWS_" in result.output
