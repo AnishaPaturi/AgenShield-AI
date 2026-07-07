@@ -1,0 +1,38 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+backend/.venv/
+
+# Environment Configs
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.local
+backend/.env.*.local
+
+# Python Caches and Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
