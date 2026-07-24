@@ -42,38 +42,79 @@ By combining semantic reasoning with domain-specific security knowledge, the fra
 AgentShield AI is designed as a direct improvement on the following base paper:
 > **Base Paper:** Toprani, D., & Madisetti, V. K. (2025). *LLM Agentic Workflow for Automated Vulnerability Detection and Remediation in Infrastructure-as-Code.* (IEEE Access)
 
-While the base paper proposes an initial agent-based workflow for cloud security, it features several critical limitations. AgentShield AI overcomes these limitations with the following enhancements:
+While the base paper proposes an initial agent-based workflow for cloud security, it features several critical limitations. AgentShield AI overcomes these limitations with the following comprehensive enhancements:
 
 ### 1. Multi-Cloud & Multi-IaC Generalization
 * **Base Paper Limitation:** Evaluated exclusively on AWS CloudFormation.
-* **AgentShield AI Improvement:** Extends support to **Microsoft Azure** and **Google Cloud Platform (GCP)**, and parses multiple IaC formats including **Terraform (HCL)**, **Kubernetes Manifests**, and **Helm Charts** alongside CloudFormation.
+* **AgentShield AI Improvement:** Extends support to **Microsoft Azure** and **Google Cloud Platform (GCP)**, parsing multiple IaC formats including **Terraform (HCL)**, **Kubernetes Manifests**, and **Helm Charts** alongside CloudFormation.
 
 ### 2. Autonomous Multi-Agent Orchestration
 * **Base Paper Limitation:** Employs a basic linear pipeline (Retrieve -> Detect -> Report) with limited agent autonomy.
-* **AgentShield AI Improvement:** Employs an advanced, collaborative multi-agent architecture using a stateful orchestrator (e.g., LangGraph). The system includes specialized agents:
-  * **Manager/Router Agent:** Directs execution flow.
-  * **Hybrid Parser Agent:** Performs syntax extraction and pre-evaluates conditionals.
-  * **RAG-Query Agent:** Retrieves cloud-specific policies.
-  * **Security Analyst Agent:** Performs vulnerability verification.
-  * **Remediation Agent:** Generates code-level fixes.
-  * **Code Validator Agent:** Runs syntax checking on suggested patches.
-  * **Report Agent:** Formats developers' feedback logs.
+* **AgentShield AI Improvement:** Employs an advanced, collaborative multi-agent architecture using a stateful orchestrator (LangGraph). The system includes specialized agents:
+  * **Manager/Router Agent:** Directs execution flow and work allocation.
+  * **Hybrid Parser Agent:** Performs syntax extraction, AST construction, and pre-evaluates conditionals.
+  * **Secrets Scanner Agent:** Scans for hardcoded secrets, API keys, and credentials.
+  * **RAG-Query Agent:** Retrieves cloud-specific security policies and compliance mappings.
+  * **Security Analyst Agent:** Performs vulnerability verification via multi-LLM ensemble voting and confidence scoring.
+  * **Remediation Agent:** Generates code-level diff patches with compliance tags.
+  * **Code & Sandbox Validator Agent:** Performs syntax linting and sandbox runtime testing on patches.
+  * **Report Agent:** Formats developers' feedback logs, compliance frameworks, and audit documentation.
 
 ### 3. Syntax & Context Pre-Screening (Hybrid Parsing)
 * **Base Paper Limitation:** Struggles to interpret complex conditional resource instantiation or variable configurations, causing false positives.
-* **AgentShield AI Improvement:** Integrates standard static code analysis scanners (such as Checkov, tfsec, or KICS) to construct a complete Abstract Syntax Tree (AST) and Dependency Graph of the IaC code. Variable values and environments are pre-evaluated before sending code segments to the LLM.
+* **AgentShield AI Improvement:** Integrates static code analysis scanners (Checkov, tfsec, KICS) to construct a complete Abstract Syntax Tree (AST) and Dependency Graph of the IaC code, pre-evaluating variable values and environment contexts before LLM processing.
 
 ### 4. Dynamic Auto-Patching and Lint Validation
 * **Base Paper Limitation:** Only provides natural language explanations and generic mitigation advice, requiring manual code edits.
-* **AgentShield AI Improvement:** Automatically generates syntax-compliant **patch files (diffs)** for direct integration. These patches are automatically dry-run validated using local compilers/linters (e.g., `terraform validate` or `cfn-lint`) to ensure the generated security fix does not break infrastructure compiles.
+* **AgentShield AI Improvement:** Automatically generates syntax-compliant **patch files (diffs)** for direct integration. Patches are dry-run validated using local compilers/linters (e.g., `terraform validate` or `cfn-lint`) to ensure security fixes compile cleanly.
 
 ### 5. Automated Knowledge Base Continuous Ingestion (CI)
 * **Base Paper Limitation:** Relies on a manually curated, static knowledge base of AWS rules that quickly goes out of date.
 * **AgentShield AI Improvement:** Features an automated pipeline that pulls daily security feeds, CVE databases, and official vendor documentation updates to continuously update a vectorized knowledge store.
 
 ### 6. Interactive Developer Feedback Loop
-* **Base Paper Limitation:** Lacks feedback mechanisms, meaning the LLM cannot learn from its mistakes or adapt to organization-specific exceptions.
-* **AgentShield AI Improvement:** Introduces a feedback capture layer. If a developer rejects or overrides a suggested fix, the system saves the preference as negative-shot feedback, adapting the prompt context and suppressing future redundant alerts.
+* **Base Paper Limitation:** Lacks feedback mechanisms, preventing the LLM from adapting to organization-specific exceptions.
+* **AgentShield AI Improvement:** Introduces a feedback capture layer. If a developer rejects or overrides a suggested fix, the system saves the preference as negative-shot feedback, adapting prompt context and suppressing redundant future alerts.
+
+### 7. Confidence Scoring & Uncertainty Estimation
+* **Base Paper Limitation:** Treats all findings with uniform binary certainty without confidence quantification, contributing to a ~15% false-positive rate.
+* **AgentShield AI Improvement:** The Security Analyst Agent computes a calibrated confidence score per finding (derived from RAG retrieval similarity scores and LLM self-consistency sampling across multiple runs). Low-confidence findings are automatically routed to human security analyst review instead of auto-flagging, directly attacking the false-positive problem.
+
+### 8. Rigorous, Automated Benchmarking & Ablation Harness
+* **Base Paper Limitation:** Evaluation relied on only 10 manually-annotated templates, representing a significant evaluation weakness.
+* **AgentShield AI Improvement:** Implements an automated benchmark harness evaluated against public vulnerable-IaC corpora (Terragoat, cfngoat, KICS/Checkov test fixtures, IaC-Eval) computing reproducible Precision, Recall, and F1 scores, alongside ablation studies (RAG on/off, hybrid parsing on/off) to quantify component contributions.
+
+### 9. Multi-LLM Cross-Verification & Ensemble Voting
+* **Base Paper Limitation:** Single-LLM evaluation is vulnerable to hallucinated findings and model-specific bias.
+* **AgentShield AI Improvement:** Runs the Security Analyst step through multi-LLM cross-verification (e.g., Claude + GPT-4o). Findings are auto-confirmed only when models reach consensus; disagreements are escalated for human security review, providing a cost-effective lever against hallucinations.
+
+### 10. Attack-Path & Blast-Radius Aware Prioritization
+* **Base Paper Limitation:** Assigns flat static severity per misconfiguration without evaluating topology context or resource interdependencies.
+* **AgentShield AI Improvement:** Constructs a resource dependency graph during hybrid parsing and layers attack-path analysis on top (e.g., identifying a public S3 bucket readable by an IAM role with RDS admin privileges). Fixes are prioritized by real exploitability and blast radius rather than raw static rule severity.
+
+### 11. Compliance-Framework Mapping
+* **Base Paper Limitation:** Outputs generic best-practice references without mapping to formal regulatory or compliance standards.
+* **AgentShield AI Improvement:** Automatically tags every finding against **SOC 2**, **HIPAA**, **PCI-DSS**, and **NIST 800-53** controls in the report output, equipping security teams with audit-ready documentation.
+
+### 12. Dedicated Secrets & Credential Scanning Agent
+* **Base Paper Limitation:** Completely omits hardcoded secrets and credential scanning in IaC templates.
+* **AgentShield AI Improvement:** Integrates a specialized Secrets Scanning Agent (utilizing Gitleaks and TruffleHog engines) to detect hardcoded API keys, passwords, and private tokens embedded in IaC variables and resource definitions.
+
+### 13. Cost and Latency Optimization Pipeline
+* **Base Paper Limitation:** High latency of 80–100s per template scan fails to scale to enterprise-grade repositories.
+* **AgentShield AI Improvement:** Implements embedding-based resource deduplication (skipping re-analysis of near-identical resource blocks), response caching keyed by AST resource hashes, and a lightweight local distilled model as a first-pass filter before escalating ambiguous cases to full LLM agents.
+
+### 14. Sandbox-Validated Patch Testing (Beyond Syntax)
+* **Base Paper Limitation:** Validates patches via syntax checking only, without verifying runtime deployment integrity.
+* **AgentShield AI Improvement:** Goes beyond syntax linting by spinning up patched templates in an isolated local sandbox (e.g., LocalStack for AWS) to confirm the fix preserves intended infrastructure functionality and provisions without runtime errors.
+
+### 15. Shift-Left IDE & Pre-Commit Integration
+* **Base Paper Limitation:** Restricted to post-commit or CI/CD pipeline scans.
+* **AgentShield AI Improvement:** Shifts security evaluation further left by providing VS Code IDE extensions and git pre-commit hooks, giving developers real-time security feedback during IaC authoring before code is committed.
+
+### 16. Drift Detection Against Live Infrastructure
+* **Base Paper Limitation:** Limited to static code analysis of local IaC files, failing to detect out-of-band manual changes in deployed environments.
+* **AgentShield AI Improvement:** Periodically diffs deployed cloud resources via provider APIs against the IaC source of truth, catching manual out-of-band changes that reintroduce vulnerabilities previously caught in IaC scans.
 
 ---
 
@@ -81,25 +122,39 @@ While the base paper proposes an initial agent-based workflow for cloud security
 
 ```mermaid
 graph TD
-    A[Developer / CI-CD Pipeline] -->|Submit IaC Templates| B[Manager Agent]
+    A[Developer / IDE / CI-CD Pipeline] -->|Submit IaC Templates| B[Manager Agent]
     B --> C[Hybrid AST Parser Agent]
-    C -->|Parse Syntax + Static Scans| D[RAG Query Agent]
+    B --> SEC[Secrets Scanner Agent]
+    C -->|AST & Dependency Graph| D[RAG Query Agent]
+    SEC -->|Hardcoded Credentials| G[Security Analyst Agent]
     
-    subgraph "Knowledge Core"
+    subgraph "Knowledge Core & Compliance"
         E[(Vector DB: Qdrant/Chroma)]
-        F[Live Scraper Service] -->|Updates| E
+        F[Live Scraper Service] -->|Policy Updates| E
+        COMP[SOC2 / HIPAA / PCI / NIST Frameworks] --> E
     end
     
     E <-->|Context Queries| D
-    D -->|Annotated Context| G[Security Analyst Agent]
-    G -->|Identified Risks| H[Remediation Agent]
+    D -->|Annotated Context & Attack-Paths| G
+    
+    subgraph "Analyst & Ensemble Verification"
+        G -->|Multi-LLM Voting: Claude + GPT-4o| V{Consensus & High Confidence?}
+        V -->|Low Confidence| HMN[Human Security Audit Queue]
+        V -->|High Confidence| H[Remediation Agent]
+    end
+    
     H -->|Code Patches/Diffs| I[Validation Agent]
     
-    I -->|Syntactic Verification| J{Valid Patch?}
-    J -->|No| H
-    J -->|Yes| K[Report Generator Agent]
+    subgraph "Validation Harness"
+        I -->|Syntax Linters: terraform validate / cfn-lint| J1{Syntax Valid?}
+        J1 -->|No| H
+        J1 -->|Yes| J2[LocalStack Sandbox Runtime Test]
+        J2 -->|Runtime Failure| H
+    end
     
-    K -->|Unified Security Report & Patches| L[Developer Interface]
+    J2 -->|Validated Patch| K[Report Generator Agent]
+    
+    K -->|Unified Security & Compliance Report| L[Developer Interface / VS Code]
     L -->|Accept/Reject Feedback| M[(Developer Feedback Log)]
     M -->|Dynamic Few-Shot Tuning| G
 ```
@@ -111,38 +166,40 @@ graph TD
 * **Programming Language:** Python 3.12+
 * **Orchestration & State Management:** LangGraph / LangChain
 * **Vector DB / RAG Ingestion:** ChromaDB / Qdrant & sentence-transformers
-* **Static Scanners (Hybrid Parsing):** Checkov, tfsec, KICS
-* **Language Models:** Anthropic Claude (via Amazon Bedrock / API) or OpenAI GPT-4o
+* **Static Scanners & Secrets Engines:** Checkov, tfsec, KICS, Gitleaks, TruffleHog
+* **Language Models:** Anthropic Claude (via Amazon Bedrock / API), OpenAI GPT-4o, Local Distilled SLM
+* **Validation & Sandbox:** LocalStack (AWS Emulation), `terraform validate`, `cfn-lint`
 * **Development Utilities:** `uv` (Fast package management), Docker, Pytest
 
 ---
 
 ## 📅 Implementation Roadmap
 
-### Phase 1: Foundation and Ingestion Parsers (Weeks 1-3)
+### Phase 1: Foundation, Ingestion Parsers & Secrets Agent (Weeks 1-3)
 * [x] Project structure setup and CLI skeleton.
 * [x] Implementation of local HCL, JSON, and YAML parsers.
 * [x] Static scanner integration for resource attribute enrichment.
+* [ ] Dedicated Secrets & Credential Scanning Agent (Gitleaks / TruffleHog).
 
-### Phase 2: Multi-Cloud Knowledge Base & RAG (Weeks 4-6)
+### Phase 2: Multi-Cloud Knowledge Base & RAG Compliance (Weeks 4-6)
 * [ ] Setup of the vector database and scraping scheduler.
-* [ ] Ingestion of CIS Benchmarks and cloud provider security documentation.
-* [ ] Optimization of semantic retrieval matching algorithms.
+* [ ] Ingestion of CIS Benchmarks, cloud security docs, and SOC 2 / HIPAA / PCI-DSS / NIST 800-53 controls.
+* [ ] Optimization of semantic retrieval matching algorithms & AST hash caching.
 
-### Phase 3: Core Multi-Agent Network (Weeks 7-9)
-* [ ] Implementation of the LangGraph state machine.
-* [ ] Prompt engineering and validation of Analyst and Remediation Agents.
-* [ ] JSON schema output structures (Pydantic models).
+### Phase 3: Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7-9)
+* [ ] Implementation of the LangGraph state machine with cost/latency AST deduplication.
+* [ ] Security Analyst Agent with Multi-LLM ensemble voting (Claude + GPT-4o) and confidence scoring.
+* [ ] Escalation routing for low-confidence / non-consensus findings to human review queues.
 
-### Phase 4: Patching & Auto-Validation (Weeks 10-12)
-* [ ] AST-level patch application logic.
-* [ ] Auto-validation harness using local toolchains (`terraform validate`, `cfn-lint`).
+### Phase 4: Patching, Sandbox Auto-Validation & Attack-Path Prioritization (Weeks 10-12)
+* [ ] AST-level dependency graph construction & attack-path exploitability ranking.
+* [ ] Sandbox auto-validation harness using LocalStack runtime provisioning and local linters (`terraform validate`, `cfn-lint`).
 * [ ] Developer feedback loop schema implementation.
 
-### Phase 5: CI/CD Plugins & Reporting (Weeks 13-14)
-* [ ] GitHub Actions runner setup.
-* [ ] Final reports generation (Markdown & JSON exports).
-* [ ] System benchmarking against vulnerable repository datasets (e.g., Terragoat).
+### Phase 5: Shift-Left IDE, Live Drift & Automated Benchmarking (Weeks 13-14)
+* [ ] VS Code Extension & Git pre-commit hook integration.
+* [ ] Live infrastructure drift detection via Cloud Provider APIs.
+* [ ] Automated benchmark harness execution against Terragoat, cfngoat, KICS/Checkov test fixtures, and IaC-Eval with ablation studies.
 
 ---
 
