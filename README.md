@@ -175,31 +175,35 @@ graph TD
 
 ## 📅 Implementation Roadmap
 
-### Phase 1: Foundation, Ingestion Parsers & Secrets Agent (Weeks 1-3)
-* [x] Project structure setup and documentation foundation.
-* [x] Implementation of local HCL, JSON, and YAML parsers.
-* [x] Static scanner integration for resource attribute enrichment.
-* [ ] Dedicated Secrets & Credential Scanning Agent (Gitleaks / TruffleHog).
+### Phase 1: Foundation, Multi-IaC Ingestion & Core Documentation (Weeks 1-3)
+* [x] Project structure setup and foundational documentation suite ([about.md](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/about.md), [index.html](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/index.html), and [literature_survey.txt](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/literature_survey.txt)).
+* [x] Detailed architectural specification of the 8-agent LangGraph orchestration state machine.
+* [x] Multi-cloud IaC parser design and schema definitions for Terraform (HCL), CloudFormation (JSON/YAML), Kubernetes Manifests (YAML), and Helm Charts.
+* [x] Static scanner integration design (Checkov, tfsec, KICS) for hybrid AST parsing and attribute enrichment.
+* [x] Research literature survey, research gap analysis against base IEEE Access 2025 paper, and comparative feature matrix.
+* [ ] Implementation of Dedicated Secrets & Credential Scanning Agent (Gitleaks / TruffleHog engines).
 
-### Phase 2: Multi-Cloud Knowledge Base & RAG Compliance (Weeks 4-6)
-* [ ] Setup of Qdrant vector database and scraping scheduler.
-* [ ] Ingestion of CIS Benchmarks, cloud security docs, and SOC 2 / HIPAA / PCI-DSS / NIST 800-53 controls.
-* [ ] Optimization of semantic retrieval matching algorithms & AST hash caching.
+### Phase 2: Multi-Cloud Knowledge Base & RAG Compliance Core (Weeks 4-6)
+* [ ] Setup of Qdrant / ChromaDB vector database and automated scraping service for live policy updates.
+* [ ] Automated continuous ingestion of CIS Benchmarks, cloud security docs, and regulatory compliance frameworks (SOC 2, HIPAA, PCI-DSS, NIST 800-53).
+* [ ] Optimization of semantic retrieval matching algorithms, AST hash caching, and embedding-based resource deduplication.
 
-### Phase 3: Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7-9)
-* [ ] Implementation of the LangGraph state machine with cost/latency AST deduplication.
-* [ ] Security Analyst Agent with Multi-LLM ensemble voting (Claude + GPT-4o) and confidence scoring.
-* [ ] Escalation routing for low-confidence / non-consensus findings to human review queues.
+### Phase 3: LangGraph Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7-9)
+* [ ] Implementation of the LangGraph state machine with Manager/Router Agent for stateful task distribution.
+* [ ] Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 + GPT-4o) and calibrated confidence scoring.
+* [ ] Automated escalation routing for low-confidence or non-consensus findings to Human Security Review Queue.
 
-### Phase 4: Patching, Sandbox Auto-Validation & Attack-Path Prioritization (Weeks 10-12)
-* [ ] AST-level dependency graph construction & attack-path exploitability ranking.
-* [ ] Sandbox auto-validation harness using LocalStack runtime provisioning and local linters (`terraform validate`, `cfn-lint`).
-* [ ] Developer feedback loop schema implementation.
+### Phase 4: Patch Generation, LocalStack Sandbox Validation & Attack-Path Ranking (Weeks 10-12)
+* [ ] AST-level resource dependency graph construction and attack-path exploitability ranking (blast radius prioritization).
+* [ ] Remediation Agent executable code diff-patch generator.
+* [ ] Code & Sandbox Validator Agent with static linters (`terraform validate`, `cfn-lint`) and LocalStack runtime sandbox deployment testing.
+* [ ] Interactive developer feedback loop implementation and negative-shot prompt adaptation engine.
 
-### Phase 5: Shift-Left IDE, Live Drift & Automated Benchmarking (Weeks 13-14)
-* [ ] VS Code Extension & Git pre-commit hook integration.
-* [ ] Live infrastructure drift detection via Cloud Provider APIs.
-* [ ] Automated benchmark harness execution against Terragoat, cfngoat, KICS/Checkov test fixtures, and IaC-Eval with ablation studies.
+### Phase 5: Shift-Left IDE Integration, Live Drift & Automated Benchmarking (Weeks 13-14)
+* [ ] VS Code IDE Extension & Git pre-commit hook integration for real-time authoring security feedback.
+* [ ] Live cloud infrastructure drift detection via Cloud Provider APIs to catch manual out-of-band changes.
+* [ ] Automated benchmark harness execution against public vulnerable IaC corpora (Terragoat, cfngoat, KICS/Checkov test fixtures, IaC-Eval) with component ablation studies (RAG on/off, hybrid parsing on/off).
+
 
 ---
 
