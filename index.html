@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Base Paper</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",sans-serif;
+}
+
+body{
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:
+        linear-gradient(rgba(10,5,40,.88),rgba(10,5,40,.90)),
+        url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80");
+    background-size:cover;
+    background-position:center;
+    color:#fff;
+}
+
+.slide{
+    width:1366px;
+    height:768px;
+    margin:auto;
+    position:relative;
+}
+
+/* ---------------- Title ---------------- */
+
+.title{
+    position:absolute;
+    top:25px;
+    left:0;
+    width:100%;
+    text-align:center;
+    font-size:54px;
+    font-weight:800;
+    color:white;
+    text-shadow:0 0 18px rgba(255,255,255,.45);
+}
+
+/* ---------------- Left Content ---------------- */
+
+.content{
+    position:absolute;
+    left:55px;
+    top:120px;
+    width:700px;
+}
+
+.section{
+    margin-bottom:20px;
+}
+
+.section h2{
+    color:#75ddff;
+    font-size:24px;
+    margin-bottom:8px;
+    border-left:5px solid #bb6cff;
+    padding-left:12px;
+}
+
+.section ul,
+.section ol{
+    padding-left:25px;
+    font-size:17px;
+    line-height:1.55;
+}
+
+.section li{
+    margin-bottom:5px;
+}
+
+.highlight{
+    color:#7ef9df;
+    font-weight:700;
+}
+
+/* ---------- Two Cards ---------- */
+
+.row{
+    display:flex;
+    gap:18px;
+    margin:18px 0;
+}
+
+.card{
+    flex:1;
+    background:rgba(255,255,255,.06);
+    border:2px solid rgba(187,108,255,.35);
+    border-radius:16px;
+    backdrop-filter:blur(6px);
+    padding:15px;
+    box-shadow:0 0 15px rgba(187,108,255,.20);
+}
+
+.card h3{
+    color:#d59cff;
+    margin-bottom:10px;
+    font-size:21px;
+}
+
+.card ul{
+    padding-left:20px;
+    font-size:16px;
+    line-height:1.55;
+}
+
+.card span{
+    color:#7ef9df;
+    font-weight:bold;
+}
+
+/* ---------------- Phone Image ---------------- */
+
+.phone{
+    position:absolute;
+    right:35px;
+    top:70px;
+    width:360px;
+}
+
+.phone img{
+    width:100%;
+    border-radius:38px;
+    box-shadow:0 0 25px rgba(0,0,0,.45);
+}
+
+/* ---------------- Footer ---------------- */
+
+.footer{
+    position:absolute;
+    bottom:22px;
+    width:100%;
+    text-align:center;
+    font-size:18px;
+    color:#7ef9df;
+    letter-spacing:1px;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="slide">
+
+    <div class="title">
+        Base Paper
+    </div>
+
+    <div class="content">
+
+        <div class="section">
+            <h2> Core Objective</h2>
+
+            <ul>
+                <li>AI-driven <span class="highlight">pre-deployment</span> IaC security workflow.</li>
+                <li>Combines <span class="highlight">LLMs + RAG</span> for context-aware vulnerability detection.</li>
+                <li>Overcomes limitations of rule-based static scanners.</li>
+                <li>Generates natural-language remediation guidance.</li>
+            </ul>
+
+        </div>
+
+        <div class="section">
+
+            <h2> Proposed Pipeline</h2>
+
+            <ol>
+                <li><span class="highlight">RAG Retrieval</span> → AWS Docs & CIS Benchmarks</li>
+                <li><span class="highlight">Claude 3.5 Sonnet</span> → Vulnerability Detection</li>
+                <li><span class="highlight">Report Generator</span> → Markdown Security Report</li>
+            </ol>
+
+        </div>
+
+        <div class="row">
+
+            <div class="card">
+
+                <h3>Results</h3>
+
+                <ul>
+                    <li>Recall : <span>85%</span></li>
+                    <li>Precision : <span>85%</span></li>
+                    <li>F1 Score : <span>85%</span></li>
+                    <li>Avg Scan : <span>85 sec</span></li>
+                </ul>
+
+            </div>
+
+            <div class="card">
+
+                <h3> Strengths</h3>
+
+                <ul>
+                    <li>Context-aware detection</li>
+                    <li>Reduced hallucinations</li>
+                    <li>Dynamic knowledge updates</li>
+                    <li>Developer-friendly reports</li>
+                </ul>
+
+            </div>
+
+        </div>
+
+        <div class="section">
+
+            <h2> Limitations</h2>
+
+            <ul>
+                <li>AWS CloudFormation only.</li>
+                <li>No Terraform / Azure / GCP support.</li>
+                <li>No automated patch generation.</li>
+                <li>No secrets scanning.</li>
+                <li>No sandbox validation.</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+    <!-- Replace with your screenshot -->
+    <div class="phone">
+        <img src="paper.png" alt="Base Paper">
+    </div>
+
+    
+
+</div>
+
+</body>
+</html>
