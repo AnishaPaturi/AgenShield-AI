@@ -173,39 +173,131 @@ graph TD
 
 ---
 
-## 📅 Implementation Roadmap
+## 📅 Detailed Implementation Plan & Execution Roadmap
 
-### Phase 1: Foundation, Multi-IaC Ingestion & Core Documentation (Weeks 1-3)
-* [ ] Project structure setup and foundational documentation suite ([about.md](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/about.md), [index.html](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/index.html), and [literature_survey.txt](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/literature_survey.txt)).
-* [ ] Detailed architectural specification of the 8-agent LangGraph orchestration state machine.
-* [ ] Multi-cloud IaC parser design and schema definitions for Terraform (HCL), CloudFormation (JSON/YAML), Kubernetes Manifests (YAML), and Helm Charts.
-* [ ] Static scanner integration design (Checkov, tfsec, KICS) for hybrid AST parsing and attribute enrichment.
-* [ ] Research literature survey, research gap analysis against base IEEE Access 2025 paper, and comparative feature matrix.
-* [ ] Implementation of Dedicated Secrets & Credential Scanning Agent (Gitleaks / TruffleHog engines).
-
-### Phase 2: Multi-Cloud Knowledge Base & RAG Compliance Core (Weeks 4-6)
-* [ ] Setup of Qdrant / ChromaDB vector database and automated scraping service for live policy updates.
-* [ ] Automated continuous ingestion of CIS Benchmarks, cloud security docs, and regulatory compliance frameworks (SOC 2, HIPAA, PCI-DSS, NIST 800-53).
-* [ ] Optimization of semantic retrieval matching algorithms, AST hash caching, and embedding-based resource deduplication.
-
-### Phase 3: LangGraph Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7-9)
-* [ ] Implementation of the LangGraph state machine with Manager/Router Agent for stateful task distribution.
-* [ ] Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 + GPT-4o) and calibrated confidence scoring.
-* [ ] Automated escalation routing for low-confidence or non-consensus findings to Human Security Review Queue.
-
-### Phase 4: Patch Generation, LocalStack Sandbox Validation & Attack-Path Ranking (Weeks 10-12)
-* [ ] AST-level resource dependency graph construction and attack-path exploitability ranking (blast radius prioritization).
-* [ ] Remediation Agent executable code diff-patch generator.
-* [ ] Code & Sandbox Validator Agent with static linters (`terraform validate`, `cfn-lint`) and LocalStack runtime sandbox deployment testing.
-* [ ] Interactive developer feedback loop implementation and negative-shot prompt adaptation engine.
-
-### Phase 5: Shift-Left IDE Integration, Live Drift & Automated Benchmarking (Weeks 13-14)
-* [ ] VS Code IDE Extension & Git pre-commit hook integration for real-time authoring security feedback.
-* [ ] Live cloud infrastructure drift detection via Cloud Provider APIs to catch manual out-of-band changes.
-* [ ] Automated benchmark harness execution against public vulnerable IaC corpora (Terragoat, cfngoat, KICS/Checkov test fixtures, IaC-Eval) with component ablation studies (RAG on/off, hybrid parsing on/off).
-
+AgentShield AI is being developed across **5 distinct execution phases over a 14-week timeline**. Each phase delivers fully functional, testable modules mapped directly to our 8-agent architecture, RAG knowledge core, validation harness, and developer interfaces.
 
 ---
+
+### 🗓️ Phase 1: Foundation, Multi-IaC Ingestion & Core Documentation (Weeks 1–3)
+**Objective:** Establish the project repository infrastructure, build foundational documentation, implement multi-cloud AST parsers, and deploy the secrets scanning engine.
+
+* [x] **Task 1.1: Project Setup & Environment Initialization**
+  * Configure fast dependency management via `uv`, set up `pyproject.toml`, and establish automated `pytest` test suites.
+  * Define core data contracts (`IaCTemplate`, `ASTNode`, `VulnerabilityReport`, `PatchDiff`) using Pydantic v2 schemas.
+* [ ] **Task 1.2: System Core & Manager/Router Agent State Machine**
+  * Build the initial LangGraph orchestration state graph for workflow control and message passing.
+  * Implement state persistence, fallback mechanisms, and conditional graph routing between agents.
+* [ ] **Task 1.3: Multi-Cloud Hybrid AST Parser Agent**
+  * Develop AST parsers for **Terraform (HCL2)**, **AWS CloudFormation (JSON/YAML)**, **Kubernetes Manifests (YAML)**, and **Helm Charts**.
+  * Implement dynamic variable pre-resolution, conditional evaluation, and resource dependency graph extraction.
+* [ ] **Task 1.4: Dedicated Secrets & Credential Scanner Agent**
+  * Integrate **Gitleaks** and **TruffleHog** engines with high-entropy regex pattern matching.
+  * Implement automated interception for API keys, AWS credentials, JWT tokens, and private keys embedded in IaC files.
+* [ ] **Task 1.5: Static Scanner Adapter Layer**
+  * Build wrapper adapters for **Checkov**, **tfsec**, and **KICS** to enrich parsed AST nodes with baseline vulnerability signals.
+
+**Key Deliverables:** Ingestion pipeline, multi-format IaC parser, secrets scanner agent, and foundational docs ([about.md](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/about.md), [index.html](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/index.html), [literature_survey.txt](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/literature_survey.txt)).
+
+---
+
+### 🗓️ Phase 2: Multi-Cloud Knowledge Base & RAG Compliance Core (Weeks 4–6)
+**Objective:** Build the vector database pipeline, ingest multi-cloud security standards, and implement the RAG Query Agent for compliance context retrieval.
+
+* [ ] **Task 2.1: Vector DB Infrastructure & Embedding Pipeline**
+  * Deploy **Qdrant** / **ChromaDB** vector database instance with `sentence-transformers` (e.g., `all-mpnet-base-v2` / BGE embeddings).
+  * Build an AST hash caching and semantic deduplication layer to accelerate similarity lookups.
+* [ ] **Task 2.2: Continuous Knowledge Base Ingestion Engine**
+  * Build automated scrapers and ingestors for AWS/Azure/GCP Security Best Practices, CIS Benchmarks, and NVD/CVE feeds.
+  * Create a continuous updater service to refresh threat intelligence daily.
+* [ ] **Task 2.3: Regulatory Compliance Mapping Module**
+  * Index and crosswalk security policies against **SOC 2**, **HIPAA**, **PCI-DSS**, and **NIST 800-53** frameworks.
+  * Annotate vector embeddings with explicit regulatory control IDs (e.g., `NIST-AC-6`, `PCI-DSS-1.3`).
+* [ ] **Task 2.4: RAG Query Agent Development**
+  * Implement context-aware hybrid retrieval combining dense vector similarity with sparse BM25 keyword search.
+  * Develop prompt contextualizer to inject relevant security controls into the Security Analyst Agent's working memory.
+
+**Key Deliverables:** Fully indexed vector DB, continuous ingestion scraper service, and working RAG Query Agent.
+
+---
+
+### 🗓️ Phase 3: LangGraph Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7–9)
+**Objective:** Complete the stateful 8-agent LangGraph network, implement Multi-LLM ensemble voting, and build the human audit review queue.
+
+* [ ] **Task 3.1: Security Analyst Agent & Multi-LLM Ensemble Engine**
+  * Connect **Claude 3.5 Sonnet** and **OpenAI GPT-4o** APIs for dual-model parallel vulnerability evaluation.
+  * Implement structured reasoning templates (Chain-of-Thought prompting) enforcing standardized output JSON schemas.
+* [ ] **Task 3.2: Calibrated Confidence Scoring & Consensus Algorithm**
+  * Develop mathematical agreement scoring between LLM outputs to eliminate single-model hallucinations.
+  * Establish confidence thresholds ($C \ge 0.85$ for auto-patching, $C < 0.85$ for human review).
+* [ ] **Task 3.3: Attack-Path & Blast-Radius Prioritization Engine**
+  * Construct resource topological graph to evaluate exploitability routes (e.g., Internet Gateway $\rightarrow$ Security Group $\rightarrow$ Unencrypted DB).
+  * Rank findings based on combined severity, blast radius, and topological exposure.
+* [ ] **Task 3.4: Human Security Audit Queue & Triage Dashboard**
+  * Build an automated escalation mechanism for low-confidence or non-consensus findings.
+  * Implement a CLI/Web triage interface allowing security engineers to inspect, approve, or reject flagged findings.
+
+**Key Deliverables:** Multi-LLM ensemble engine, calibrated consensus algorithm, attack-path ranker, and human review queue.
+
+---
+
+### 🗓️ Phase 4: Auto-Patch Remediation, LocalStack Validation & Feedback Engine (Weeks 10–12)
+**Objective:** Generate executable unified diff patches, build the LocalStack dry-run validation harness, and implement developer feedback loops.
+
+* [ ] **Task 4.1: Remediation Agent & Executable Code Patch Generator**
+  * Implement code diff generator producing clean, syntactically correct patches targeting exact IaC resource blocks.
+  * Support patch generation across HCL2, CloudFormation JSON/YAML, K8s YAML, and Helm values.
+* [ ] **Task 4.2: Code & Sandbox Validator Agent — Static Linters**
+  * Integrate static verification tools (`terraform validate`, `tflint`, `cfn-lint`, `kube-linter`, `helm lint`).
+  * Enforce automated rollback to the Remediation Agent if lint errors are detected in generated patches.
+* [ ] **Task 4.3: LocalStack Runtime Dry-Run Sandbox Testing**
+  * Configure **LocalStack** containerized sandbox for dry-run provisioning of AWS CloudFormation/Terraform resources.
+  * Validate that patches do not cause deployment failures or resource dependency breakages.
+* [ ] **Task 4.4: Report Generator Agent & Compliance Exporter**
+  * Build report generator supporting JSON, Markdown, HTML, SARIF (for GitHub Security tab), and PDF exports.
+  * Include executive summaries, attack-path diagrams, patch diffs, and compliance mapping matrices.
+* [ ] **Task 4.5: Interactive Developer Feedback & Few-Shot Prompt Adaptation Engine**
+  * Capture developer accept/reject decisions on generated patches.
+  * Feed negative/positive decisions into a dynamic few-shot prompt adaptation store to continuously reduce false positives.
+
+**Key Deliverables:** Patch generator, linter + LocalStack sandbox validator, multi-format report exporter, and feedback learning engine.
+
+---
+
+### 🗓️ Phase 5: Shift-Left IDE Integration, Live Drift & Automated Benchmarking (Weeks 13–14)
+**Objective:** Embed security into developer workflows via IDE extensions and CI/CD hooks, enable live cloud drift detection, and execute rigorous empirical benchmark evaluations.
+
+* [ ] **Task 5.1: VS Code Extension & Git Pre-Commit Hooks**
+  * Develop lightweight **VS Code Extension** for real-time IaC security feedback inside the code editor.
+  * Package Git pre-commit hooks to block misconfigured IaC templates before commits are recorded.
+* [ ] **Task 5.2: Live Cloud Infrastructure Drift Detection Engine**
+  * Build Cloud Provider API monitors (AWS Config / Azure Resource Graph / GCP Asset Inventory wrappers) to detect manual, out-of-band state changes.
+  * Map live infrastructure drift against IaC source templates to trigger remediation workflows.
+* [ ] **Task 5.3: Empirical Benchmark Harness & Ablation Studies**
+  * Execute automated evaluations against public vulnerable IaC corpora (**Terragoat**, **cfngoat**, **KICS/Checkov test suites**, **IaC-Eval**).
+  * Calculate performance metrics: **Precision**, **Recall**, **F1-Score**, **Patch Pass Rate**, and **Execution Latency**.
+  * Perform comprehensive component ablation studies comparing:
+    1. Baseline Static Scanners (Checkov) vs. Base Paper vs. AgentShield AI.
+    2. RAG ON vs. RAG OFF.
+    3. Multi-LLM Ensemble (Claude + GPT-4o) vs. Single-LLM (Claude 3.5 only).
+    4. Hybrid AST Parsing vs. Raw Text LLM Ingestion.
+
+**Key Deliverables:** VS Code extension, pre-commit hooks, live drift monitor, benchmark evaluation suite, and final ablation analysis report.
+
+---
+
+### 📊 Implementation Milestone Summary
+
+| Milestone | Target Window | Key Focus Area | Validation Metric | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **M1: Parser & Secrets Core** | Weeks 1–3 | Multi-IaC AST parsing & credential interception | 100% test pass on parsing HCL, CFN, K8s, Helm | ⏳ In Progress |
+| **M2: Knowledge Core & RAG** | Weeks 4–6 | Vector DB, CIS benchmarks, compliance mapping | Retrieval Precision @ 5 $\ge 90\%$ | 🎯 Scheduled |
+| **M3: Ensemble & Consensus** | Weeks 7–9 | LangGraph 8-Agent network & Multi-LLM voting | Hallucination rate $< 3\%$, F1 $\ge 0.92$ | 🎯 Scheduled |
+| **M4: Validation & Patching** | Weeks 10–12 | Diff patch generation & LocalStack sandbox | $100\%$ syntax validity, patch pass rate $\ge 95\%$ | 🎯 Scheduled |
+| **M5: Shift-Left & Benchmarks**| Weeks 13–14 | IDE extension, pre-commit, ablation benchmarks | Full benchmark suite execution vs. IEEE paper | 🎯 Scheduled |
+
+---
+
 
 ## 📂 Project Structure
 
