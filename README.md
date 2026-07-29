@@ -189,9 +189,9 @@ graph TD
 * [ ] Optimization of semantic retrieval matching algorithms, AST hash caching, and embedding-based resource deduplication.
 
 ### Phase 3: LangGraph Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7-9)
-* [ ] Implementation of the LangGraph state machine with Manager/Router Agent for stateful task distribution.
-* [ ] Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 + GPT-4o) and calibrated confidence scoring.
-* [ ] Automated escalation routing for low-confidence or non-consensus findings to Human Security Review Queue.
+* [x] Implementation of the LangGraph state machine with Manager/Router Agent for stateful task distribution.
+* [x] Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 + GPT-4o) and calibrated confidence scoring.
+* [x] Automated escalation routing for low-confidence or non-consensus findings to Human Security Review Queue.
 
 ### Phase 4: Patch Generation, LocalStack Sandbox Validation & Attack-Path Ranking (Weeks 10-12)
 * [ ] AST-level resource dependency graph construction and attack-path exploitability ranking (blast radius prioritization).
