@@ -1,5 +1,5 @@
 """
-Data schemas for AgentShield AI IaC resources, security findings, secrets, patches, and validation results.
+Enhanced data schemas for AgentShield AI multi-cloud IaC resources, dependency graphs, findings, secrets, patches, and validation results.
 """
 
 from typing import Dict, List, Any, Optional
@@ -10,10 +10,26 @@ class IaCResource(BaseModel):
     file_path: str
     resource_type: str
     resource_name: str
-    provider: str = "cloud"  # aws, azure, gcp, k8s, helm
+    provider: str = "aws"  # aws, azure, gcp, k8s, helm
     line_start: int = 1
     line_end: int = 1
     attributes: Dict[str, Any] = Field(default_factory=dict)
+    dependencies: List[str] = Field(default_factory=list)  # Referenced resource IDs
+    variables: Dict[str, Any] = Field(default_factory=dict)  # Dynamic parameters/variables
+    environment_context: str = "default"  # production, staging, dev
+
+
+class ASTDependencyGraph(BaseModel):
+    nodes: Dict[str, IaCResource] = Field(default_factory=dict)
+    edges: List[Dict[str, str]] = Field(default_factory=list)  # [{"source": "resA", "target": "resB"}]
+
+
+class ParsedIaCFile(BaseModel):
+    file_path: str
+    file_type: str  # terraform, cloudformation, kubernetes, helm
+    resources: List[IaCResource] = Field(default_factory=list)
+    variables: Dict[str, Any] = Field(default_factory=dict)
+    modules: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class SecretFinding(BaseModel):

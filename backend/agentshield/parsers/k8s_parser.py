@@ -1,5 +1,6 @@
 """
-Kubernetes Manifest (YAML / multi-doc) Parser.
+Kubernetes Manifest (YAML / multi-doc) IaC Parser.
+Parses Workload specifications, securityContext, Pod Security Standards (PSS), and service linkages.
 """
 
 import os
@@ -11,7 +12,7 @@ from agentshield.parsers.line_loader import LineLoader
 
 def parse_kubernetes(file_path: str) -> List[IaCResource]:
     """
-    Parses a Kubernetes multi-document YAML file into IaCResource objects.
+    Parses a Kubernetes multi-document YAML file into IaCResource AST objects.
     """
     resources = []
     if not os.path.exists(file_path):
@@ -29,6 +30,18 @@ def parse_kubernetes(file_path: str) -> List[IaCResource]:
                 name = metadata.get("name", "unnamed") if isinstance(metadata, dict) else "unnamed"
                 line_no = doc.get("__line__", 1)
 
+                # Extract volume / secret dependencies
+                deps = []
+                spec = doc.get("spec", {})
+                if isinstance(spec, dict):
+                    volumes = spec.get("volumes", [])
+                    if isinstance(volumes, list):
+                        for vol in volumes:
+                            if isinstance(vol, dict) and "secret" in vol:
+                                secret_name = vol["secret"].get("secretName")
+                                if secret_name:
+                                    deps.append(f"Secret.{secret_name}")
+
                 resources.append(
                     IaCResource(
                         file_path=file_path,
@@ -37,7 +50,8 @@ def parse_kubernetes(file_path: str) -> List[IaCResource]:
                         provider="k8s",
                         line_start=line_no,
                         line_end=line_no + 15,
-                        attributes=doc
+                        attributes=doc,
+                        dependencies=deps
                     )
                 )
     except Exception:
