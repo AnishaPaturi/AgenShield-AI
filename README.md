@@ -176,11 +176,11 @@ graph TD
 ## 📅 Implementation Roadmap
 
 ### Phase 1: Foundation, Multi-IaC Ingestion & Core Documentation (Weeks 1-3)
-* [ ] Project structure setup and foundational documentation suite ([about.md](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/about.md), [index.html](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/index.html), and [literature_survey.txt](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/literature_survey.txt)).
-* [ ] Detailed architectural specification of the 8-agent LangGraph orchestration state machine.
-* [ ] Multi-cloud IaC parser design and schema definitions for Terraform (HCL), CloudFormation (JSON/YAML), Kubernetes Manifests (YAML), and Helm Charts.
-* [ ] Static scanner integration design (Checkov, tfsec, KICS) for hybrid AST parsing and attribute enrichment.
-* [ ] Research literature survey, research gap analysis against base IEEE Access 2025 paper, and comparative feature matrix.
+* [x] Project structure setup and foundational documentation suite ([about.md](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/about.md), [index.html](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/index.html), and [literature_survey.txt](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/literature_survey.txt)).
+* [x] Detailed architectural specification of the 8-agent LangGraph orchestration state machine.
+* [x] Multi-cloud IaC parser design and schema definitions for Terraform (HCL), CloudFormation (JSON/YAML), Kubernetes Manifests (YAML), and Helm Charts.
+* [x] Static scanner integration design (Checkov, tfsec, KICS) for hybrid AST parsing and attribute enrichment.
+* [x] Research literature survey, research gap analysis against base IEEE Access 2025 paper, and comparative feature matrix.
 * [ ] Implementation of Dedicated Secrets & Credential Scanning Agent (Gitleaks / TruffleHog engines).
 
 ### Phase 2: Multi-Cloud Knowledge Base & RAG Compliance Core (Weeks 4-6)
