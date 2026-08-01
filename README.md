@@ -312,6 +312,23 @@ AgentShield-AI/
 └── LLM_Agentic_Workflow_for_Automated_Vulnerability_Detection_and_Remediation_in_Infrastructure-as-Code.pdf # IEEE Access base paper
 ```
 
+## Run Terraform Preprocessing
+
+```
+# Activate virtual environment
+.\backend\.venv\Scripts\Activate.ps1
+
+# Install dependencies
+python -m pip install -e .
+
+# Run parsing, resource extraction, and normalization tests
+python -m pytest tests/test_terraform_parser.py tests/test_terraform_normalizer.py -v
+
+# View output after each preprocessing stage
+python inspect_parser.py
+```
+
+
 ---
 
 ## 📚 References & Academic Citations
