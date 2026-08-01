@@ -3,11 +3,11 @@
 import tomllib
 from pathlib import Path
 
-import agentshield
+import agentshield.parsers as parsers
 
 
 def test_package_version():
-    assert agentshield.__version__ == "0.1.0"
+    assert parsers.__version__ == "0.1.0"
 
 
 def test_pyproject_toml_structure():
