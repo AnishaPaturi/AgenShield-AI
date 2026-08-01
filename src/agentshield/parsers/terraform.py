@@ -24,3 +24,36 @@ def parse_terraform_file(file_path: str) -> dict:
         parsed_data = hcl2.load(file)
 
     return parsed_data
+
+def extract_terraform_resources(parsed_data: dict) -> list[dict]:
+    """
+    Extract individual Terraform resources from parsed HCL data.
+    """
+
+    resources = []
+
+    resource_blocks = parsed_data.get("resource", [])
+
+    for resource_block in resource_blocks:
+        for resource_type, resource_instances in resource_block.items():
+            for resource_name, resource_body in resource_instances.items():
+
+                start_line = resource_body.get("__start_line__")
+                end_line = resource_body.get("__end_line__")
+
+                properties = {
+                    key: value
+                    for key, value in resource_body.items()
+                    if key not in {"__start_line__", "__end_line__"}
+                }
+
+                resources.append({
+                    "resource_id": f"{resource_type}.{resource_name}",
+                    "resource_type": resource_type,
+                    "resource_name": resource_name,
+                    "properties": properties,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                })
+
+    return resources
