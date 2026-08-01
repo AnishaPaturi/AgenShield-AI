@@ -1,0 +1,179 @@
+{
+  "SOC2": {
+    "CC6.1": ["access control", "least privilege", "iam policy", "role based access"],
+    "CC6.2": ["user registration", "deprovisioning", "account lifecycle management"],
+    "CC6.3": ["role based access", "access authorization", "segregation of duties"],
+    "CC6.6": ["encryption at rest", "encryption in transit", "kms", "tls"],
+    "CC6.7": ["data transmission", "removable media", "secure transfer"],
+    "CC6.8": ["malware prevention", "endpoint protection", "unauthorized software"],
+    "CC7.1": ["vulnerability detection", "configuration monitoring", "security patching"],
+    "CC7.2": ["logging", "monitoring", "audit log", "cloudtrail"],
+    "CC7.3": ["incident evaluation", "security event triage"],
+    "CC7.4": ["incident response", "incident containment", "recovery procedures"],
+    "CC8.1": ["change management", "version control", "deployment pipeline"],
+    "CC9.1": ["risk mitigation", "vendor risk management", "business continuity"],
+    "CC9.2": ["third party risk", "vendor security assessment"]
+  },
+  "HIPAA": {
+    "164.312(a)(1)": ["access control", "unique user identification", "iam"],
+    "164.312(a)(2)(i)": ["unique user identification", "user identity management"],
+    "164.312(a)(2)(iv)": ["encryption at rest", "kms", "data encryption"],
+    "164.312(b)": ["audit controls", "audit log", "logging", "monitoring"],
+    "164.312(c)(1)": ["integrity", "checksum", "data integrity controls"],
+    "164.312(d)": ["person authentication", "multi factor authentication", "mfa"],
+    "164.312(e)(1)": ["encryption in transit", "tls", "transmission security"],
+    "164.312(e)(2)(ii)": ["encryption in transit", "secure transmission"],
+    "164.308(a)(1)": ["risk analysis", "security management process"],
+    "164.308(a)(3)": ["workforce access authorization", "least privilege", "iam policy"],
+    "164.308(a)(5)": ["security awareness training", "phishing protection"],
+    "164.308(a)(6)": ["incident response", "security incident procedures"],
+    "164.308(a)(7)": ["backup and recovery", "contingency plan", "disaster recovery"]
+  },
+  "PCI-DSS": {
+    "PCI-DSS-1.2": ["firewall configuration", "network segmentation"],
+    "PCI-DSS-1.3": ["firewall", "network segmentation", "security group", "public bucket"],
+    "PCI-DSS-2.1": ["default password", "hardening", "baseline configuration"],
+    "PCI-DSS-3.4": ["encryption at rest", "cardholder data encryption", "kms"],
+    "PCI-DSS-3.5": ["key management", "cryptographic key protection"],
+    "PCI-DSS-4.1": ["encryption in transit", "tls", "secure transmission"],
+    "PCI-DSS-6.5": ["secure coding", "vulnerability management", "input validation"],
+    "PCI-DSS-7.1": ["least privilege", "role based access", "access restriction"],
+    "PCI-DSS-8.2": ["multi factor authentication", "mfa", "password policy"],
+    "PCI-DSS-8.3": ["multi factor authentication", "remote access security"],
+    "PCI-DSS-10.1": ["audit trail", "logging", "cloudtrail"],
+    "PCI-DSS-10.2": ["audit log", "event logging", "monitoring"],
+    "PCI-DSS-11.4": ["intrusion detection", "vulnerability scanning", "penetration testing"],
+    "PCI-DSS-12.10": ["incident response", "incident response plan"]
+  },
+  "NIST-800-53": {
+    "NIST-AC-2": ["account management", "user lifecycle", "deprovisioning"],
+    "NIST-AC-3": ["access enforcement", "authorization policy"],
+    "NIST-AC-6": ["least privilege", "iam policy", "role based access"],
+    "NIST-AC-17": ["remote access", "vpn", "secure remote connection"],
+    "NIST-AU-2": ["audit events", "logging", "monitoring"],
+    "NIST-AU-6": ["audit log review", "log analysis", "anomaly detection"],
+    "NIST-CM-2": ["baseline configuration", "configuration management"],
+    "NIST-CM-6": ["configuration management", "baseline configuration", "hardening"],
+    "NIST-CM-7": ["least functionality", "unused services disabled"],
+    "NIST-CP-9": ["backup and recovery", "system backup"],
+    "NIST-IA-2": ["identification and authentication", "unique user identification"],
+    "NIST-IA-5": ["authenticator management", "password policy", "credential management"],
+    "NIST-IR-4": ["incident handling", "incident response"],
+    "NIST-SC-7": ["boundary protection", "network segmentation", "firewall"],
+    "NIST-SC-8": ["encryption in transit", "transmission confidentiality"],
+    "NIST-SC-12": ["cryptographic key management", "key rotation"],
+    "NIST-SC-13": ["encryption", "cryptographic protection", "kms"],
+    "NIST-SC-28": ["encryption at rest", "protection of data at rest"],
+    "NIST-SI-2": ["flaw remediation", "patch management", "vulnerability patching"],
+    "NIST-SI-4": ["system monitoring", "intrusion detection"]
+  },
+  "CIS-Controls-v8": {
+    "CIS-1": ["asset inventory", "hardware asset management"],
+    "CIS-2": ["software inventory", "authorized software management"],
+    "CIS-3": ["data protection", "data classification", "encryption at rest"],
+    "CIS-4": ["secure configuration", "baseline configuration", "hardening"],
+    "CIS-5": ["account management", "user lifecycle management"],
+    "CIS-6": ["access control management", "least privilege", "role based access"],
+    "CIS-8": ["audit log management", "logging", "monitoring"],
+    "CIS-11": ["data recovery", "backup and recovery"],
+    "CIS-12": ["network infrastructure management", "network segmentation"],
+    "CIS-13": ["network monitoring and defense", "intrusion detection"],
+    "CIS-14": ["security awareness training"],
+    "CIS-16": ["application security", "secure coding", "vulnerability management"]
+  },
+  "OWASP-Top10-2021": {
+    "A01-Broken-Access-Control": ["access control", "least privilege", "role based access", "iam policy"],
+    "A02-Cryptographic-Failures": ["encryption at rest", "encryption in transit", "weak cryptography", "kms"],
+    "A03-Injection": ["input validation", "sql injection", "command injection"],
+    "A04-Insecure-Design": ["threat modeling", "secure design principles"],
+    "A05-Security-Misconfiguration": ["hardening", "default password", "baseline configuration", "public bucket"],
+    "A06-Vulnerable-Components": ["dependency scanning", "vulnerability management", "patch management"],
+    "A07-Identification-Auth-Failures": ["multi factor authentication", "password policy", "session management"],
+    "A08-Software-Data-Integrity": ["integrity", "checksum", "code signing", "supply chain security"],
+    "A09-Security-Logging-Failures": ["logging", "monitoring", "audit log"],
+    "A10-Server-Side-Request-Forgery": ["ssrf", "network segmentation", "outbound request filtering"]
+  },
+  "MITRE-ATTACK": {
+    "T1078": ["valid accounts", "credential compromise", "stolen credentials"],
+    "T1552": ["hardcoded secrets", "credentials in code", "plaintext credentials"],
+    "T1190": ["public endpoint", "internet exposed service", "external attack surface"],
+    "T1485": ["data destruction", "resource deletion"],
+    "T1562": ["disable logging", "disable monitoring", "cloudtrail disabled"],
+    "T1530": ["public bucket", "cloud storage exposure", "data from cloud storage"],
+    "T1098": ["account manipulation", "iam policy modification", "privilege escalation"],
+    "T1040": ["network sniffing", "unencrypted traffic", "plaintext transmission"]
+  },
+  "AWS": {
+    "AWS-S3-Public-Access": ["public bucket", "block public access", "s3 bucket policy"],
+    "AWS-IAM-Least-Privilege": ["iam policy", "least privilege", "role based access"],
+    "AWS-KMS-Encryption": ["kms", "encryption at rest", "key rotation"],
+    "AWS-CloudTrail-Logging": ["cloudtrail", "audit log", "logging"],
+    "AWS-Security-Group": ["security group", "firewall", "network segmentation"],
+    "AWS-VPC-Flow-Logs": ["vpc flow logs", "network monitoring", "logging"],
+    "AWS-Secrets-Manager": ["secrets management", "hardcoded secrets", "credential rotation"]
+  },
+  "Azure": {
+    "Azure-RBAC": ["role based access", "least privilege", "iam"],
+    "Azure-Storage-Encryption": ["encryption at rest", "storage account encryption"],
+    "Azure-NSG": ["network security group", "firewall", "network segmentation"],
+    "Azure-Key-Vault": ["secrets management", "key management", "credential rotation"],
+    "Azure-Monitor-Logging": ["logging", "monitoring", "audit log"]
+  },
+  "GCP": {
+    "GCP-IAM-Least-Privilege": ["iam policy", "least privilege", "role based access"],
+    "GCP-Cloud-Storage-Encryption": ["encryption at rest", "cloud storage encryption"],
+    "GCP-VPC-Firewall": ["firewall", "network segmentation", "security group"],
+    "GCP-Cloud-Audit-Logs": ["audit log", "logging", "monitoring"],
+    "GCP-Secret-Manager": ["secrets management", "hardcoded secrets", "credential rotation"]
+  },
+  "Kubernetes": {
+    "K8s-Pod-Security-Standards": ["pod security", "privileged container", "least privilege"],
+    "K8s-RBAC": ["role based access", "least privilege", "service account"],
+    "K8s-Network-Policy": ["network segmentation", "pod network isolation"],
+    "K8s-Secrets-Management": ["secrets management", "hardcoded secrets", "kubernetes secrets"],
+    "K8s-Image-Scanning": ["vulnerability scanning", "container image security"],
+    "K8s-Admission-Control": ["admission controller", "pod security admission"],
+    "K8s-Etcd-Encryption": ["etcd encryption", "encrypt secrets"],
+    "K8s-Audit-Logging": ["kubernetes audit log", "audit logging"]
+  },
+  "Terraform-IaC": {
+    "TF-State-Encryption": ["encryption at rest", "terraform state security"],
+    "TF-Provider-Version-Pinning": ["version control", "dependency management"],
+    "TF-Hardcoded-Secrets": ["hardcoded secrets", "secrets management"],
+    "TF-Module-Security-Review": ["configuration management", "baseline configuration"],
+    "TF-Remote-State": ["remote backend", "terraform state"],
+    "TF-S3-State": ["s3 backend", "terraform backend"],
+    "TF-Lock-Table": ["dynamodb locking", "state locking"]
+  },
+  "Docker": {
+    "Docker-Root-User": ["root container", "run as root"],
+    "Docker-Image-Signing": ["signed image", "image integrity"],
+    "Docker-Secrets": ["docker secrets", "hardcoded credentials"],
+    "Docker-Base-Image": ["base image vulnerability", "outdated base image"]
+  },
+  "Kafka": {
+    "Kafka-TLS": ["kafka tls", "encrypted broker"],
+    "Kafka-SASL": ["sasl", "broker authentication"],
+    "Kafka-ACL": ["kafka acl", "topic authorization"]
+  },
+  "Secrets-Management": {
+    "SM-01": ["hardcoded secrets", "secrets management", "credential rotation"],
+    "SM-02": ["key management", "cryptographic key protection"],
+    "SM-03": ["vault integration", "secret scanning"]
+  },
+  "Vulnerability-Management": {
+    "VM-01": ["vulnerability scanning", "patch management", "flaw remediation"],
+    "VM-02": ["dependency scanning", "software composition analysis"],
+    "VM-03": ["penetration testing", "security testing"]
+  },
+  "Incident-Response": {
+    "IR-01": ["incident response plan", "incident handling"],
+    "IR-02": ["incident detection", "monitoring", "alerting"],
+    "IR-03": ["incident containment", "recovery procedures"]
+  },
+  "Backup-Recovery": {
+    "BR-01": ["backup and recovery", "system backup"],
+    "BR-02": ["disaster recovery", "business continuity"],
+    "BR-03": ["backup encryption", "backup integrity verification"]
+  }
+}
