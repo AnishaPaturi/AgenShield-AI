@@ -67,7 +67,7 @@ As detailed in `literature_survey.txt`, current research and commercial offering
    * *Limitation:* Single-cloud scope (CloudFormation only), single-LLM hallucination risks (~15% false-positive rate), text-only recommendations without patch generation, and limited benchmark evaluation.
 
 ### Comparative Feature Matrix
-
+  
 | Feature / Metric | Static Scanners (Checkov) | CSPM (AWS Config) | Base Paper (Toprani, 2025) | AgentShield AI (Proposed) |
 | :--- | :--- | :--- | :--- | :--- |
 | **Analysis Timing** | Pre-commit / CI | Post-deployment | Pre-deployment | Shift-Left (IDE + Pre-commit + CI + Live Drift) |
@@ -311,6 +311,23 @@ AgentShield-AI/
 ├── project abstract.docx    # Executive abstract and project overview document
 └── LLM_Agentic_Workflow_for_Automated_Vulnerability_Detection_and_Remediation_in_Infrastructure-as-Code.pdf # IEEE Access base paper
 ```
+
+## Run Terraform Preprocessing
+
+```
+# Activate virtual environment
+.\backend\.venv\Scripts\Activate.ps1
+
+# Install dependencies
+python -m pip install -e .
+
+# Run parsing, resource extraction, and normalization tests
+python -m pytest tests/test_terraform_parser.py tests/test_terraform_normalizer.py -v
+
+# View output after each preprocessing stage
+python inspect_parser.py
+```
+
 
 ---
 
