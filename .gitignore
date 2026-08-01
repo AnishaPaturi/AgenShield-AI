@@ -36,3 +36,11 @@ htmlcov/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Knowledge Base Generated Files
+qdrant_data/
+bm25_index.pkl
+kb_cache.json
+nvd_cve_cache.json
+data_scraped/
+.cache/
