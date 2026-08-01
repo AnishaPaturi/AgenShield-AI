@@ -1,0 +1,187 @@
+# =============================================================================
+# settings.yaml
+# -----------------------------------------------------------------------------
+# Central configuration for the AgentShield-AI Knowledge Base.
+#
+# Every tunable parameter lives here.
+# config.py simply loads these values.
+#
+# No business logic should be hardcoded inside Python files.
+# =============================================================================
+
+paths:
+  data_root: data
+  scraped_root: data_scraped
+  qdrant_path: qdrant_data
+  cache_file: kb_cache.json
+  bm25_index_file: bm25_index.pkl
+  nvd_cve_cache_file: nvd_cve_cache.json
+
+# =============================================================================
+# Compliance
+# =============================================================================
+
+compliance:
+  map_file: compliance_controls.json
+
+# =============================================================================
+# Embeddings
+# =============================================================================
+
+embedding:
+  model: sentence-transformers/all-mpnet-base-v2
+
+  bge_query_prefix: "Represent this sentence for searching relevant passages: "
+
+  dims:
+    sentence-transformers/all-MiniLM-L6-v2: 384
+    sentence-transformers/all-mpnet-base-v2: 768
+    BAAI/bge-base-en-v1.5: 768
+    BAAI/bge-large-en-v1.5: 1024
+
+# =============================================================================
+# Chunking
+# =============================================================================
+
+chunking:
+  chunk_size: 500
+  chunk_overlap: 50
+
+# =============================================================================
+# Vector Database
+# =============================================================================
+
+vector_db:
+  collection_name: agentshield_kb
+  batch_size: 512
+
+# =============================================================================
+# Retrieval
+# =============================================================================
+
+retrieval:
+  default_top_k: 5
+
+  dense_weight: 0.6
+  sparse_weight: 0.4
+
+  rrf_k: 10
+
+  dense_pool: 20
+  sparse_pool: 20
+  bm25_k1: 1.5
+  bm25_b: 0.75
+
+# =============================================================================
+# Semantic Deduplication
+# =============================================================================
+
+dedup:
+  semantic_threshold: 0.97
+
+# =============================================================================
+# Categories
+# =============================================================================
+
+categories:
+  aws: cloud_provider
+  azure: cloud_provider
+  gcp: cloud_provider
+
+  terraform: iac_tool
+  kubernetes: iac_tool
+  docker: container_security
+  kafka: messaging_security
+
+  nist: compliance_framework
+  cis: compliance_framework
+
+  owasp: security_standard
+  mitre: threat_framework
+  mitre_attack: threat_framework
+
+  nvd: vulnerability_feed
+
+# =============================================================================
+# Continuous Knowledge Base Ingestion
+# =============================================================================
+
+ingestion:
+
+  # ------------------------------------------------------------
+  # Static documentation folders monitored for changes
+  # ------------------------------------------------------------
+
+  doc_refresh_folders:
+    - aws
+    - azure
+    - gcp
+    - terraform
+    - kubernetes
+    - nist
+    - cis
+    - owasp
+    - mitre
+    - mitre_attack
+    - docker
+    - kafka
+
+  # ------------------------------------------------------------
+  # NVD API
+  # ------------------------------------------------------------
+
+  nvd_api_url: "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+  nvd_results_per_page: 200
+
+  # ------------------------------------------------------------
+  # Scraper Settings
+  # ------------------------------------------------------------
+
+  timeout: 30
+
+  days_back: 1
+
+  verify_ssl: true
+
+  user_agent: "AgentShield-AI/1.0"
+
+  # ------------------------------------------------------------
+  # Optional Documentation Sources
+  #
+  # Leave blank unless official downloadable
+  # documentation URLs are available.
+  # ------------------------------------------------------------
+
+  aws_doc_url: ""
+
+  azure_doc_url: ""
+
+  gcp_doc_url: ""
+
+  cis_doc_url: ""
+
+  # ------------------------------------------------------------
+  # Supported scraped file types
+  # ------------------------------------------------------------
+
+  supported_extensions:
+    - ".txt"
+    - ".json"
+    - ".md"
+
+# =============================================================================
+# Scheduler
+# =============================================================================
+
+scheduler:
+
+  refresh_hour: 3
+
+  timezone: UTC
+
+  max_instances: 1
+
+  coalesce: true
+
+  misfire_grace_time: 3600
