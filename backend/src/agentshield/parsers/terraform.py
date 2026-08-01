@@ -35,8 +35,10 @@ def extract_terraform_resources(parsed_data: dict) -> list[dict]:
     resource_blocks = parsed_data.get("resource", [])
 
     for resource_block in resource_blocks:
-        for resource_type, resource_instances in resource_block.items():
-            for resource_name, resource_body in resource_instances.items():
+        for raw_resource_type, resource_instances in resource_block.items():
+            for raw_resource_name, resource_body in resource_instances.items():
+                resource_type = str(raw_resource_type).strip('"').strip("'")
+                resource_name = str(raw_resource_name).strip('"').strip("'")
 
                 start_line = resource_body.get("__start_line__")
                 end_line = resource_body.get("__end_line__")

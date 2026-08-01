@@ -299,24 +299,198 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 ---
 
 
-## 📂 Project Structure
+## 📂 Comprehensive Project Directory & File Structure
+
+Below is the complete tree representation of the **AgentShield AI** repository, detailing the architecture of the root project, backend package, agent implementations, RAG knowledge core, test suite, and policy datasets.
 
 ```
 AgentShield-AI/
-├── .gitignore               # Git ignore configuration
-├── README.md                # Primary project documentation
-├── about.md                 # System architecture & specialized 8-agent breakdown
-├── index.html               # Interactive web presentation (objectives, pipeline, results)
-├── literature_survey.txt    # IaC security literature survey, gaps, & comparative matrix
-├── project abstract.docx    # Executive abstract and project overview document
-└── LLM_Agentic_Workflow_for_Automated_Vulnerability_Detection_and_Remediation_in_Infrastructure-as-Code.pdf # IEEE Access base paper
+├── backend/                                   # Backend Python package, state machine, and tests
+│   ├── data/                                  # Multi-cloud security policy & compliance PDF corpus
+│   │   ├── aws/                               # AWS EC2, S3, IAM security guides & Well-Architected docs
+│   │   ├── azure/                             # Azure Security Benchmark & cloud security guidelines
+│   │   ├── cis/                               # Official CIS AWS Foundations & Kubernetes Benchmarks
+│   │   ├── gcp/                               # GCP IAM and cloud security posture guides
+│   │   ├── kubernetes/                        # Kubernetes Pod Security Standards & security concepts
+│   │   ├── mitre/                             # MITRE ATT&CK Cloud Framework & CWE dictionaries
+│   │   ├── nist/                              # NIST Special Publication 800-53 Rev 5 control specs
+│   │   ├── owasp/                             # OWASP Top 10 for Cloud & Kubernetes Security
+│   │   └── terraform/                         # HashiCorp Terraform security guides & HCL style guides
+│   ├── src/                                   # AgentShield AI core multi-agent package source
+│   │   └── agentshield/                       # Core python module (`agentshield`)
+│   │       ├── agents/                        # Specialized LLM agents
+│   │       │   ├── analyst.py                 # Security Analyst Agent (Ensemble Voting & Confidence)
+│   │       │   ├── remediator.py              # Remediation Agent (Code Diff Patch Generation)
+│   │       │   └── prompts/                   # System prompt engineering templates & schemas
+│   │       │       └── templates.py           # CoT prompts, system roles, & structured response formats
+│   │       ├── core/                          # State management, RAG core, & LLM client wrappers
+│   │       │   ├── llm/                       # Multi-LLM client abstractions
+│   │       │   │   └── client.py              # Claude 3.5 + GPT-4o client, mock mode, & JSON parser
+│   │       │   ├── schemas/                   # Pydantic v2 data contracts & state schemas
+│   │       │   │   ├── contracts.py           # AgentShieldState (central LangGraph state schema)
+│   │       │   │   ├── iac.py                 # IaCTemplate, ASTNode, & LineRange models
+│   │       │   │   ├── vulnerability.py       # VulnerabilityFinding & VulnerabilityReport models
+│   │       │   │   └── remediation.py         # PatchDiff & ValidationCheckResult models
+│   │       │   └── knowledge_base/            # RAG vector database & compliance engine
+│   │       │       ├── vector_db.py           # Qdrant & ChromaDB vector database manager
+│   │       │       ├── retriever.py           # Context retrieval coordinator
+│   │       │       ├── hybrid_search.py       # Hybrid Dense (embeddings) + Sparse (BM25) search engine
+│   │       │       ├── embeddings.py          # SentenceTransformers model wrapper (`all-mpnet-base-v2`)
+│   │       │       ├── chunker.py             # Semantic document chunking engine
+│   │       │       ├── compliance.py          # Regulatory compliance engine (SOC2, HIPAA, PCI, NIST)
+│   │       │       ├── compliance_controls.json# Control mapping matrix linking findings to regulatory IDs
+│   │       │       ├── loaders.py             # PDF & text document ingestion loaders
+│   │       │       ├── scrapers.py            # Live scraper service for AWS/Azure/GCP feeds & CVEs
+│   │       │       ├── update_kb.py           # CLI script to execute KB re-indexing
+│   │       │       ├── scheduler.py           # Background job scheduler (APScheduler) for daily updates
+│   │       │       ├── cache.py               # AST hash caching module
+│   │       │       ├── dedup.py               # Semantic deduplication module
+│   │       │       ├── config.py              # Vector store & RAG threshold configuration loader
+│   │       │       └── settings.yaml          # YAML settings for embedding dimensions & vector DB URLs
+│   │       └── parsers/                       # Polyglot IaC AST parsers & property normalizers
+│   │           ├── terraform.py               # HCL2 parser & resource extractor module
+│   │           └── normalizer.py              # Property normalization & quote stripping engine
+│   ├── tests/                                 # Pytest test suite & test fixtures
+│   │   ├── conftest.py                        # Shared pytest fixtures & test environment setup
+│   │   ├── test_analyst_agent.py              # Unit tests for Security Analyst Agent
+│   │   ├── test_remediation_agent.py          # Unit tests for Remediation Agent & diff patching
+│   │   ├── test_terraform_parser.py           # Unit tests for HCL parsing & resource extraction
+│   │   ├── test_terraform_normalizer.py       # Unit tests for property normalization & list preservation
+│   │   ├── test_llm_client.py                 # Unit tests for Multi-LLM client & confidence scoring
+│   │   ├── test_iac_schema.py                 # Unit tests for AST nodes & format auto-detection
+│   │   ├── test_vulnerability_schema.py       # Unit tests for vulnerability finding schemas
+│   │   ├── test_remediation_schema.py         # Unit tests for patch diff schemas & validation results
+│   │   ├── test_contracts.py                  # Unit tests for AgentShieldState contracts
+│   │   ├── test_prompts.py                    # Unit tests verifying system prompt templates
+│   │   ├── test_pyproject.py                  # Unit tests verifying pyproject.toml configuration
+│   │   └── fixtures/                          # Sample test files & IaC templates
+│   │       └── terraform/sample.tf            # Test fixture: sample Terraform HCL file
+│   ├── inspect_parser.py                      # Diagnostic script inspecting AST parsing & normalization
+│   ├── build_ieee_paper.py                    # Python script generating IEEE 2-column paper (.docx)
+│   ├── build_paper_doc.py                     # Document builder helper for XML formatting & callouts
+│   └── pyproject.toml                         # Python project configuration & dependency manifest
+├── scratch/                                   # Temporary artifacts & extracted base paper text
+│   └── base_paper_text.txt                    # Extracted raw text from IEEE base paper (Toprani, 2025)
+├── .gitignore                                 # Git version control ignore rules
+├── README.md                                  # Primary project documentation & architecture guide
+├── about.md                                   # System architecture guide & specialized agent breakdown
+├── index.html                                 # Interactive web presentation of objectives & pipeline
+├── literature_survey.txt                      # Academic literature survey, research gaps, & matrix
+├── project abstract.docx                      # Official project abstract document for academic submission
+├── AgentShield_AI_Research_Paper_Draft.docx   # Draft research paper in IEEE 2-Column format (.docx)
+├── LLM_Agentic_Workflow_..._Code.pdf          # Base IEEE Access research paper (Toprani & Madisetti, 2025)
+└── WhatsApp Image 2026-08-01 at 21.13.02.jpeg # Reference image detailing IEEE paper structure guidelines
 ```
+
+---
+
+## 🛠️ Detailed File & Component Functionality Inventory
+
+### 🌐 1. Root Level Project Files
+
+| File Name | Category | Primary Functionality & Technical Purpose |
+| :--- | :--- | :--- |
+| **`README.md`** | Documentation | Primary repository documentation containing project metadata, system architecture breakdown, comparative feature matrices, execution instructions, full directory inventory, and academic citations. |
+| **`about.md`** | Architecture | Detailed technical architecture guide describing the 8 specialized AI agents, LangGraph state machine, execution flow diagram, and feature-by-feature comparative analysis against the base paper. |
+| **`index.html`** | Web Presentation | Single-page interactive web interface showcasing project objectives, multi-agent pipeline workflow, expected empirical results, system strengths, and limitations. |
+| **`literature_survey.txt`** | Academic Survey | Comprehensive literature survey categorizing existing IaC security paradigms (static linters, CSPM, ML smell detectors, LLM workflows), key research gaps, and comparative analysis matrix. |
+| **`project abstract.docx`** | Submission Doc | Executive abstract and project overview document prepared for academic submission, containing team member roll numbers (`23BD1A050E`, `23BD1A0518`, `23BD1A051D`, `23BD1A051Y`), domain definitions, and supervisor signatures. |
+| **`AgentShield_AI_Research_Paper_Draft.docx`** | Research Paper | Complete draft research paper formatted in **IEEE 2-Column Conference style** (~4-5 pages, ~1,850+ words, complete with Abstract, Intro, Literature Review (L.R), Proposed Method, Performance Analysis, Conclusions, Future Work, and IEEE References). |
+| **`LLM_Agentic_Workflow_for_Automated_Vulnerability_Detection_and_Remediation_in_Infrastructure-as-Code.pdf`** | Base Paper | Foundational base IEEE Access research paper (*Toprani & Madisetti, 2025*) serving as the core baseline for AgentShield AI's multi-cloud agentic enhancements. |
+| **`WhatsApp Image 2026-08-01 at 21.13.02.jpeg`** | Reference Image | Reference handwritten guidance image specifying required IEEE paper section structures, page count targets (4-5 pages), and citation pattern requirements. |
+| **`.gitignore`** | Configuration | Git version control configuration excluding Python bytecode (`__pycache__`), virtual environments (`.venv`), build artifacts, and coverage reports. |
+
+---
+
+### ⚙️ 2. Backend Infrastructure Files (`backend/`)
+
+| File Path | Category | Primary Functionality & Technical Purpose |
+| :--- | :--- | :--- |
+| **`backend/pyproject.toml`** | Package Config | Modern Python package configuration file defining project dependencies (`langgraph`, `sentence-transformers`, `qdrant-client`, `rank-bm25`, `pypdf`, `python-hcl2`), build targets (`hatchling`), and pytest configuration settings. |
+| **`backend/inspect_parser.py`** | Diagnostic Script | Diagnostic utility script that parses sample Terraform HCL code (`sample.tf`), extracts resource blocks, runs property normalization, and prints formatted JSON outputs for each pipeline stage. |
+| **`backend/build_ieee_paper.py`** | Document Generator | Automation script using `python-docx` to generate the IEEE 2-Column formatted research paper (`AgentShield_AI_Research_Paper_Draft.docx`) with custom table borders, callout boxes, and IEEE references. |
+| **`backend/build_paper_doc.py`** | Document Builder | Secondary document builder helper providing low-level XML styling functions for margins, shaded table headers, and callouts. |
+| **`backend/.coverage`** | Testing Artifact | Binary coverage data report file generated by `pytest-cov` during test suite execution. |
+
+---
+
+### 🧠 3. Core Multi-Agent Package (`backend/src/agentshield/`)
+
+#### **A. Specialized AI Agents (`agents/`)**
+* **`backend/src/agentshield/agents/analyst.py`**: Implements `SecurityAnalystAgent`, executing parallel reasoning across Claude 3.5 Sonnet and GPT-4o, applying Chain-of-Thought prompting, and computing calibrated consensus confidence scores (\(C_{ensemble}\)). Escalates findings with \(C < 0.85\) to the human audit queue.
+* **`backend/src/agentshield/agents/remediator.py`**: Implements `RemediationAgent`, converting structured vulnerability reports into executable, syntactically valid unified code diff patches for specific IaC resource blocks.
+* **`backend/src/agentshield/agents/prompts/templates.py`**: Prompt engineering library containing system prompts, reasoning templates, structured JSON response schemas, and RAG context injection strings.
+
+#### **B. Engine, Client & Schemas (`core/`)**
+* **`backend/src/agentshield/core/llm/client.py`**: Unified Multi-LLM client wrapper interfacing with Anthropic Claude 3.5, OpenAI GPT-4o, and mock fallback models with automatic JSON schema validation.
+* **`backend/src/agentshield/core/schemas/contracts.py`**: Core Pydantic v2 data contract defining `AgentShieldState`, the central state container passed between agents in the LangGraph state machine.
+* **`backend/src/agentshield/core/schemas/iac.py`**: Pydantic models for IaC templates (`IaCTemplate`), AST nodes (`ASTNode`), line numbers (`LineRange`), and template type auto-detection.
+* **`backend/src/agentshield/core/schemas/vulnerability.py`**: Pydantic models for vulnerability findings (`VulnerabilityFinding`), severity levels (`SeverityLevel`), confidence scores, and summarized reports (`VulnerabilityReport`).
+* **`backend/src/agentshield/core/schemas/remediation.py`**: Pydantic models for code patch diffs (`PatchDiff`), static linter check results (`ValidationCheckResult`), and sandbox dry-run execution results.
+
+#### **C. Knowledge Core & RAG Pipeline (`core/knowledge_base/`)**
+* **`vector_db.py`**: Vector database adapter providing a unified interface for Qdrant and ChromaDB vector stores.
+* **`retriever.py`**: High-level RAG retriever coordinating document lookups and context assembly.
+* **`hybrid_search.py`**: Implements hybrid retrieval combining dense vector similarity (`sentence-transformers/all-mpnet-base-v2`) with sparse BM25 keyword matching (\(S_{hybrid}\)).
+* **`embeddings.py`**: Model wrapper for generating dense sentence embeddings from security documentation chunks.
+* **`chunker.py`**: Document chunking engine splitting security PDFs into semantically meaningful policy passages.
+* **`compliance.py`**: Regulatory compliance engine mapping detected security flaws to specific control IDs across SOC 2, HIPAA, PCI-DSS, and NIST 800-53.
+* **`compliance_controls.json`**: Master JSON crosswalk matrix mapping security rules to compliance control frameworks.
+* **`loaders.py`**: Document ingestion loaders for reading PDF and text security benchmarks into memory.
+* **`scrapers.py`**: Web scraper service continuously fetching updated security advisories from AWS, Azure, GCP, and NVD/CVE feeds.
+* **`update_kb.py`**: Command-line script to trigger full knowledge base re-indexing and vector database updates.
+* **`scheduler.py`**: Background job scheduler (`APScheduler`) executing daily knowledge base updates.
+* **`cache.py` & `dedup.py`**: AST hash caching and semantic deduplication modules eliminating redundant LLM queries.
+* **`config.py` & `settings.yaml`**: RAG core configuration settings, embedding dimensions, vector store URLs, and search threshold parameters.
+
+#### **D. Polyglot AST Parsers (`parsers/`)**
+* **`backend/src/agentshield/parsers/terraform.py`**: HCL2 parser module (`parse_terraform_file`, `extract_terraform_resources`) parsing `.tf` files into structured resource objects while extracting line numbers and property trees.
+* **`backend/src/agentshield/parsers/normalizer.py`**: Normalization module (`normalize_value`, `normalize_terraform_resources`) cleaning HCL parser wrappers, stripping quote artifacts, and preserving list attributes like `cidr_blocks`.
+
+---
+
+### 🧪 4. Pytest Test Suite (`backend/tests/`)
+
+| Test File Name | Targeted Subsystem & Verified Functionality |
+| :--- | :--- |
+| **`conftest.py`** | Shared pytest fixtures providing mock states, sample AST trees, and test configuration defaults. |
+| **`test_analyst_agent.py`** | Unit tests verifying `SecurityAnalystAgent` structured output parsing, confidence score calculation, and fallback reasoning. |
+| **`test_remediation_agent.py`** | Unit tests verifying `RemediationAgent` code diff generation, batch patch creation, and fallback handling. |
+| **`test_terraform_parser.py`** | Unit tests verifying HCL file parsing (`parse_terraform_file`) and resource block extraction (`extract_terraform_resources`). |
+| **`test_terraform_normalizer.py`** | Unit tests verifying resource property normalization (`normalize_terraform_resources`), quote stripping, and list preservation (`cidr_blocks`). |
+| **`test_llm_client.py`** | Unit tests verifying multi-LLM client initialization, structured JSON generation, and ensemble confidence scoring algorithms. |
+| **`test_iac_schema.py`** | Schema validation tests for AST nodes, line range boundaries, and IaC format auto-detection (HCL, CFN, K8s, Helm). |
+| **`test_vulnerability_schema.py`** | Unit tests verifying `VulnerabilityFinding` creation, confidence score validation, and summary metrics calculation. |
+| **`test_remediation_schema.py`** | Unit tests verifying `PatchDiff` unified diff generation and `ValidationCheckResult` status handling. |
+| **`test_contracts.py`** | Unit tests verifying `AgentShieldState` serialization, workspace state contracts, and schema exports. |
+| **`test_prompts.py`** | Unit tests verifying system prompt templates and user prompt string formatting. |
+| **`test_pyproject.py`** | Unit tests verifying `pyproject.toml` package metadata, version numbers, and dependency definitions. |
+| **`fixtures/terraform/sample.tf`** | Reference Terraform HCL template containing S3 bucket, security group, and PostgreSQL database resources for unit testing. |
+
+---
+
+### 📚 5. Policy & Benchmark Data Corpus (`backend/data/`)
+
+* **`backend/data/aws/`**: PDF security guides covering AWS EC2, S3, IAM Security Best Practices, and Well-Architected Framework pillars.
+* **`backend/data/azure/`**: PDF documentation for Azure Security Benchmark and Cloud Security recommendations.
+* **`backend/data/gcp/`**: PDF documentation for Google Cloud Platform IAM and security posture benchmarks.
+* **`backend/data/kubernetes/`**: PDF standards for Kubernetes Pod Security Standards and cluster security concepts.
+* **`backend/data/cis/`**: Benchmark PDF guidelines for CIS AWS Foundations Benchmark and CIS Kubernetes Benchmark.
+* **`backend/data/nist/`**: NIST Special Publication 800-53 Rev 5 security and privacy control specifications.
+* **`backend/data/mitre/`**: MITRE ATT&CK Cloud Framework mappings and CWE vulnerability dictionaries.
+* **`backend/data/owasp/`**: OWASP Top 10 for Cloud and Kubernetes.
+* **`backend/data/terraform/`**: HashiCorp Terraform official security guidelines and HCL style guides.
+
+---
 
 ## Run Terraform Preprocessing
 
-```
+```bash
+# Navigate to backend directory
+cd backend
+
 # Activate virtual environment
-.\backend\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
 # Install dependencies
 python -m pip install -e .

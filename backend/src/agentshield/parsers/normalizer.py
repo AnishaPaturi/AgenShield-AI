@@ -1,18 +1,21 @@
 from typing import Any
 
 
-def normalize_value(value: Any) -> Any:
+def normalize_value(value: Any, key: str | None = None) -> Any:
     """
     Recursively normalize values produced by the Terraform parser.
     """
 
     if isinstance(value, dict):
         return {
-            key: normalize_value(item)
-            for key, item in value.items()
+            k: normalize_value(item, k)
+            for k, item in value.items()
         }
 
     if isinstance(value, list):
+        # Known list attributes should remain lists
+        if key in {"cidr_blocks", "ipv6_cidr_blocks", "security_groups", "subnets", "availability_zones", "ingress", "egress"}:
+            return [normalize_value(item) for item in value]
 
         # Parser wrapper around a single scalar value
         if len(value) == 1 and not isinstance(
@@ -36,6 +39,10 @@ def normalize_value(value: Any) -> Any:
             normalize_value(item)
             for item in value
         ]
+
+    if isinstance(value, str):
+        if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+            return value[1:-1]
 
     return value
 
