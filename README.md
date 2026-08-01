@@ -67,7 +67,7 @@ As detailed in `literature_survey.txt`, current research and commercial offering
    * *Limitation:* Single-cloud scope (CloudFormation only), single-LLM hallucination risks (~15% false-positive rate), text-only recommendations without patch generation, and limited benchmark evaluation.
 
 ### Comparative Feature Matrix
-
+  
 | Feature / Metric | Static Scanners (Checkov) | CSPM (AWS Config) | Base Paper (Toprani, 2025) | AgentShield AI (Proposed) |
 | :--- | :--- | :--- | :--- | :--- |
 | **Analysis Timing** | Pre-commit / CI | Post-deployment | Pre-deployment | Shift-Left (IDE + Pre-commit + CI + Live Drift) |
