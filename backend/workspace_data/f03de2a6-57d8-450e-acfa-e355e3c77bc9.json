@@ -1,0 +1,223 @@
+{
+  "workspace_id": "f03de2a6-57d8-450e-acfa-e355e3c77bc9",
+  "template": {
+    "template_id": "909e6629-844b-444f-83bc-fc8326b9b7cd",
+    "file_path": "sample.tf",
+    "iac_type": "terraform",
+    "cloud_provider": "aws",
+    "raw_content": "resource \"aws_s3_bucket\" \"data_bucket\" {\r\n  bucket = \"my-app-data-bucket\"\r\n}\r\n\r\nresource \"aws_security_group\" \"web_sg\" {\r\n  name        = \"web-sg\"\r\n  description = \"Allow web and SSH traffic\"\r\n\r\n  ingress {\r\n    description = \"SSH from anywhere\"\r\n    from_port   = 22\r\n    to_port     = 22\r\n    protocol    = \"tcp\"\r\n    cidr_blocks = [\"0.0.0.0/0\"]\r\n  }\r\n}\r\n\r\nresource \"aws_db_instance\" \"app_db\" {\r\n  identifier          = \"app-database\"\r\n  engine              = \"postgres\"\r\n  storage_encrypted   = false\r\n  publicly_accessible = true\r\n}",
+    "parsed_ast": {
+      "node_id": "root",
+      "node_type": "module",
+      "name": "sample",
+      "resource_type": null,
+      "attributes": {},
+      "children": [
+        {
+          "node_id": "aws_s3_bucket.data_bucket",
+          "node_type": "resource",
+          "name": "data_bucket",
+          "resource_type": "aws_s3_bucket",
+          "attributes": {
+            "bucket": "my-app-data-bucket",
+            "__is_block__": true
+          },
+          "children": [],
+          "line_range": null,
+          "parent_id": "root",
+          "dependencies": [],
+          "resolved_parameters": {},
+          "metadata": {}
+        },
+        {
+          "node_id": "aws_security_group.web_sg",
+          "node_type": "resource",
+          "name": "web_sg",
+          "resource_type": "aws_security_group",
+          "attributes": {
+            "name": "web-sg",
+            "description": "Allow web and SSH traffic",
+            "ingress": [
+              {
+                "description": "SSH from anywhere",
+                "from_port": 22,
+                "to_port": 22,
+                "protocol": "tcp",
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "__is_block__": true
+              }
+            ],
+            "__is_block__": true
+          },
+          "children": [],
+          "line_range": null,
+          "parent_id": "root",
+          "dependencies": [],
+          "resolved_parameters": {},
+          "metadata": {}
+        },
+        {
+          "node_id": "aws_db_instance.app_db",
+          "node_type": "resource",
+          "name": "app_db",
+          "resource_type": "aws_db_instance",
+          "attributes": {
+            "identifier": "app-database",
+            "engine": "postgres",
+            "storage_encrypted": false,
+            "publicly_accessible": true,
+            "__is_block__": true
+          },
+          "children": [],
+          "line_range": null,
+          "parent_id": "root",
+          "dependencies": [],
+          "resolved_parameters": {},
+          "metadata": {}
+        }
+      ],
+      "line_range": null,
+      "parent_id": null,
+      "dependencies": [],
+      "resolved_parameters": {},
+      "metadata": {}
+    },
+    "dependencies": [],
+    "metadata": {},
+    "created_at": "2026-08-02T16:49:59.734699Z"
+  },
+  "report": {
+    "report_id": "4718eb33-a6b0-47d8-bb74-227236d542b1",
+    "template_id": "909e6629-844b-444f-83bc-fc8326b9b7cd",
+    "target_file": "sample.tf",
+    "findings": [
+      {
+        "finding_id": "89c3b7a3-45a8-4e2b-91d6-ac58da1b536d",
+        "rule_id": "AS-DEF-001",
+        "title": "Public Exposure Risk Detected",
+        "description": "Configuration allows public access.",
+        "severity": "HIGH",
+        "confidence_score": 0.9,
+        "affected_resource": "sample.tf",
+        "resource_type": null,
+        "line_range": null,
+        "compliance_mappings": [
+          {
+            "framework": "SOC2",
+            "control_id": "CC6.1",
+            "title": "Logical Access Controls",
+            "description": "Enforce strict access boundaries."
+          },
+          {
+            "framework": "NIST_800_53",
+            "control_id": "AC-2",
+            "title": "Account Management",
+            "description": "Restrict unauthorized privilege escalation."
+          }
+        ],
+        "attack_path": [],
+        "remediation_hint": "Restrict CIDRs or set ACL to private.",
+        "raw_details": {}
+      },
+      {
+        "finding_id": "713f5a63-ed65-4b41-b77b-ff862dbf4f1a",
+        "rule_id": "AS-AWS-002",
+        "title": "S3 Bucket Server-Side Encryption Missing",
+        "description": "S3 Bucket does not enforce default server-side encryption.",
+        "severity": "MEDIUM",
+        "confidence_score": 0.85,
+        "affected_resource": "aws_s3_bucket",
+        "resource_type": null,
+        "line_range": null,
+        "compliance_mappings": [
+          {
+            "framework": "CIS_BENCHMARK",
+            "control_id": "CIS-1.1",
+            "title": "Secure Baseline Configuration",
+            "description": "Apply least privilege baseline principles."
+          }
+        ],
+        "attack_path": [],
+        "remediation_hint": "Enable aws_s3_bucket_server_side_encryption_configuration.",
+        "raw_details": {}
+      }
+    ],
+    "summary": {
+      "total_vulnerabilities": 2,
+      "critical_count": 0,
+      "high_count": 1,
+      "medium_count": 1,
+      "low_count": 0,
+      "info_count": 0,
+      "risk_score": 11.0
+    },
+    "scanned_at": "2026-08-02T16:49:59.972089Z",
+    "scanner_sources": [
+      "SecurityAnalystAgent",
+      "gpt-4o"
+    ]
+  },
+  "patches": [
+    {
+      "patch_id": "285254f2-901f-4d43-9faf-6282671db1ed",
+      "finding_id": "89c3b7a3-45a8-4e2b-91d6-ac58da1b536d",
+      "target_file": "sample.tf",
+      "original_code": "\"0.0.0.0/0\"",
+      "patched_code": "\"10.0.0.0/16\"",
+      "unified_diff": "--- a/sample.tf\n+++ b/sample.tf\n@@ -1 +1 @@\n-\"0.0.0.0/0\"+\"10.0.0.0/16\"",
+      "target_resource": "sample.tf",
+      "remediation_status": "APPLIED",
+      "validation_results": [],
+      "explanation": "Restricted open ingress rule to private VPC CIDR 10.0.0.0/16.",
+      "created_at": "2026-08-02T16:49:59.975658Z"
+    },
+    {
+      "patch_id": "e0c0948c-321e-47d1-b8d1-f337c023d3ca",
+      "finding_id": "713f5a63-ed65-4b41-b77b-ff862dbf4f1a",
+      "target_file": "sample.tf",
+      "original_code": "\"0.0.0.0/0\"",
+      "patched_code": "\"10.0.0.0/16\"",
+      "unified_diff": "--- a/sample.tf\n+++ b/sample.tf\n@@ -1 +1 @@\n-\"0.0.0.0/0\"+\"10.0.0.0/16\"",
+      "target_resource": "aws_s3_bucket",
+      "remediation_status": "REJECTED",
+      "validation_results": [],
+      "explanation": "Restricted open ingress rule to private VPC CIDR 10.0.0.0/16.",
+      "created_at": "2026-08-02T16:49:59.978755Z"
+    }
+  ],
+  "active_agent": null,
+  "status": "REMEDIATED",
+  "execution_logs": [
+    {
+      "agent": "Orchestrator",
+      "action": "parsed_template",
+      "iac_type": "terraform"
+    },
+    {
+      "agent": "SecurityAnalystAgent",
+      "action": "analyzed",
+      "findings": 2,
+      "risk_score": 11.0
+    },
+    {
+      "agent": "RemediationAgent",
+      "action": "patches_generated",
+      "count": 2
+    },
+    {
+      "agent": "Developer",
+      "action": "patch_decision",
+      "patch_id": "285254f2-901f-4d43-9faf-6282671db1ed",
+      "decision": "accept"
+    },
+    {
+      "agent": "Developer",
+      "action": "patch_decision",
+      "patch_id": "e0c0948c-321e-47d1-b8d1-f337c023d3ca",
+      "decision": "reject"
+    }
+  ],
+  "created_at": "2026-08-02T16:49:59.772777Z"
+}
