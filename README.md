@@ -321,13 +321,14 @@ AgentShield-AI/
 │   │       ├── agents/                        # Specialized LLM agents
 │   │       │   ├── analyst.py                 # Security Analyst Agent (Ensemble Voting & Confidence)
 │   │       │   ├── remediator.py              # Remediation Agent (Code Diff Patch Generation)
+│   │       │   ├── secrets.py                 # Dedicated Secrets & Credential Interceptor Agent
 │   │       │   └── prompts/                   # System prompt engineering templates & schemas
 │   │       │       └── templates.py           # CoT prompts, system roles, & structured response formats
 │   │       ├── core/                          # State management, RAG core, & LLM client wrappers
 │   │       │   ├── llm/                       # Multi-LLM client abstractions
 │   │       │   │   └── client.py              # Claude 3.5 + GPT-4o client, mock mode, & JSON parser
 │   │       │   ├── schemas/                   # Pydantic v2 data contracts & state schemas
-│   │       │   │   ├── contracts.py           # AgentShieldState (central LangGraph state schema)
+│   │       │   │   ├── contracts.py           # AgentShieldWorkspace & state contracts
 │   │       │   │   ├── iac.py                 # IaCTemplate, ASTNode, & LineRange models
 │   │       │   │   ├── vulnerability.py       # VulnerabilityFinding & VulnerabilityReport models
 │   │       │   │   └── remediation.py         # PatchDiff & ValidationCheckResult models
@@ -342,25 +343,35 @@ AgentShield-AI/
 │   │       │       ├── loaders.py             # PDF & text document ingestion loaders
 │   │       │       ├── scrapers.py            # Live scraper service for AWS/Azure/GCP feeds & CVEs
 │   │       │       ├── update_kb.py           # CLI script to execute KB re-indexing
-│   │       │       ├── scheduler.py           # Background job scheduler (APScheduler) for daily updates
+      │   │       ├── scheduler.py           # Background job scheduler (APScheduler) for daily updates
 │   │       │       ├── cache.py               # AST hash caching module
 │   │       │       ├── dedup.py               # Semantic deduplication module
 │   │       │       ├── config.py              # Vector store & RAG threshold configuration loader
 │   │       │       └── settings.yaml          # YAML settings for embedding dimensions & vector DB URLs
-│   │       └── parsers/                       # Polyglot IaC AST parsers & property normalizers
-│   │           ├── terraform.py               # HCL2 parser & resource extractor module
-│   │           └── normalizer.py              # Property normalization & quote stripping engine
+│   │       ├── parsers/                       # Polyglot IaC AST parsers & property normalizers
+│   │       │   ├── cloudformation.py          # AWS CloudFormation JSON/YAML AST parser
+│   │       │   ├── kubernetes.py              # Kubernetes multi-document YAML manifest parser
+│   │       │   ├── helm.py                    # Helm Chart & values.yaml parser
+│   │       │   ├── dispatcher.py              # Unified polyglot IaC parser dispatcher
+│   │       │   ├── terraform.py               # HCL2 parser & resource extractor module
+│   │       │   └── normalizer.py              # Property normalization & quote stripping engine
+│   │       └── scanners/                      # Interceptor engines & static scanner adapters
+│   │           ├── secrets_scanner.py         # Gitleaks regex + Shannon entropy secret scanner engine
+│   │           └── static_adapters.py         # Adapter layer for Checkov, tfsec, and KICS outputs
 │   ├── tests/                                 # Pytest test suite & test fixtures
 │   │   ├── conftest.py                        # Shared pytest fixtures & test environment setup
 │   │   ├── test_analyst_agent.py              # Unit tests for Security Analyst Agent
 │   │   ├── test_remediation_agent.py          # Unit tests for Remediation Agent & diff patching
+│   │   ├── test_polyglot_parsers.py           # Unit tests for CloudFormation, K8s, Helm & Dispatcher
+│   │   ├── test_secrets_scanner.py            # Unit tests for Gitleaks patterns & Shannon entropy
+│   │   ├── test_static_adapters.py            # Unit tests for Checkov, tfsec, & KICS adapters
 │   │   ├── test_terraform_parser.py           # Unit tests for HCL parsing & resource extraction
 │   │   ├── test_terraform_normalizer.py       # Unit tests for property normalization & list preservation
 │   │   ├── test_llm_client.py                 # Unit tests for Multi-LLM client & confidence scoring
 │   │   ├── test_iac_schema.py                 # Unit tests for AST nodes & format auto-detection
 │   │   ├── test_vulnerability_schema.py       # Unit tests for vulnerability finding schemas
 │   │   ├── test_remediation_schema.py         # Unit tests for patch diff schemas & validation results
-│   │   ├── test_contracts.py                  # Unit tests for AgentShieldState contracts
+│   │   ├── test_contracts.py                  # Unit tests for AgentShieldWorkspace contracts
 │   │   ├── test_prompts.py                    # Unit tests verifying system prompt templates
 │   │   ├── test_pyproject.py                  # Unit tests verifying pyproject.toml configuration
 │   │   └── fixtures/                          # Sample test files & IaC templates
@@ -369,6 +380,17 @@ AgentShield-AI/
 │   ├── build_ieee_paper.py                    # Python script generating IEEE 2-column paper (.docx)
 │   ├── build_paper_doc.py                     # Document builder helper for XML formatting & callouts
 │   └── pyproject.toml                         # Python project configuration & dependency manifest
+├── frontend/                                  # React + Vite single-page dashboard application
+│   ├── index.html                             # Web app HTML entry point & font loader
+│   ├── package.json                           # Node.js dependencies (`react`, `vite`, `react-router-dom`)
+│   ├── vite.config.js                         # Vite build & proxy configuration
+│   └── src/                                   # React component source files
+│       ├── App.jsx                            # Main application layout, routing & navigation
+│       ├── main.jsx                           # React DOM root renderer
+│       ├── api.js                             # API client interfacing with FastAPI backend (`/api/scan`)
+│       ├── index.css                          # Custom CSS styling tokens, glassmorphism & dark themes
+│       ├── components/                        # UI components (Upload, Findings, DiffViewer, Export)
+│       └── pages/                             # Dashboard pages (ScanPage, WorkspaceView, Settings)
 ├── scratch/                                   # Temporary artifacts & extracted base paper text
 │   └── base_paper_text.txt                    # Extracted raw text from IEEE base paper (Toprani, 2025)
 ├── .gitignore                                 # Git version control ignore rules
@@ -467,9 +489,72 @@ AgentShield-AI/
 | **`test_pyproject.py`** | Unit tests verifying `pyproject.toml` package metadata, version numbers, and dependency definitions. |
 | **`fixtures/terraform/sample.tf`** | Reference Terraform HCL template containing S3 bucket, security group, and PostgreSQL database resources for unit testing. |
 
+### 💻 5. Frontend Dashboard Application (`frontend/`)
+
+| File Path | Category | Primary Functionality & Technical Purpose |
+| :--- | :--- | :--- |
+| **`frontend/package.json`** | Dependencies | Node.js package manifest defining React 18 dependencies (`react`, `react-dom`, `react-router-dom`) and Vite dev tools (`@vitejs/plugin-react`, `vite`). |
+| **`frontend/vite.config.js`** | Config | Vite bundler configuration file setting up React JSX plugin support and local development server settings. |
+| **`frontend/index.html`** | HTML Entrypoint | Single-page application HTML entrypoint setting up Google Fonts (Outfit, Inter, JetBrains Mono) and mounting the React app DOM root. |
+| **`frontend/src/main.jsx`** | React Root | Main JavaScript entry point initializing React DOM rendering and top-level StrictMode wrapper. |
+| **`frontend/src/App.jsx`** | Main Application | Central React application shell implementing client-side routing, navigation header, status bar, and workspace view switcher. |
+| **`frontend/src/api.js`** | API Client | Thin asynchronous fetch client interfacing directly with the FastAPI backend (`http://localhost:8000`), mapping methods for `checkHealth()`, `scanFile()`, `getWorkspace()`, `decidePatch()`, and `exportUrl()`. |
+| **`frontend/src/index.css`** | Styling Tokens | Design system stylesheet implementing glassmorphism aesthetics, modern color palettes, CSS custom properties, and dark mode utility classes. |
+| **`frontend/src/landing.css`** | Page Styles | Layout and animation stylesheet for the landing upload section, drag-and-drop file dropzone, and progress indicators. |
+| **`frontend/src/components/`** | UI Components | Reusable React UI components including file dropzone, vulnerability card list, risk score gauges, unified diff patch viewer, and export modal. |
+| **`frontend/src/pages/`** | Page Views | Top-level dashboard page views including template scanner page, interactive workspace view, and settings configuration. |
+
 ---
 
-### 📚 5. Policy & Benchmark Data Corpus (`backend/data/`)
+## ⚡ Execution & Testing Guide
+
+### 🟢 Option A: Run Backend API & Automated Test Suite
+
+```powershell
+# Navigate to backend directory
+cd backend
+
+# Option 1: Run with system Python directly (Recommended)
+python -m pytest tests/ -v
+
+# Run diagnostic AST parser inspection script
+python inspect_parser.py
+
+# Re-generate IEEE Conference Research Paper draft (.docx)
+python build_ieee_paper.py
+
+# Launch FastAPI REST API server at http://localhost:8000
+python -m uvicorn agentshield.api.main:app --reload --port 8000
+```
+
+---
+
+### 🎨 Option B: Run Live Full-Stack Application (Backend + Frontend)
+
+To run the complete interactive web application, open **two PowerShell windows**:
+
+#### **Terminal 1: Start Backend Server**
+```powershell
+cd C:\Users\anish\OneDrive\College\project-clg\AgenShield-AI\backend
+python -m uvicorn agentshield.api.main:app --reload --port 8000
+```
+
+#### **Terminal 2: Start Frontend Dashboard**
+```powershell
+cd C:\Users\anish\OneDrive\College\project-clg\AgenShield-AI\frontend
+
+# Install dependencies (only required once)
+npm install
+
+# Start Vite Development Server at http://localhost:5173
+npm run dev
+```
+
+Open your browser and navigate to **`http://localhost:5173`** to test uploading IaC templates, viewing live security analysis reports, reviewing code diff patches, accepting/rejecting patches, and exporting reports in SARIF, Markdown, HTML, or PDF!
+
+---
+
+### 📚 6. Policy & Benchmark Data Corpus (`backend/data/`)
 
 * **`backend/data/aws/`**: PDF security guides covering AWS EC2, S3, IAM Security Best Practices, and Well-Architected Framework pillars.
 * **`backend/data/azure/`**: PDF documentation for Azure Security Benchmark and Cloud Security recommendations.
