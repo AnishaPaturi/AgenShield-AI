@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 from typing import Any
 
-from agentshield.core.schemas.vulnerability import SeverityLevel, VulnerabilityFinding
+from agentshield.core.schemas.vulnerability import Severity, VulnerabilityFinding
 
 
 def calculate_shannon_entropy(data: str) -> float:
@@ -25,49 +25,43 @@ SECRET_PATTERNS = [
         "id": "SEC-AWS-KEY-001",
         "name": "AWS Access Key ID",
         "pattern": r"(?:A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}",
-        "severity": SeverityLevel.CRITICAL,
+        "severity": Severity.CRITICAL,
         "description": "Hardcoded AWS Access Key ID exposed in infrastructure template.",
-        "cwe_id": "CWE-798",
     },
     {
         "id": "SEC-AWS-SECRET-002",
         "name": "AWS Secret Access Key",
         "pattern": r"(?i)aws_?(?:secret)?_?(?:access)?_?key\s*[:=]\s*['\"]?([A-Za-z0-9/+=]{40})['\"]?",
-        "severity": SeverityLevel.CRITICAL,
+        "severity": Severity.CRITICAL,
         "description": "Hardcoded AWS Secret Access Key detected in template source.",
-        "cwe_id": "CWE-798",
     },
     {
         "id": "SEC-RSA-KEY-003",
         "name": "Private RSA/SSH Key",
         "pattern": r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----",
-        "severity": SeverityLevel.CRITICAL,
+        "severity": Severity.CRITICAL,
         "description": "Embedded private key certificate detected in source code.",
-        "cwe_id": "CWE-321",
     },
     {
         "id": "SEC-JWT-TOKEN-004",
         "name": "JSON Web Token (JWT)",
         "pattern": r"eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*",
-        "severity": SeverityLevel.HIGH,
+        "severity": Severity.HIGH,
         "description": "Embedded JWT Authentication Token detected.",
-        "cwe_id": "CWE-798",
     },
     {
         "id": "SEC-GH-TOKEN-005",
         "name": "GitHub Personal Access Token",
         "pattern": r"ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}",
-        "severity": SeverityLevel.CRITICAL,
+        "severity": Severity.CRITICAL,
         "description": "Hardcoded GitHub Personal Access Token exposed.",
-        "cwe_id": "CWE-798",
     },
     {
         "id": "SEC-DB-URI-006",
         "name": "Database Connection Password",
         "pattern": r"(?:postgres|mysql|mongodb|redis)://[a-zA-Z0-9_]+:([^@\s\"']+)@[a-zA-Z0-9_.-]+",
-        "severity": SeverityLevel.HIGH,
+        "severity": Severity.HIGH,
         "description": "Hardcoded password embedded inside database connection URL.",
-        "cwe_id": "CWE-259",
     },
 ]
 
@@ -88,16 +82,13 @@ def scan_content_for_secrets(content: str, file_path: str = "template.tf") -> li
                 findings.append(
                     VulnerabilityFinding(
                         finding_id=f"{rule['id']}-L{idx}",
+                        rule_id=rule["id"],
                         title=f"Embedded Secret: {rule['name']}",
                         severity=rule["severity"],
-                        category="Secrets Leakage",
                         description=rule["description"],
-                        resource_id=f"file.{Path(file_path).name}",
+                        affected_resource=f"file.{Path(file_path).name}",
                         resource_type="File/Credential",
-                        affected_line_start=idx,
-                        affected_line_end=idx,
-                        cwe_id=rule["cwe_id"],
-                        remediation_recommendation=(
+                        remediation_hint=(
                             "Remove hardcoded credentials. Store secrets in AWS Secrets Manager, "
                             "HashiCorp Vault, or reference them dynamically via environment variables."
                         ),
@@ -115,16 +106,13 @@ def scan_content_for_secrets(content: str, file_path: str = "template.tf") -> li
                 findings.append(
                     VulnerabilityFinding(
                         finding_id=f"SEC-ENTROPY-L{idx}",
+                        rule_id="SEC-ENTROPY",
                         title="High-Entropy Secret Assignment",
-                        severity=SeverityLevel.HIGH,
-                        category="High-Entropy Secrets",
+                        severity=Severity.HIGH,
                         description=f"High entropy secret string (entropy: {entropy:.2f}) detected in variable assignment.",
-                        resource_id=f"file.{Path(file_path).name}",
+                        affected_resource=f"file.{Path(file_path).name}",
                         resource_type="File/Secret",
-                        affected_line_start=idx,
-                        affected_line_end=idx,
-                        cwe_id="CWE-798",
-                        remediation_recommendation="Replace hardcoded high-entropy secret string with dynamic secret manager reference.",
+                        remediation_hint="Replace hardcoded high-entropy secret string with dynamic secret manager reference.",
                         confidence_score=0.92,
                     )
                 )

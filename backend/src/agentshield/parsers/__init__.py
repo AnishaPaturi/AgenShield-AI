@@ -22,7 +22,10 @@ from agentshield.parsers.terraform import (
     parse_terraform_file,
 )
 
+__version__ = "0.1.0"
+
 __all__ = [
+    "__version__",
     "parse_terraform_file",
     "extract_terraform_resources",
     "normalize_value",

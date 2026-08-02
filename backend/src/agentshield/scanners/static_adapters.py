@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from agentshield.core.schemas.vulnerability import SeverityLevel, VulnerabilityFinding
+from agentshield.core.schemas.vulnerability import Severity, VulnerabilityFinding
 
 
 class BaseStaticAdapter:
@@ -19,11 +19,11 @@ class CheckovAdapter(BaseStaticAdapter):
     """
 
     SEVERITY_MAP = {
-        "CRITICAL": SeverityLevel.CRITICAL,
-        "HIGH": SeverityLevel.HIGH,
-        "MEDIUM": SeverityLevel.MEDIUM,
-        "LOW": SeverityLevel.LOW,
-        "INFORMATIONAL": SeverityLevel.LOW,
+        "CRITICAL": Severity.CRITICAL,
+        "HIGH": Severity.HIGH,
+        "MEDIUM": Severity.MEDIUM,
+        "LOW": Severity.LOW,
+        "INFORMATIONAL": Severity.INFORMATIONAL,
     }
 
     def parse_json_report(self, report_data: str | dict[str, Any]) -> list[VulnerabilityFinding]:
@@ -45,24 +45,20 @@ class CheckovAdapter(BaseStaticAdapter):
             check_id = check.get("check_id", "CKV_UNKNOWN")
             check_name = check.get("check_name", "Checkov Baseline Violation")
             resource = check.get("resource", "unknown_resource")
-            file_line_range = check.get("file_line_range", [1, 1])
 
             severity_str = check.get("severity") or "MEDIUM"
-            severity = self.SEVERITY_MAP.get(str(severity_str).upper(), SeverityLevel.MEDIUM)
+            severity = self.SEVERITY_MAP.get(str(severity_str).upper(), Severity.MEDIUM)
 
             findings.append(
                 VulnerabilityFinding(
                     finding_id=f"CHECKOV-{check_id}",
+                    rule_id=check_id,
                     title=f"Checkov: {check_name}",
                     severity=severity,
-                    category="Static Scanner Rule",
                     description=f"Rule violation {check_id} detected by Checkov engine.",
-                    resource_id=resource,
+                    affected_resource=resource,
                     resource_type=resource.split(".")[0] if "." in resource else "IaCResource",
-                    affected_line_start=file_line_range[0] if len(file_line_range) > 0 else 1,
-                    affected_line_end=file_line_range[1] if len(file_line_range) > 1 else 1,
-                    cwe_id=check.get("guideline"),
-                    remediation_recommendation=f"Remediate according to Checkov guidelines: {check.get('guideline', 'N/A')}",
+                    remediation_hint=f"Remediate according to Checkov guidelines: {check.get('guideline', 'N/A')}",
                     confidence_score=0.95,
                 )
             )
@@ -89,22 +85,17 @@ class TfsecAdapter(BaseStaticAdapter):
             rule_id = item.get("rule_id", "TFSEC_UNKNOWN")
             rule_description = item.get("rule_description", "tfsec violation")
             resource = item.get("resource", "unknown_resource")
-            location = item.get("location", {})
-            start_line = location.get("start_line", 1)
-            end_line = location.get("end_line", 1)
 
             findings.append(
                 VulnerabilityFinding(
                     finding_id=f"TFSEC-{rule_id}",
+                    rule_id=rule_id,
                     title=f"tfsec: {rule_description}",
-                    severity=SeverityLevel.HIGH if "high" in str(item.get("severity")).lower() else SeverityLevel.MEDIUM,
-                    category="Static Scanner Rule",
+                    severity=Severity.HIGH if "high" in str(item.get("severity")).lower() else Severity.MEDIUM,
                     description=item.get("description", rule_description),
-                    resource_id=resource,
+                    affected_resource=resource,
                     resource_type="TerraformResource",
-                    affected_line_start=start_line,
-                    affected_line_end=end_line,
-                    remediation_recommendation=item.get("resolution", "Update Terraform block properties."),
+                    remediation_hint=item.get("resolution", "Update Terraform block properties."),
                     confidence_score=0.95,
                 )
             )
@@ -132,28 +123,25 @@ class KicsAdapter(BaseStaticAdapter):
             query_name = query.get("query_name", "KICS Security Query")
             severity_str = query.get("severity", "MEDIUM").upper()
 
-            severity = SeverityLevel.MEDIUM
+            severity = Severity.MEDIUM
             if severity_str == "HIGH" or severity_str == "CRITICAL":
-                severity = SeverityLevel.HIGH
+                severity = Severity.HIGH
             elif severity_str == "LOW":
-                severity = SeverityLevel.LOW
+                severity = Severity.LOW
 
             for file_item in query.get("files", []):
                 resource_name = file_item.get("resource_name", "kics_resource")
-                line = file_item.get("line", 1)
 
                 findings.append(
                     VulnerabilityFinding(
                         finding_id=f"KICS-{query_id}",
+                        rule_id=query_id,
                         title=f"KICS: {query_name}",
                         severity=severity,
-                        category="Static Scanner Rule",
                         description=query.get("description", query_name),
-                        resource_id=resource_name,
+                        affected_resource=resource_name,
                         resource_type="PolyglotResource",
-                        affected_line_start=line,
-                        affected_line_end=line,
-                        remediation_recommendation=query.get("remediation", "Fix misconfiguration according to KICS docs."),
+                        remediation_hint=query.get("remediation", "Fix misconfiguration according to KICS docs."),
                         confidence_score=0.92,
                     )
                 )

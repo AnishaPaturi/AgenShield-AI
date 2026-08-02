@@ -1,6 +1,6 @@
 from typing import Any
 
-from agentshield.core.schemas.contracts import AgentShieldState
+from agentshield.core.schemas.contracts import AgentShieldWorkspace
 from agentshield.core.schemas.vulnerability import VulnerabilityFinding
 from agentshield.scanners.secrets_scanner import scan_content_for_secrets, scan_file_for_secrets
 
@@ -22,18 +22,17 @@ class SecretsScannerAgent:
             return scan_content_for_secrets(content, file_path)
         return scan_file_for_secrets(file_path)
 
-    def execute_state(self, state: AgentShieldState) -> AgentShieldState:
+    def execute_workspace(self, workspace: AgentShieldWorkspace) -> AgentShieldWorkspace:
         """
-        Integrate with LangGraph execution state, enriching state with flagged secrets findings.
+        Integrate with workspace state, enriching workspace report with flagged secrets findings.
         """
-        file_path = state.template.file_path
-        content = state.template.raw_content
+        file_path = workspace.template.file_path
+        content = workspace.template.raw_content
 
         secrets_findings = self.scan(file_path, content)
 
-        # Append flagged findings to state
-        existing_findings = state.vulnerability_report.findings if state.vulnerability_report else []
-        combined_findings = existing_findings + secrets_findings
+        if workspace.report:
+            workspace.report.findings.extend(secrets_findings)
+            workspace.report.recalculate_summary()
 
-        state.vulnerability_report.findings = combined_findings
-        return state
+        return workspace

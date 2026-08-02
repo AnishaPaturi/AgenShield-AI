@@ -1,6 +1,6 @@
 import pytest
 
-from agentshield.core.schemas.vulnerability import SeverityLevel
+from agentshield.core.schemas.vulnerability import Severity
 from agentshield.scanners.static_adapters import (
     CheckovAdapter,
     KicsAdapter,
@@ -31,11 +31,10 @@ def test_checkov_adapter_parse():
 
     assert len(findings) == 1
     f = findings[0]
-    assert f.finding_id == "CHECKOV-CKV_AWS_20"
+    assert f.rule_id == "CKV_AWS_20"
     assert "S3 bucket" in f.title
-    assert f.severity == SeverityLevel.HIGH
-    assert f.affected_line_start == 10
-    assert f.affected_line_end == 15
+    assert f.severity == Severity.HIGH
+    assert f.affected_resource == "aws_s3_bucket.my_bucket"
 
 
 def test_tfsec_adapter_parse():
@@ -57,9 +56,8 @@ def test_tfsec_adapter_parse():
 
     assert len(findings) == 1
     f = findings[0]
-    assert f.finding_id == "TFSEC-AWS002"
-    assert f.resource_id == "aws_s3_bucket.app_data"
-    assert f.affected_line_start == 20
+    assert f.rule_id == "AWS002"
+    assert f.affected_resource == "aws_s3_bucket.app_data"
 
 
 def test_kics_adapter_parse():
@@ -86,9 +84,8 @@ def test_kics_adapter_parse():
 
     assert len(findings) == 1
     f = findings[0]
-    assert f.finding_id == "KICS-kics_q100"
-    assert f.severity == SeverityLevel.HIGH
-    assert f.affected_line_start == 8
+    assert f.rule_id == "kics_q100"
+    assert f.severity == Severity.HIGH
 
 
 def test_static_scanner_registry():
@@ -100,6 +97,6 @@ def test_static_scanner_registry():
     all_findings = registry.parse_reports(checkov_data=checkov_sample, tfsec_data=tfsec_sample)
 
     assert len(all_findings) == 2
-    ids = [f.finding_id for f in all_findings]
-    assert "CHECKOV-CKV_1" in ids
-    assert "TFSEC-TF1" in ids
+    rule_ids = [f.rule_id for f in all_findings]
+    assert "CKV_1" in rule_ids
+    assert "TF1" in rule_ids

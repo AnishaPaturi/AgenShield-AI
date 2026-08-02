@@ -41,7 +41,7 @@ def autodetect_template_format(file_or_dir_path: str) -> str:
             return "kubernetes"
 
         # Check Helm values file
-        if path.name in {"values.yaml", "values.yml"}:
+        if "values" in path.name.lower():
             return "helm"
 
         # Try parsing YAML mapping for k8s or cfn

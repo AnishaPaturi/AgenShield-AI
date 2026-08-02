@@ -191,11 +191,11 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 * [x] **Task 1.3: Multi-Cloud Hybrid AST Parser Agent**
   * Develop AST parsers for **Terraform (HCL2)**, **AWS CloudFormation (JSON/YAML)**, **Kubernetes Manifests (YAML)**, and **Helm Charts**.
   * Implement dynamic variable pre-resolution, conditional evaluation, and resource dependency graph extraction.
-* [ ] **Task 1.4: Dedicated Secrets & Credential Scanner Agent**
-  * Integrate **Gitleaks** and **TruffleHog** engines with high-entropy regex pattern matching.
+* [x] **Task 1.4: Dedicated Secrets & Credential Scanner Agent**
+  * Integrate **Gitleaks** and **TruffleHog** engines with high-entropy regex pattern matching (`scanners/secrets_scanner.py`, `agents/secrets.py`).
   * Implement automated interception for API keys, AWS credentials, JWT tokens, and private keys embedded in IaC files.
-* [ ] **Task 1.5: Static Scanner Adapter Layer**
-  * Build wrapper adapters for **Checkov**, **tfsec**, and **KICS** to enrich parsed AST nodes with baseline vulnerability signals.
+* [x] **Task 1.5: Static Scanner Adapter Layer**
+  * Build wrapper adapters for **Checkov**, **tfsec**, and **KICS** (`scanners/static_adapters.py`) to enrich parsed AST nodes with baseline vulnerability signals.
 
 **Key Deliverables:** Ingestion pipeline, multi-format IaC parser, secrets scanner agent, and foundational docs ([about.md](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/about.md), [index.html](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/index.html), [literature_survey.txt](file:///C:/Users/anish/OneDrive/College/project-clg/AgenShield-AI/literature_survey.txt)).
 

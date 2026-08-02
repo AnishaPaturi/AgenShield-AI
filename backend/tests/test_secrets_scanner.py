@@ -3,8 +3,9 @@ import tempfile
 import pytest
 
 from agentshield.agents.secrets import SecretsScannerAgent
-from agentshield.core.schemas.contracts import AgentShieldState
+from agentshield.core.schemas.contracts import AgentShieldWorkspace
 from agentshield.core.schemas.iac import IaCTemplate
+from agentshield.core.schemas.vulnerability import VulnerabilityReport
 from agentshield.scanners.secrets_scanner import (
     calculate_shannon_entropy,
     scan_content_for_secrets,
@@ -34,7 +35,6 @@ def test_scan_content_for_aws_keys():
     aws_key_finding = next((f for f in findings if "AWS Access Key" in f.title), None)
     assert aws_key_finding is not None
     assert aws_key_finding.confidence_score >= 0.95
-    assert aws_key_finding.affected_line_start == 4
 
 
 def test_scan_content_for_rsa_and_jwt():
@@ -66,11 +66,12 @@ def test_secrets_scanner_agent_execution():
         assert len(findings) >= 1
         assert "GitHub" in findings[0].title
 
-        # Test LangGraph State Integration
+        # Test AgentShieldWorkspace Integration
         template = IaCTemplate(file_path=tmp_path, raw_content=content, template_type="terraform")
-        state = AgentShieldState(template=template)
+        report = VulnerabilityReport(template_id="t1", target_file=tmp_path)
+        workspace = AgentShieldWorkspace(template=template, report=report)
 
-        updated_state = agent.execute_state(state)
-        assert len(updated_state.vulnerability_report.findings) >= 1
+        updated_workspace = agent.execute_workspace(workspace)
+        assert len(updated_workspace.report.findings) >= 1
     finally:
         Path(tmp_path).unlink(missing_ok=True)
