@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getApiBase, setApiBase } from '../api.js'
 
 export default function Header({ healthy, onApiBaseChange }) {
@@ -11,13 +12,13 @@ export default function Header({ healthy, onApiBaseChange }) {
 
   return (
     <header>
-      <div className="brand">
+      <Link to="/" className="brand" style={{ textDecoration: 'none', color: 'inherit' }}>
         <div className="mark">AS</div>
         <div>
           <h1>AgentShield AI</h1>
           <div className="sub">console · member 4</div>
         </div>
-      </div>
+      </Link>
       <div className="api-cfg">
         <span className={`dot ${healthy === null ? '' : healthy ? 'up' : 'down'}`}></span>
         <label htmlFor="apiBase">API</label>
