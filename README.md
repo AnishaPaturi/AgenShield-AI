@@ -185,10 +185,10 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 * [x] **Task 1.1: Project Setup & Environment Initialization**
   * Configure fast dependency management via `uv`, set up `pyproject.toml`, and establish automated `pytest` test suites.
   * Define core data contracts (`IaCTemplate`, `ASTNode`, `VulnerabilityReport`, `PatchDiff`) using Pydantic v2 schemas.
-* [ ] **Task 1.2: System Core & Manager/Router Agent State Machine**
+* [x] **Task 1.2: System Core & Manager/Router Agent State Machine**
   * Build the initial LangGraph orchestration state graph for workflow control and message passing.
-  * Implement state persistence, fallback mechanisms, and conditional graph routing between agents.
-* [ ] **Task 1.3: Multi-Cloud Hybrid AST Parser Agent**
+  * Implement state persistence, fallback mechanisms, and conditional graph routing between agents (`AgentShieldState`).
+* [x] **Task 1.3: Multi-Cloud Hybrid AST Parser Agent**
   * Develop AST parsers for **Terraform (HCL2)**, **AWS CloudFormation (JSON/YAML)**, **Kubernetes Manifests (YAML)**, and **Helm Charts**.
   * Implement dynamic variable pre-resolution, conditional evaluation, and resource dependency graph extraction.
 * [ ] **Task 1.4: Dedicated Secrets & Credential Scanner Agent**
@@ -204,17 +204,17 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 ### 🗓️ Phase 2: Multi-Cloud Knowledge Base & RAG Compliance Core (Weeks 4–6)
 **Objective:** Build the vector database pipeline, ingest multi-cloud security standards, and implement the RAG Query Agent for compliance context retrieval.
 
-* [ ] **Task 2.1: Vector DB Infrastructure & Embedding Pipeline**
+* [x] **Task 2.1: Vector DB Infrastructure & Embedding Pipeline**
   * Deploy **Qdrant** / **ChromaDB** vector database instance with `sentence-transformers` (e.g., `all-mpnet-base-v2` / BGE embeddings).
-  * Build an AST hash caching and semantic deduplication layer to accelerate similarity lookups.
-* [ ] **Task 2.2: Continuous Knowledge Base Ingestion Engine**
+  * Build an AST hash caching and semantic deduplication layer (`cache.py`, `dedup.py`) to accelerate similarity lookups.
+* [x] **Task 2.2: Continuous Knowledge Base Ingestion Engine**
   * Build automated scrapers and ingestors for AWS/Azure/GCP Security Best Practices, CIS Benchmarks, and NVD/CVE feeds.
-  * Create a continuous updater service to refresh threat intelligence daily.
-* [ ] **Task 2.3: Regulatory Compliance Mapping Module**
-  * Index and crosswalk security policies against **SOC 2**, **HIPAA**, **PCI-DSS**, and **NIST 800-53** frameworks.
+  * Create a continuous updater service (`scrapers.py`, `update_kb.py`, `scheduler.py`) to refresh threat intelligence daily.
+* [x] **Task 2.3: Regulatory Compliance Mapping Module**
+  * Index and crosswalk security policies against **SOC 2**, **HIPAA**, **PCI-DSS**, and **NIST 800-53** frameworks (`compliance.py`, `compliance_controls.json`).
   * Annotate vector embeddings with explicit regulatory control IDs (e.g., `NIST-AC-6`, `PCI-DSS-1.3`).
-* [ ] **Task 2.4: RAG Query Agent Development**
-  * Implement context-aware hybrid retrieval combining dense vector similarity with sparse BM25 keyword search.
+* [x] **Task 2.4: RAG Query Agent Development**
+  * Implement context-aware hybrid retrieval combining dense vector similarity with sparse BM25 keyword search (`hybrid_search.py`, `retriever.py`).
   * Develop prompt contextualizer to inject relevant security controls into the Security Analyst Agent's working memory.
 
 **Key Deliverables:** Fully indexed vector DB, continuous ingestion scraper service, and working RAG Query Agent.
@@ -224,8 +224,8 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 ### 🗓️ Phase 3: LangGraph Multi-Agent Core, Ensemble Voting & Confidence Scoring (Weeks 7–9)
 **Objective:** Complete the stateful 8-agent LangGraph network, implement Multi-LLM ensemble voting, and build the human audit review queue.
 
-* [ ] **Task 3.1: Security Analyst Agent & Multi-LLM Ensemble Engine**
-  * Connect **Claude 3.5 Sonnet** and **OpenAI GPT-4o** APIs for dual-model parallel vulnerability evaluation.
+* [x] **Task 3.1: Security Analyst Agent & Multi-LLM Ensemble Engine**
+  * Connect **Claude 3.5 Sonnet** and **OpenAI GPT-4o** APIs for dual-model parallel vulnerability evaluation (`agents/analyst.py`, `llm/client.py`).
   * Implement structured reasoning templates (Chain-of-Thought prompting) enforcing standardized output JSON schemas.
 * [ ] **Task 3.2: Calibrated Confidence Scoring & Consensus Algorithm**
   * Develop mathematical agreement scoring between LLM outputs to eliminate single-model hallucinations.
@@ -244,8 +244,8 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 ### 🗓️ Phase 4: Auto-Patch Remediation, LocalStack Validation & Feedback Engine (Weeks 10–12)
 **Objective:** Generate executable unified diff patches, build the LocalStack dry-run validation harness, and implement developer feedback loops.
 
-* [ ] **Task 4.1: Remediation Agent & Executable Code Patch Generator**
-  * Implement code diff generator producing clean, syntactically correct patches targeting exact IaC resource blocks.
+* [x] **Task 4.1: Remediation Agent & Executable Code Patch Generator**
+  * Implement code diff generator producing clean, syntactically correct patches targeting exact IaC resource blocks (`agents/remediator.py`).
   * Support patch generation across HCL2, CloudFormation JSON/YAML, K8s YAML, and Helm values.
 * [ ] **Task 4.2: Code & Sandbox Validator Agent — Static Linters**
   * Integrate static verification tools (`terraform validate`, `tflint`, `cfn-lint`, `kube-linter`, `helm lint`).
@@ -290,10 +290,10 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 
 | Milestone | Target Window | Key Focus Area | Validation Metric | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **M1: Parser & Secrets Core** | Weeks 1–3 | Multi-IaC AST parsing & credential interception | 100% test pass on parsing HCL, CFN, K8s, Helm | ⏳ In Progress |
-| **M2: Knowledge Core & RAG** | Weeks 4–6 | Vector DB, CIS benchmarks, compliance mapping | Retrieval Precision @ 5 $\ge 90\%$ | 🎯 Scheduled |
-| **M3: Ensemble & Consensus** | Weeks 7–9 | LangGraph 8-Agent network & Multi-LLM voting | Hallucination rate $< 3\%$, F1 $\ge 0.92$ | 🎯 Scheduled |
-| **M4: Validation & Patching** | Weeks 10–12 | Diff patch generation & LocalStack sandbox | $100\%$ syntax validity, patch pass rate $\ge 95\%$ | 🎯 Scheduled |
+| **M1: Parser & Secrets Core** | Weeks 1–3 | Multi-IaC AST parsing & credential interception | 100% test pass on parsing HCL, CFN, K8s, Helm | ✅ Completed |
+| **M2: Knowledge Core & RAG** | Weeks 4–6 | Vector DB, CIS benchmarks, compliance mapping | Retrieval Precision @ 5 $\ge 90\%$ | ✅ Completed |
+| **M3: Ensemble & Consensus** | Weeks 7–9 | LangGraph 8-Agent network & Multi-LLM voting | Hallucination rate $< 3\%$, F1 $\ge 0.92$ | ⏳ In Progress |
+| **M4: Validation & Patching** | Weeks 10–12 | Diff patch generation & LocalStack sandbox | $100\%$ syntax validity, patch pass rate $\ge 95\%$ | ⏳ In Progress |
 | **M5: Shift-Left & Benchmarks**| Weeks 13–14 | IDE extension, pre-commit, ablation benchmarks | Full benchmark suite execution vs. IEEE paper | 🎯 Scheduled |
 
 ---
