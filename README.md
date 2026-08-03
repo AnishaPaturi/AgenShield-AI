@@ -408,23 +408,8 @@ AgentShield-AI/
 
 ## 🛠️ Detailed File & Component Functionality Inventory
 
-### 🌐 1. Root Level Project Files
 
-| File Name | Category | Primary Functionality & Technical Purpose |
-| :--- | :--- | :--- |
-| **`README.md`** | Documentation | Primary repository documentation containing project metadata, system architecture breakdown, comparative feature matrices, execution instructions, full directory inventory, and academic citations. |
-| **`about.md`** | Architecture | Detailed technical architecture guide describing the 8 specialized AI agents, LangGraph state machine, execution flow diagram, and feature-by-feature comparative analysis against the base paper. |
-| **`index.html`** | Web Presentation | Single-page interactive web interface showcasing project objectives, multi-agent pipeline workflow, expected empirical results, system strengths, and limitations. |
-| **`literature_survey.txt`** | Academic Survey | Comprehensive literature survey categorizing existing IaC security paradigms (static linters, CSPM, ML smell detectors, LLM workflows), key research gaps, and comparative analysis matrix. |
-| **`project abstract.docx`** | Submission Doc | Executive abstract and project overview document prepared for academic submission, containing team member roll numbers (`23BD1A050E`, `23BD1A0518`, `23BD1A051D`, `23BD1A051Y`), domain definitions, and supervisor signatures. |
-| **`AgentShield_AI_Research_Paper_Draft.docx`** | Research Paper | Complete draft research paper formatted in **IEEE 2-Column Conference style** (~4-5 pages, ~1,850+ words, complete with Abstract, Intro, Literature Review (L.R), Proposed Method, Performance Analysis, Conclusions, Future Work, and IEEE References). |
-| **`LLM_Agentic_Workflow_for_Automated_Vulnerability_Detection_and_Remediation_in_Infrastructure-as-Code.pdf`** | Base Paper | Foundational base IEEE Access research paper (*Toprani & Madisetti, 2025*) serving as the core baseline for AgentShield AI's multi-cloud agentic enhancements. |
-| **`WhatsApp Image 2026-08-01 at 21.13.02.jpeg`** | Reference Image | Reference handwritten guidance image specifying required IEEE paper section structures, page count targets (4-5 pages), and citation pattern requirements. |
-| **`.gitignore`** | Configuration | Git version control configuration excluding Python bytecode (`__pycache__`), virtual environments (`.venv`), build artifacts, and coverage reports. |
-
----
-
-### ⚙️ 2. Backend Infrastructure Files (`backend/`)
+### ⚙️ 1. Backend Infrastructure Files (`backend/`)
 
 | File Path | Category | Primary Functionality & Technical Purpose |
 | :--- | :--- | :--- |
@@ -436,7 +421,7 @@ AgentShield-AI/
 
 ---
 
-### 🧠 3. Core Multi-Agent Package (`backend/src/agentshield/`)
+### 🧠 2. Core Multi-Agent Package (`backend/src/agentshield/`)
 
 #### **A. Specialized AI Agents (`agents/`)**
 * **`backend/src/agentshield/agents/analyst.py`**: Implements `SecurityAnalystAgent`, executing parallel reasoning across Claude 3.5 Sonnet and GPT-4o, applying Chain-of-Thought prompting, and computing calibrated consensus confidence scores (\(C_{ensemble}\)). Escalates findings with \(C < 0.85\) to the human audit queue.
@@ -471,7 +456,7 @@ AgentShield-AI/
 
 ---
 
-### 🧪 4. Pytest Test Suite (`backend/tests/`)
+### 🧪 3. Pytest Test Suite (`backend/tests/`)
 
 | Test File Name | Targeted Subsystem & Verified Functionality |
 | :--- | :--- |
@@ -489,7 +474,7 @@ AgentShield-AI/
 | **`test_pyproject.py`** | Unit tests verifying `pyproject.toml` package metadata, version numbers, and dependency definitions. |
 | **`fixtures/terraform/sample.tf`** | Reference Terraform HCL template containing S3 bucket, security group, and PostgreSQL database resources for unit testing. |
 
-### 💻 5. Frontend Dashboard Application (`frontend/`)
+### 💻 4. Frontend Dashboard Application (`frontend/`)
 
 | File Path | Category | Primary Functionality & Technical Purpose |
 | :--- | :--- | :--- |
