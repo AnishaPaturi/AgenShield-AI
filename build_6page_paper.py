@@ -1,6 +1,7 @@
 """
 build_6page_paper.py
 Precision-Calibrated 6-Page IEEE Two-Column PDF & DOCX Generator for AgentShield AI
+Includes Architecture Diagram (image.png) in Section III
 Target: Exactly 6.0 Pages
 """
 
@@ -16,13 +17,15 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 import reportlab
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import (
-    BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle, FrameBreak, HRFlowable, NextPageTemplate
+    BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle, FrameBreak, HRFlowable, NextPageTemplate, Image as RLImage
 )
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 
 import paper_data_6pages as pdata
+
+IMAGE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "image.png")
 
 class IEEENumberedCanvas6P(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -63,7 +66,7 @@ class IEEENumberedCanvas6P(canvas.Canvas):
         self.restoreState()
 
 
-def compile_pdf_6p(pdf_path, body_fs=10.6, body_lead=12.5, p_sp=4.0, tbl_fs=6.2, tbl_pad=1.4, sec_sp_before=4.5, sec_sp_after=2.0):
+def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0, tbl_pad=1.2, sec_sp_before=4.0, sec_sp_after=1.8, img_w=254, img_h=122):
     doc = BaseDocTemplate(
         pdf_path,
         pagesize=letter,
@@ -101,10 +104,11 @@ def compile_pdf_6p(pdf_path, body_fs=10.6, body_lead=12.5, p_sp=4.0, tbl_fs=6.2,
     body_style = ParagraphStyle('IEEEBody', fontName='Times-Roman', fontSize=body_fs, leading=body_lead, alignment=4, spaceAfter=p_sp, firstLineIndent=8.0)
     body_noindent = ParagraphStyle('IEEEBodyNoIndent', fontName='Times-Roman', fontSize=body_fs, leading=body_lead, alignment=4, spaceAfter=p_sp, firstLineIndent=0.0)
     equation_style = ParagraphStyle('IEEEEquation', fontName='Times-Italic', fontSize=body_fs, leading=body_lead + 0.8, alignment=1, spaceBefore=p_sp, spaceAfter=p_sp)
-    code_style = ParagraphStyle('CodeDiff', fontName='Courier', fontSize=tbl_fs + 0.1, leading=tbl_fs + 1.6, alignment=0, spaceAfter=p_sp)
+    code_style = ParagraphStyle('CodeDiff', fontName='Courier', fontSize=tbl_fs + 0.1, leading=tbl_fs + 1.5, alignment=0, spaceAfter=p_sp)
     table_cell_style = ParagraphStyle('TableCell', fontName='Times-Roman', fontSize=tbl_fs, leading=tbl_fs + 1.2, alignment=0)
     table_hdr_style = ParagraphStyle('TableHdr', fontName='Times-Bold', fontSize=tbl_fs, leading=tbl_fs + 1.2, alignment=0)
     table_title_style = ParagraphStyle('TableTitle', fontName='Times-Bold', fontSize=body_fs - 0.2, leading=body_lead - 0.2, alignment=1, spaceBefore=p_sp + 1.0, spaceAfter=p_sp, keepWithNext=True)
+    fig_caption_style = ParagraphStyle('FigCaption', fontName='Times-Italic', fontSize=tbl_fs + 0.5, leading=tbl_fs + 1.8, alignment=1, spaceBefore=2.0, spaceAfter=p_sp)
     ref_style = ParagraphStyle('IEEERef', fontName='Times-Roman', fontSize=body_fs - 0.5, leading=body_lead - 0.5, alignment=4, spaceAfter=p_sp - 1.0, leftIndent=12.0, firstLineIndent=-12.0)
 
     story = []
@@ -183,6 +187,16 @@ def compile_pdf_6p(pdf_path, body_fs=10.6, body_lead=12.5, p_sp=4.0, tbl_fs=6.2,
     for sec_title, paragraphs in pdata.SECTIONS.items():
         story.append(Paragraph(sec_title, sec_head_style))
         
+        # In Section III, insert the Architecture Diagram (image.png)
+        if sec_title.startswith("III."):
+            if os.path.exists(IMAGE_PATH):
+                story.append(Spacer(1, 2))
+                story.append(RLImage(IMAGE_PATH, width=img_w, height=img_h))
+                story.append(Spacer(1, 2))
+                fig_cap = "<b>Fig. 1.</b> End-to-End System Architecture of AgentShield AI illustrating the 8-agent orchestration pipeline, Tree-sitter AST parsing, entropy-based secret scanning, hybrid RAG retrieval, dual-LLM consensus, and LocalStack sandbox validation."
+                story.append(Paragraph(fig_cap, fig_caption_style))
+                story.append(Spacer(1, p_sp))
+
         for idx, p_text in enumerate(paragraphs):
             if p_text.startswith("$$"):
                 eq_clean = p_text.strip('$').strip()
@@ -264,11 +278,8 @@ def compile_pdf_6p(pdf_path, body_fs=10.6, body_lead=12.5, p_sp=4.0, tbl_fs=6.2,
 def sanitize_text(text):
     if not text:
         return ""
-    # Strip HTML tags
     t = re.sub(r'<[^>]+>', '', text)
-    # Unescape XML/HTML entities
     t = t.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"')
-    # Filter non-XML characters
     t = "".join(c for c in t if ord(c) >= 32 or c in "\n\r\t")
     return t
 
@@ -336,6 +347,17 @@ def build_docx_6p(docx_path):
         r_sec.font.size = DocxPt(9.0)
         r_sec.font.bold = True
 
+        if sec_title.startswith("III.") and os.path.exists(IMAGE_PATH):
+            p_img = doc.add_paragraph()
+            p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            doc.add_picture(IMAGE_PATH, width=DocxInches(3.2))
+            p_cap = doc.add_paragraph()
+            p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            r_cap = p_cap.add_run("Fig. 1. End-to-End System Architecture of AgentShield AI.")
+            r_cap.font.name = "Times New Roman"
+            r_cap.font.size = DocxPt(7.5)
+            r_cap.font.italic = True
+
         for p_text in paragraphs:
             clean_text = sanitize_text(p_text)
             p_b = doc.add_paragraph()
@@ -396,12 +418,12 @@ def main():
     target_pdf = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.pdf")
     target_docx = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.docx")
     
-    # Exact calibration parameters
-    pages = compile_pdf_6p(target_pdf, body_fs=10.6, body_lead=12.5, p_sp=4.0, tbl_fs=6.2, tbl_pad=1.4)
+    # Exact calibration parameters targeting 6.0 pages with image embedded
+    pages = compile_pdf_6p(target_pdf, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0, tbl_pad=1.2, img_w=254, img_h=122)
     print(f"PDF 6-Page generated: {target_pdf} -> Total Pages = {pages}")
     
     build_docx_6p(target_docx)
-    print(f"6-Page build complete! Verified exact page count: {pages}")
+    print(f"6-Page build complete with image! Verified exact page count: {pages}")
 
 if __name__ == "__main__":
     main()
