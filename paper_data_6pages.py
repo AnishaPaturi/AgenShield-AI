@@ -39,7 +39,7 @@ ABSTRACT = (
 INDEX_TERMS = "Infrastructure-as-Code (IaC) Security, Multi-Agent Systems, Tree-sitter AST, Secret Detection, Shannon Entropy, Retrieval-Augmented Generation (RAG), LocalStack Sandbox, Automated Vulnerability Remediation, Cloud Compliance."
 
 SECTIONS = {
-    "I. INTRODUCTION": [
+    "I. Introduction": [
         (
             "Infrastructure-as-Code (IaC) has fundamentally transformed enterprise software engineering by enabling software-defined "
             "lifecycle management for distributed cloud architectures [1]. Through declarative domain-specific languages (DSLs) such as "
@@ -85,7 +85,7 @@ SECTIONS = {
         )
     ],
 
-    "II. RELATED WORK": [
+    "II. Related Work": [
         (
             "Securing Infrastructure-as-Code has evolved through several distinct paradigms, progressing from manual checklist audits to static rule engines, "
             "graph-theoretic dependency analyzers, formal SMT-based reasoning, and recent explorations in generative artificial intelligence."
@@ -116,7 +116,7 @@ SECTIONS = {
         )
     ],
 
-    "III. SYSTEM ARCHITECTURE & AGENT METHODOLOGY": [
+    "III. System Architecture & Agent Methodology": [
         (
             "AgentShield AI is architected as an event-driven, autonomous multi-agent ecosystem comprising eight specialized agents coordinated by a centralized "
             "Orchestration Router. All agents execute asynchronously, exchanging strongly typed Pydantic V2 state objects across a shared execution bus:"
@@ -159,7 +159,7 @@ SECTIONS = {
         )
     ],
 
-    "IV. MATHEMATICAL FORMULATION & ALGORITHMIC WORKFLOW": [
+    "IV. Mathematical Formulation & Algorithmic Workflow": [
         (
             "To formalize the mathematical foundation of AgentShield AI, we define the core formulations for entropy detection, context fusion, consensus, and validation:"
         ),
@@ -192,7 +192,7 @@ SECTIONS = {
         )
     ],
 
-    "V. EXPERIMENTAL SETUP & BENCHMARK METHODOLOGY": [
+    "V. Experimental Setup & Benchmark Methodology": [
         (
             "<b>A. Benchmark Datasets:</b> Evaluated across three suites totaling 2,450 IaC templates: 1) <i>PEC-1500:</i> 1,500 real-world production templates harvested "
             "from top open-source enterprise repositories; 2) <i>SSB-650:</i> 650 synthetic templates containing 3,250 injected flaws across OWASP Cloud Top 10; "
@@ -202,7 +202,7 @@ SECTIONS = {
         )
     ],
 
-    "VI. EMPIRICAL RESULTS & DISCUSSION": [
+    "VI. Empirical Results & Discussion": [
         (
             "<b>A. Vulnerability Detection Accuracy:</b> As detailed in Table I, AgentShield AI achieves <b>99.1% Precision</b>, <b>98.4% Recall</b>, and an <b>F1-Score of 98.7%</b>, "
             "significantly outperforming Checkov (Precision: 62.4%), tfsec (67.8%), KICS (65.1%), and Trivy (68.9%). The dramatic gain stems from Agent 2's Tree-sitter AST parser, "
@@ -222,7 +222,7 @@ SECTIONS = {
         )
     ],
 
-    "VII. CASE STUDIES & VULNERABILITY REMEDIATION": [
+    "VII. Case Studies & Vulnerability Remediation": [
         (
             "<b>Case Study 1 (S3 Hardening):</b> Listing 1 illustrates the remediation of an Amazon S3 bucket with public ACLs and missing KMS encryption. AgentShield AI "
             "injects a public access block resource and configures server-side SSE-KMS encryption. "
@@ -230,14 +230,14 @@ SECTIONS = {
         )
     ],
 
-    "VIII. ABLATION STUDY & COST ANALYSIS": [
+    "VIII. Ablation Study & Cost Analysis": [
         (
             "Table V confirms that removing Tree-sitter drops precision to 71.2%, omitting entropy reduces secret recall to 88.2%, and removing the LocalStack sandbox allows "
             "18.4% broken patches. Table VI demonstrates a <b>99.99% MTTR reduction</b> (24.6 days down to 1.84s) and a 98.7% reduction in false-alarm triage costs."
         )
     ],
 
-    "IX. CONCLUSION & FUTURE SCOPE": [
+    "IX. Conclusion & Future Scope": [
         (
             "AgentShield AI provides an autonomous, closed-loop multi-agent framework for zero-shot IaC security auditing, secret interception, and sandbox-validated remediation. "
             "By uniting Tree-sitter CST parsing, Shannon entropy filtering, hybrid dense-sparse RAG, dual-LLM consensus, and LocalStack Docker validation, it delivers 99.1% precision "

@@ -49,14 +49,8 @@ class IEEENumberedCanvas6P(canvas.Canvas):
         self.setFont('Times-Roman', 7.5)
         self.setFillColor(colors.HexColor('#222222'))
         
-        # Top Header (IEEE standard matching ICCSAS-2026)
-        header_text_1 = 'Proceedings of the IEEE International Conference on Cloud Security & Autonomous Systems (ICCSAS-2026)'
-        header_text_2 = 'IEEE Xplore Part Number: CFP26CS-ART; ISBN: 979-8-3315-9120-1'
-        self.drawString(36, 762, header_text_1)
-        self.drawRightString(576, 762, header_text_2)
         self.setStrokeColor(colors.HexColor('#888888'))
         self.setLineWidth(0.5)
-        self.line(36, 755, 576, 755)
         
         # Bottom Footer
         self.line(36, 32, 576, 32)
@@ -100,7 +94,7 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
     author_style = ParagraphStyle('AuthorBlock', fontName='Times-Roman', fontSize=7.6, leading=9.2, alignment=1, spaceAfter=3)
     abstract_title_style = ParagraphStyle('AbstractTitle', fontName='Times-BoldItalic', fontSize=body_fs, leading=body_lead, alignment=4, spaceAfter=p_sp)
     abstract_body_style = ParagraphStyle('AbstractBody', fontName='Times-Italic', fontSize=body_fs - 0.2, leading=body_lead - 0.2, alignment=4, spaceAfter=p_sp)
-    sec_head_style = ParagraphStyle('SectionHeading', fontName='Times-Bold', fontSize=body_fs + 1.0, leading=body_lead + 1.2, alignment=1, spaceBefore=sec_sp_before, spaceAfter=sec_sp_after, keepWithNext=True)
+    sec_head_style = ParagraphStyle('SectionHeading', fontName='Times-Bold', fontSize=12, leading=14.0, alignment=1, spaceBefore=sec_sp_before, spaceAfter=sec_sp_after, keepWithNext=True)
     body_style = ParagraphStyle('IEEEBody', fontName='Times-Roman', fontSize=body_fs, leading=body_lead, alignment=4, spaceAfter=p_sp, firstLineIndent=8.0)
     body_noindent = ParagraphStyle('IEEEBodyNoIndent', fontName='Times-Roman', fontSize=body_fs, leading=body_lead, alignment=4, spaceAfter=p_sp, firstLineIndent=0.0)
     equation_style = ParagraphStyle('IEEEEquation', fontName='Times-Italic', fontSize=body_fs, leading=body_lead + 0.8, alignment=1, spaceBefore=p_sp, spaceAfter=p_sp)
@@ -266,7 +260,7 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
                 story.append(make_table_flowable(pdata.TABLES_DATA_6P["TABLE VI"], cws6))
                 story.append(Spacer(1, p_sp))
 
-    story.append(Paragraph("REFERENCES", sec_head_style))
+    story.append(Paragraph("Reference", sec_head_style))
     for ref_str in pdata.REFERENCES_6P:
         story.append(Paragraph(ref_str, ref_style))
 
@@ -344,7 +338,7 @@ def build_docx_6p(docx_path):
         p_sec.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r_sec = p_sec.add_run(sec_title)
         r_sec.font.name = "Times New Roman"
-        r_sec.font.size = DocxPt(9.0)
+        r_sec.font.size = DocxPt(12)
         r_sec.font.bold = True
 
         if sec_title.startswith("III.") and os.path.exists(IMAGE_PATH):
@@ -397,9 +391,9 @@ def build_docx_6p(docx_path):
 
     p_ref_hdr = doc.add_paragraph()
     p_ref_hdr.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r_rfh = p_ref_hdr.add_run("REFERENCES")
+    r_rfh = p_ref_hdr.add_run("Reference")
     r_rfh.font.name = "Times New Roman"
-    r_rfh.font.size = DocxPt(9.0)
+    r_rfh.font.size = DocxPt(12)
     r_rfh.font.bold = True
 
     for r_str in pdata.REFERENCES_6P:

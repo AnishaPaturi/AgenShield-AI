@@ -72,7 +72,7 @@ def create_document():
         p.paragraph_format.keep_with_next = True
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = Pt(11)
+        r.font.size = Pt(12)
         r.bold = True
         r.font.color.rgb = RGBColor(0x00, 0x20, 0x60) # IEEE Navy accent
         return p
@@ -84,7 +84,7 @@ def create_document():
         p.paragraph_format.keep_with_next = True
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = Pt(10.5)
+        r.font.size = Pt(12)
         r.bold = True
         r.italic = True
         r.font.color.rgb = RGBColor(0x22, 0x22, 0x22)
@@ -141,7 +141,7 @@ def create_document():
     abs_heading = doc.add_paragraph()
     abs_heading.paragraph_format.space_before = Pt(8)
     abs_heading.paragraph_format.space_after = Pt(2)
-    r = abs_heading.add_run("ABSTRACT")
+    r = abs_heading.add_run("Abstract")
     r.font.name = 'Times New Roman'
     r.font.size = Pt(11)
     r.bold = True
@@ -191,7 +191,7 @@ def create_document():
 
     # --- SECTION I: INTRODUCTION ---
     # Rule 3: Introduction 50-150 lines, references cited clearly in strict sequential order [1] to [12]
-    add_h1("I. INTRODUCTION")
+    add_h1("I. Introduction")
 
     add_p(
         "Infrastructure-as-Code (IaC) has fundamentally transformed modern cloud engineering by enabling declarative, "
@@ -303,7 +303,7 @@ def create_document():
     add_p("6) Automated Regulatory Compliance Crosswalking: Automatically maps identified misconfigurations to exact compliance control IDs across SOC 2, HIPAA, PCI-DSS v4.0 [12], and NIST 800-53 [11].")
 
     # --- SECTION II: LITERATURE SURVEY ---
-    add_h1("II. LITERATURE SURVEY")
+    add_h1("II. Literature Survey")
     add_p(
         "The literature in Infrastructure-as-Code security and automated vulnerability remediation spans four technical paradigms: "
         "rule-based static analysis, dynamic post-deployment monitoring, machine learning smell detection, and LLM-driven agentic workflows."
@@ -388,7 +388,7 @@ def create_document():
                 r.bold = True
 
     # --- SECTION III: PROPOSED METHODOLOGY ---
-    add_h1("III. PROPOSED METHODOLOGY")
+    add_h1("III. Proposed Methodology")
     add_p(
         "AgentShield AI replaces linear, single-model LLM scripts with a stateful, non-linear multi-agent orchestration network "
         "built on LangGraph. The framework coordinates 8 specialized AI agents operating over an immutable Pydantic state container "
@@ -447,7 +447,7 @@ def create_document():
     )
 
     # --- SECTION IV: SYSTEM ARCHITECTURE & MATHEMATICAL FORMULATION ---
-    add_h1("IV. SYSTEM ARCHITECTURE & MATHEMATICAL FORMULATION")
+    add_h1("IV. System Architecture & Mathematical Formulation")
     add_p(
         "This section details the modular breakdown of the 8 specialized AI agents and formalizes the underlying mathematical equations "
         "governing AST resolution, RAG retrieval, ensemble consensus scoring, and compliance crosswalking."
@@ -480,7 +480,7 @@ def create_document():
     add_p("Each validated vulnerability finding v is mapped to compliance controls across regulatory frameworks:\nMapCompliance(v) -> { SOC2: CC6.1, HIPAA: §164.312, PCI_DSS: Req_1.3 [12], NIST_800_53: AC-6 [11] }", bold_prefix="Equation (4): ")
 
     # --- SECTION V: EXPERIMENTAL RESULTS AND DISCUSSION ---
-    add_h1("V. EXPERIMENTAL RESULTS AND DISCUSSION")
+    add_h1("V. Experimental Results and Discussion")
     add_p(
         "To evaluate AgentShield AI, we constructed a benchmark corpus of 120 heterogeneous multi-cloud IaC templates "
         "(40 HashiCorp Terraform, 40 AWS CloudFormation, 20 Kubernetes Manifests, 20 Helm Charts) sourced from vulnerable repositories "
@@ -543,7 +543,7 @@ def create_document():
     add_p("5) Secrets Interception Engine: Integrating the dedicated Gitleaks/TruffleHog Secrets Scanner Agent achieved 100% credential interception (API keys, RSA keys), which were ignored in the base paper [1].")
 
     # --- SECTION VI: CONCLUSION & FUTURE WORK ---
-    add_h1("VI. CONCLUSION & FUTURE WORK")
+    add_h1("VI. Conclusion & Future Work")
     add_p(
         "This paper presented AgentShield AI, an autonomous multi-agent framework that significantly advances Infrastructure-as-Code "
         "security across heterogeneous multi-cloud environments. By systematically resolving the core research gaps of the base IEEE paper "
@@ -562,7 +562,7 @@ def create_document():
     add_p("3) Zero-Trust Container Orchestration: Expanding automated compliance crosswalking to cover zero-trust container runtime policies and service mesh configurations across Kubernetes environments.")
 
     # --- REFERENCES ---
-    add_h1("REFERENCES")
+    add_h1("Reference")
 
     references = [
         "[1] D. Toprani and V. K. Madisetti, \"LLM Agentic Workflow for Automated Vulnerability Detection and Remediation in Infrastructure-as-Code,\" IEEE Access, vol. 13, pp. 69175-69181, 2025.",

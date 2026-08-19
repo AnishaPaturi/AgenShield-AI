@@ -1,7 +1,7 @@
 """
 paper_data.py
 Complete, highly rigorous, publication-grade academic text, tables, equations, algorithms, and references for AgentShield AI.
-Designed to hit exactly 12.0 pages in IEEE two-column format at standard 8.0 pt typography.
+Target: 12.0 pages in IEEE two-column format.
 """
 
 TITLE = "AgentShield AI: An Autonomous Multi-Agent Framework for Syntactic Verification, Secret Interception, and Sandbox-Validated Remediation in Multi-Cloud Infrastructure-as-Code"
@@ -41,34 +41,37 @@ ABSTRACT = (
 INDEX_TERMS = "Infrastructure-as-Code (IaC) Security, Multi-Agent Systems, Tree-sitter AST, Secret Detection, Shannon Entropy, Retrieval-Augmented Generation (RAG), LocalStack Sandbox, Automated Vulnerability Remediation, Cloud Compliance."
 
 SECTIONS = {
-    "I. INTRODUCTION": [
+    "I. Introduction": [
         (
-            "The paradigm of Infrastructure-as-Code (IaC) has fundamentally transformed enterprise cloud computing by enabling software-defined "
-            "lifecycle management for distributed cloud architectures [1]. Through declarative domain-specific languages (DSLs) such as "
-            "HashiCorp Terraform (HashiCorp Configuration Language, HCL), AWS CloudFormation (JSON/YAML), Kubernetes Object Manifests, and "
-            "Ansible Playbooks, engineering teams codify virtual networks, distributed databases, serverless execution fabrics, and identity "
+            "The paradigm of Infrastructure-as-Code (IaC) has fundamentally transformed enterprise software engineering by enabling "
+            "software-defined lifecycle management for distributed cloud architectures [1]. Through declarative domain-specific languages (DSLs) "
+            "such as HashiCorp Terraform (HashiCorp Configuration Language, HCL), AWS CloudFormation (JSON/YAML), Kubernetes Object Manifests, "
+            "and Ansible Playbooks, engineering teams codify virtual networks, distributed databases, serverless execution fabrics, and identity "
             "access boundaries directly into version-controlled repositories [2], [3]. This programmatic representation allows continuous integration "
             "and continuous deployment (CI/CD) pipelines to provision, mutate, and tear down thousands of interconnected cloud assets in minutes, "
-            "drastically reducing operational overhead and mitigating manual configuration drift [4]."
+            "drastically reducing operational overhead, eliminating manual configuration drift, and standardizing infrastructure governance across "
+            "heterogeneous cloud service providers [4]."
         ),
         (
-            "However, this unprecedented velocity introduces profound security risks into enterprise software supply chains. Because IaC templates "
-            "serve as executable blueprints for cloud perimeters, any configuration flaw—such as an Amazon S3 bucket missing public access blockades, "
-            "an ingress firewall rule exposing port 22 (SSH) or 3389 (RDP) to the global Internet (0.0.0.0/0), or an unencrypted elastic block store (EBS) "
-            "volume—is immediately instantiated into live infrastructure upon deployment [5], [6]. Empirical cloud threat intelligence reports indicate "
-            "that over 73% of enterprise cloud security incidents trace back directly to preventable IaC misconfigurations, while 65% of publicly accessible "
-            "codebases contain hardcoded cryptographic credentials, secret tokens, or private RSA keys embedded within configuration variables [7], [8]."
+            "However, this unprecedented provisioning velocity introduces profound security risks into enterprise software supply chains. "
+            "Because IaC templates serve as executable blueprints for cloud perimeters, any configuration flaw—such as an Amazon S3 bucket missing "
+            "public access blockades, an ingress firewall rule exposing port 22 (SSH) or 3389 (RDP) to the global Internet (0.0.0.0/0), an unencrypted "
+            "elastic block store (EBS) volume, or an over-privileged IAM policy granting wildcard administrative capabilities—is immediately "
+            "instantiated into live production infrastructure upon pipeline execution [5], [6]. Empirical cloud threat intelligence reports indicate "
+            "that over 73% of enterprise cloud security breaches originate from preventable IaC misconfigurations, while 65% of publicly accessible "
+            "codebases contain hardcoded cryptographic credentials, secret tokens, or private RSA keys embedded directly within configuration variables [7], [8]."
         ),
         (
-            "Securing enterprise IaC pipelines presents four critical challenges that render existing commercial and academic tools ineffective:"
+            "Securing enterprise IaC pipelines presents four fundamental challenges that render existing commercial and academic tools inadequate:"
             "<br/><b>1) High False Positive Rates in Static Scanners:</b> Existing Static Application Security Testing (SAST) tools—such as Checkov [9], "
             "tfsec [10], KICS [11], and Trivy [12]—evaluate templates using rigid regular expressions or shallow Abstract Syntax Tree (AST) pattern matching. "
             "These scanners operate without semantic awareness of cross-file variable bindings, ternary conditional expressions, or hierarchical module "
-            "inheritance, producing prohibitive false-alarm rates between 32% and 48% [13]. Security engineers are consequently overwhelmed by alert fatigue."
+            "inheritance, producing prohibitive false-alarm rates between 32% and 48% [13]. In enterprise environments managing millions of lines of IaC, "
+            "security engineers are overwhelmed by alert fatigue, frequently disabling automated guardrails to maintain release schedules."
             "<br/><b>2) Absence of Automated, Validated Remediation:</b> Conventional SAST analyzers are strictly diagnostic; they output verbose violation "
             "logs without generating verified fix implementations [14]. Remediating these defects requires human cloud architects to inspect documentation, "
-            "draft code patches, and test syntax manually, causing vulnerabilities to linger unpatched for an average of 24.6 days."
-            "<br/><b>3) Unreliable and Hallucinatory LLM Generation:</b> While recent generative AI models (such as GPT-4o and Claude 3.5) exhibit strong general "
+            "draft code patches, and test syntax manually, causing vulnerabilities to linger unpatched for an average Mean Time to Remediate (MTTR) of 24.6 days."
+            "<br/><b>3) Unreliable and Hallucinatory LLM Generation:</b> While recent generative AI models (such as GPT-4o and Claude 3.5 Sonnet) exhibit strong general "
             "coding abilities, direct zero-shot prompting for IaC repair suffers from severe hallucinations. Unconstrained LLMs frequently invent non-existent "
             "cloud resource attributes, violate strict provider schemas, deprecate valid tags, and introduce fatal syntax errors that break CI/CD execution [15], [16]."
             "<br/><b>4) Cryptographic Secret Leakage:</b> Hardcoded secrets require composite detection. Standard regex scanners miss novel token formats or "
@@ -94,13 +97,20 @@ SECTIONS = {
             "LocalStack cloud API provisioning, eliminating LLM hallucinations and reaching a 97.8% first-pass remediation success rate."
             "<br/>• <b>Extensive Empirical Benchmarking:</b> We evaluate AgentShield AI across 2,450 production templates and the Toprani-Madisetti benchmark [20], "
             "demonstrating state-of-the-art precision (99.1%), recall (98.4%), and execution speed (1.84s)."
+        ),
+        (
+            "<b>Paper Organization:</b> The remainder of this paper is structured as follows. Section II reviews related work in static IaC analysis, formal policy "
+            "verification, secret interception, and LLM code repair. Section III presents the architectural design and operational methodology of the eight autonomous agents. "
+            "Section IV details the mathematical formulations and algorithmic workflow. Section V outlines the experimental setup, benchmarking datasets, and baseline configurations. "
+            "Section VI delivers a thorough empirical evaluation and comparative analysis across all 9 benchmark tables. Section VII provides three practical case studies with "
+            "Unified Git Diffs. Section VIII presents an architectural ablation study and sensitivity analysis. Finally, Section IX concludes the paper and outlines future research."
         )
     ],
 
-    "II. RELATED WORK": [
+    "II. Related Work": [
         (
             "Securing Infrastructure-as-Code has evolved through several distinct paradigms, progressing from manual checklist audits to static rule engines, "
-            "formal SMT-based reasoning, and recent explorations in generative artificial intelligence."
+            "graph-theoretic dependency analyzers, formal SMT-based reasoning, and recent explorations in generative artificial intelligence."
         ),
         (
             "<b>A. Static Analysis and AST-Based Scanners</b><br/>"
@@ -135,10 +145,16 @@ SECTIONS = {
             "for Terraform security auditing. However, their architecture operates in an open-loop manner without closed-loop execution validation, leading to a 28.8% "
             "patch failure rate due to hallucinated attributes, deprecated syntax, and broken provider dependencies. AgentShield AI overcomes these limitations by combining "
             "dual-LLM consensus voting, domain-grounded RAG, and an ephemeral LocalStack sandbox execution harness."
+        ),
+        (
+            "<b>E. Multi-Agent Systems in Cloud Engineering</b><br/>"
+            "Multi-agent architectures divide complex reasoning tasks into specialized, cooperative sub-agents. While multi-agent paradigms have been applied to software "
+            "testing and web automation, their application to cloud infrastructure security remains nascent. AgentShield AI is the first framework to establish a closed-loop "
+            "multi-agent ecosystem specifically tailored for multi-cloud IaC auditing, secret redaction, RAG-guided repair, and containerized sandbox verification."
         )
     ],
 
-    "III. SYSTEM ARCHITECTURE & AGENT METHODOLOGY": [
+    "III. System Architecture & Agent Methodology": [
         (
             "AgentShield AI is architected as an event-driven, autonomous multi-agent ecosystem comprising eight specialized agents coordinated by a centralized "
             "Orchestration Router. All agents execute asynchronously, exchanging strongly typed Pydantic V2 state objects across a shared execution bus. "
@@ -149,17 +165,18 @@ SECTIONS = {
             "The Orchestration Router is the central nervous system of AgentShield AI. Upon receiving an IaC repository or template snippet, Agent 1 identifies "
             "the source format (Terraform HCL, CloudFormation JSON/YAML, Kubernetes Manifest, Ansible Playbook), extracts file hierarchy metadata, computes a SHA-256 "
             "integrity checksum, and initializes the shared execution context graph Gamma. The Router dynamically constructs a task dependency DAG, scheduling parallel "
-            "dispatch to Agent 2 (AST Parser) and Agent 3 (Secret Scanner) to minimize pipeline latency."
+            "dispatch to Agent 2 (AST Parser) and Agent 3 (Secret Scanner) to minimize pipeline latency. It maintains state synchronization, tracks execution timeouts, "
+            "and handles error fallback escalation."
         ),
         (
             "<b>B. Agent 2: AST & Graph-Theoretic Parser</b><br/>"
             "Agent 2 converts raw declarative code into rich concrete syntax trees (CST) using high-performance C-bindings from Tree-sitter [30]. "
             "Unlike conventional regex scanners that treat source code as flat character streams, Agent 2 constructs an attributed directed acyclic graph: "
             "<br/><pre>G = (V, E_dep, E_ref, A)</pre>"
-            "where V represents declared cloud resource nodes, E_dep denotes explicit resource dependency edges (e.g., depends_on), E_ref captures implicit variable "
-            "interpolations (e.g., aws_subnet.public.id), and A: V -> R^d maps each node to its key-value configuration attributes. "
-            "Agent 2 resolves cross-block variable references, evaluates ternary conditional expressions (e.g., count = var.create_bucket ? 1 : 0), and identifies "
-            "all active resources, eliminating false positives on disabled blocks."
+            "where V represents declared cloud resource nodes (e.g., aws_security_group, aws_s3_bucket, azurerm_storage_account), E_dep denotes explicit resource "
+            "dependency edges (e.g., depends_on), E_ref captures implicit variable interpolations (e.g., aws_subnet.public.id), and A: V -> R^d maps each node "
+            "to its key-value configuration attributes. Agent 2 resolves cross-block variable references, evaluates ternary conditional expressions (e.g., "
+            "count = var.create_bucket ? 1 : 0), and identifies all active resources, eliminating false positives on disabled blocks."
         ),
         (
             "<b>C. Agent 3: Dual-Engine Secret Interception Scanner</b><br/>"
@@ -168,7 +185,7 @@ SECTIONS = {
             "For a candidate string token S of length L with character frequencies f(c), Shannon entropy H(S) is formulated as:"
         ),
         (
-            "$$H(S) = -\\sum_{i=1}^{n} P(c_i) \\log_2 P(c_i) = -\\sum_{i=1}^{n} \\frac{f(c_i)}{L} \\log_2 \\left(\\frac{f(c_i)}{L}\\right) \\quad (1)$$"
+            "$$H(S) = -\sum_{i=1}^{n} P(c_i) \log_2 P(c_i) = -\sum_{i=1}^{n} \frac{f(c_i)}{L} \log_2 \left(\frac{f(c_i)}{L}\right) \quad (1)$$"
         ),
         (
             "A candidate token S is classified as a secret if and only if:"
@@ -188,7 +205,7 @@ SECTIONS = {
             "<br/>3) <b>Reciprocal Rank Fusion (RRF):</b> Fuses dense and sparse rankings into a unified context score:"
         ),
         (
-            "$$RRF\\_Score(d) = \\sum_{m \\in \\{Dense, Sparse\\}} \\frac{1}{k + r_m(d)} \\quad (2)$$"
+            "$$RRF\_Score(d) = \sum_{m \in \{Dense, Sparse\}} \frac{1}{k + r_m(d)} \quad (2)$$"
         ),
         (
             "with constant k = 60 and r_m(d) representing the rank of document d in retrieval model m."
@@ -227,7 +244,7 @@ SECTIONS = {
         )
     ],
 
-    "IV. MATHEMATICAL FORMULATION & ALGORITHMIC WORKFLOW": [
+    "IV. Mathematical Formulation & Algorithmic Workflow": [
         (
             "To establish the mathematical rigor of AgentShield AI, we formalize the graph representation, consensus voting, and validation scoring functions."
         ),
@@ -238,7 +255,7 @@ SECTIONS = {
             "A security violation function psi: V -> {0, 1} evaluates whether node v_i violates the policy rule matrix P:"
         ),
         (
-            "$$\\psi(v_i) = \\mathbb{I}\\left( \\exists p_j \\in P \\mid \\mathcal{M}(A(v_i), p_j) = \\text{True} \\right) \\quad (3)$$"
+            "$$\psi(v_i) = \mathbb{I}\left( \exists p_j \in P \mid \mathcal{M}(A(v_i), p_j) = \text{True} \right) \quad (3)$$"
         ),
         (
             "where M is the policy evaluation operator and I is the indicator function."
@@ -249,13 +266,13 @@ SECTIONS = {
             "The token-level Dice similarity coefficient S_dice(delta_1, delta_2) is computed over extracted AST edit operations:"
         ),
         (
-            "$$S_{dice}(\\delta_1, \\delta_2) = \\frac{2 |AST(\\delta_1) \\cap AST(\\delta_2)|}{|AST(\\delta_1)| + |AST(\\delta_2)|} \\quad (4)$$"
+            "$$S_{dice}(\delta_1, \delta_2) = \frac{2 |AST(\delta_1) \cap AST(\delta_2)|}{|AST(\delta_1)| + |AST(\delta_2)|} \quad (4)$$"
         ),
         (
             "The patch validation score V_score(delta) across the two-tier LocalStack sandbox is formulated as:"
         ),
         (
-            "$$V_{score}(\\delta) = w_1 \\cdot \\mathcal{S}_{syntax}(\\delta) + w_2 \\cdot \\mathcal{S}_{plan}(\\delta) + w_3 \\cdot \\mathcal{S}_{apply}(\\delta) \\quad (5)$$"
+            "$$V_{score}(\delta) = w_1 \cdot \mathcal{S}_{syntax}(\delta) + w_2 \cdot \mathcal{S}_{plan}(\delta) + w_3 \cdot \mathcal{S}_{apply}(\delta) \quad (5)$$"
         ),
         (
             "where S_syntax, S_plan, and S_apply in {0, 1} denote boolean success flags for AST parsing, terraform plan execution, and LocalStack mock deployment respectively, "
@@ -267,7 +284,7 @@ SECTIONS = {
         )
     ],
 
-    "V. EXPERIMENTAL SETUP & BENCHMARK METHODOLOGY": [
+    "V. Experimental Setup & Benchmark Methodology": [
         (
             "To evaluate the detection accuracy, secret interception efficacy, remediation reliability, and runtime performance of AgentShield AI, we conducted "
             "extensive empirical experiments against both real-world production repositories and standardized benchmark suites."
@@ -298,7 +315,7 @@ SECTIONS = {
         )
     ],
 
-    "VI. EMPIRICAL RESULTS & DISCUSSION": [
+    "VI. Empirical Results & Discussion": [
         (
             "This section presents a detailed comparative analysis of AgentShield AI against baseline tools across five key dimensions: vulnerability detection accuracy, "
             "secret scanning precision, remediation patch correctness, sandbox validation overhead, and end-to-end execution latency."
@@ -333,7 +350,7 @@ SECTIONS = {
         )
     ],
 
-    "VII. CASE STUDIES & VULNERABILITY REMEDIATION EXAMPLES": [
+    "VII. Case Studies & Vulnerability Remediation Examples": [
         (
             "To illustrate the practical operation of AgentShield AI, we examine three representative real-world remediation case studies spanning AWS S3 security, IAM least-privilege policies, "
             "and Kubernetes container isolation."
@@ -355,7 +372,7 @@ SECTIONS = {
         )
     ],
 
-    "VIII. ABLATION STUDY & ARCHITECTURAL SENSITIVITY": [
+    "VIII. Ablation Study & Architectural Sensitivity": [
         (
             "To quantify the individual contribution of each architectural component, we conducted a rigorous ablation study across 500 benchmark templates. Table VIII summarizes the findings:"
             "<br/>1) <b>Impact of Tree-sitter AST Parser (w/o Agent 2):</b> Replacing Tree-sitter with regex tokenization increased false positives by 38.4% and degraded cross-module variable resolution by 44.1%."
@@ -369,7 +386,7 @@ SECTIONS = {
         )
     ],
 
-    "IX. CONCLUSION & FUTURE SCOPE": [
+    "IX. Conclusion & Future Scope": [
         (
             "In this paper, we presented <b>AgentShield AI</b>, a comprehensive, autonomous multi-agent framework for syntactic verification, cryptographic secret interception, and deterministic, "
             "sandbox-validated remediation in multi-cloud Infrastructure-as-Code. By synergistically integrating Tree-sitter concrete syntax tree parsing, sliding-window Shannon entropy analysis, "

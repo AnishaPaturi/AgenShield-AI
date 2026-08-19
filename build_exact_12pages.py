@@ -45,14 +45,8 @@ class IEEENumberedCanvas(canvas.Canvas):
         self.setFont('Times-Roman', 7.5)
         self.setFillColor(colors.HexColor('#222222'))
         
-        # Top Header (IEEE standard format matching ICCSAS-2026)
-        header_text_1 = 'Proceedings of the IEEE International Conference on Cloud Security & Autonomous Systems (ICCSAS-2026)'
-        header_text_2 = 'IEEE Xplore Part Number: CFP26CS-ART; ISBN: 979-8-3315-9120-1'
-        self.drawString(36, 762, header_text_1)
-        self.drawRightString(576, 762, header_text_2)
         self.setStrokeColor(colors.HexColor('#888888'))
         self.setLineWidth(0.5)
-        self.line(36, 755, 576, 755)
         
         # Bottom Footer
         self.line(36, 32, 576, 32)
@@ -131,8 +125,8 @@ def compile_pdf(pdf_path, body_fs=11.9, body_lead=14.04, p_sp=6.0, tbl_fs=6.5, t
     sec_head_style = ParagraphStyle(
         'SectionHeading',
         fontName='Times-Bold',
-        fontSize=body_fs + 1.2,
-        leading=body_lead + 1.5,
+        fontSize=12,
+        leading=14.0,
         alignment=1,
         spaceBefore=sec_sp_before,
         spaceAfter=sec_sp_after,
@@ -386,7 +380,7 @@ def compile_pdf(pdf_path, body_fs=11.9, body_lead=14.04, p_sp=6.0, tbl_fs=6.5, t
                 story.append(make_table_flowable(paper_data.TABLES_DATA["TABLE IX"], cws9))
                 story.append(Spacer(1, p_sp))
 
-    story.append(Paragraph("REFERENCES", sec_head_style))
+    story.append(Paragraph("Reference", sec_head_style))
     for ref_str in paper_data.REFERENCES:
         story.append(Paragraph(ref_str, ref_style))
 
@@ -461,7 +455,7 @@ def build_docx(docx_path):
         p_sec.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r_sec = p_sec.add_run(sec_title)
         r_sec.font.name = "Times New Roman"
-        r_sec.font.size = DocxPt(9.5)
+        r_sec.font.size = DocxPt(12)
         r_sec.font.bold = True
 
         for p_text in paragraphs:
@@ -507,9 +501,9 @@ def build_docx(docx_path):
     # References
     p_ref_hdr = doc.add_paragraph()
     p_ref_hdr.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r_rfh = p_ref_hdr.add_run("REFERENCES")
+    r_rfh = p_ref_hdr.add_run("Reference")
     r_rfh.font.name = "Times New Roman"
-    r_rfh.font.size = DocxPt(9.5)
+    r_rfh.font.size = DocxPt(12)
     r_rfh.font.bold = True
 
     for r_str in paper_data.REFERENCES:

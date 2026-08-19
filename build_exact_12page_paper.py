@@ -51,14 +51,8 @@ class IEEENumberedCanvas(canvas.Canvas):
         self.setFont('Times-Roman', 7.5)
         self.setFillColor(colors.HexColor('#222222'))
         
-        # Running Top Header (IEEE standard format)
-        header_text_1 = 'Proceedings of the IEEE International Conference on Cloud Security & Autonomous Systems (ICCSAS-2026)'
-        header_text_2 = 'IEEE Xplore Part Number: CFP26CS-ART; ISBN: 979-8-3315-9120-1'
-        self.drawString(36, 762, header_text_1)
-        self.drawRightString(576, 762, header_text_2)
         self.setStrokeColor(colors.HexColor('#888888'))
         self.setLineWidth(0.5)
-        self.line(36, 755, 576, 755)
         
         # Running Bottom Footer
         self.line(36, 32, 576, 32)
@@ -93,8 +87,8 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     style_sec_h1 = ParagraphStyle(
         'SecH1',
         fontName='Times-Bold',
-        fontSize=9.0,
-        leading=11.5,
+        fontSize=12,
+        leading=14.0,
         alignment=1,
         textColor=colors.HexColor('#002060'),
         spaceBefore=6.5,
@@ -302,7 +296,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION I: INTRODUCTION
     # ---------------------------------------------------------
-    story.append(Paragraph("I. INTRODUCTION", style_sec_h1))
+    story.append(Paragraph("I. Introduction", style_sec_h1))
     
     story.append(Paragraph(
         "THE migration of modern enterprise computing towards cloud-native architectures has established declarative Infrastructure-as-Code (IaC) as the de facto paradigm for automating compute, storage, networking, and security topology configurations [1], [2]. Declarative specifications—including HashiCorp Terraform HashiCorp Configuration Language (HCL), AWS CloudFormation (JSON/YAML), Kubernetes Object Definitions, and Helm templating engines—permit engineering teams to version-control, audit, and orchestrate complex multi-cloud deployments within continuous integration and continuous deployment (CI/CD) pipelines [3], [4].",
@@ -383,7 +377,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION II: RELATED WORK & TAXONOMIC SURVEY
     # ---------------------------------------------------------
-    story.append(Paragraph("II. RELATED WORK & TAXONOMIC SURVEY", style_sec_h1))
+    story.append(Paragraph("II. Related Work & Taxonomic Survey", style_sec_h1))
     story.append(Paragraph(
         "Security analysis for declarative infrastructure encompasses four distinct research lineages: rule-based static analysis, LLM-driven vulnerability reasoning, domain-specific retrieval augmentation, and multi-agent collaborative systems.",
         style_body
@@ -455,7 +449,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION III: AGENTSHIELD AI SYSTEM ARCHITECTURE
     # ---------------------------------------------------------
-    story.append(Paragraph("III. AGENTSHIELD AI SYSTEM ARCHITECTURE", style_sec_h1))
+    story.append(Paragraph("III. AgentShield AI System Architecture", style_sec_h1))
     story.append(Paragraph(
         "AgentShield AI is engineered as an autonomous, multi-agent cognitive architecture managed via stateful LangGraph execution. The system ingests raw IaC repositories, decomposes infrastructure templates into unified Abstract Syntax Trees, intercepts embedded credentials, applies hybrid RAG domain retrieval, conducts multi-LLM consensus security analysis, synthesizes deployable code diffs, and validates fixes inside containerized sandboxes.",
         style_body
@@ -580,7 +574,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION IV: MATHEMATICAL FORMULATION & COMPLIANCE CROSSWALK
     # ---------------------------------------------------------
-    story.append(Paragraph("IV. MATHEMATICAL FORMULATION & COMPLIANCE CROSSWALK", style_sec_h1))
+    story.append(Paragraph("IV. Mathematical Formulation & Compliance Crosswalk", style_sec_h1))
     story.append(Paragraph(
         "To guarantee mathematical rigor and reproducible evaluation, this section establishes the formal graph theory, entropy metrics, retrieval ranking formulas, and multi-cloud parameter mappings underpinning AgentShield AI.",
         style_body
@@ -691,7 +685,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION V: EXPERIMENTAL SETUP & EVALUATION METHODOLOGY
     # ---------------------------------------------------------
-    story.append(Paragraph("V. EXPERIMENTAL SETUP & EVALUATION METHODOLOGY", style_sec_h1))
+    story.append(Paragraph("V. Experimental Setup & Evaluation Methodology", style_sec_h1))
     story.append(Paragraph(
         "To empirically validate the performance of AgentShield AI against baseline static and LLM security systems, we established an exhaustive, reproducible benchmarking environment across multi-cloud IaC corpora.",
         style_body
@@ -728,7 +722,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION VI: EXPERIMENTAL RESULTS & PERFORMANCE EVALUATION
     # ---------------------------------------------------------
-    story.append(Paragraph("VI. EXPERIMENTAL RESULTS & PERFORMANCE EVALUATION", style_sec_h1))
+    story.append(Paragraph("VI. Experimental Results & Performance Evaluation", style_sec_h1))
     story.append(Paragraph(
         "This section presents comprehensive empirical evaluation results demonstrating the statistical superiority of AgentShield AI across vulnerability detection accuracy, false positive suppression, secret interception, sandbox verification, execution latency, and remediation efficiency.",
         style_body
@@ -959,7 +953,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION VII: EXTENDED TECHNICAL ANALYSIS & ABLATION STUDIES
     # ---------------------------------------------------------
-    story.append(Paragraph("VII. EXTENDED TECHNICAL ANALYSIS & ABLATION STUDIES", style_sec_h1))
+    story.append(Paragraph("VII. Extended Technical Analysis & Ablation Studies", style_sec_h1))
     story.append(Paragraph(
         "To rigorously quantify the individual contribution of each architectural subsystem, we executed exhaustive ablation experiments and qualitative case studies.",
         style_body
@@ -1034,7 +1028,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # SECTION VIII: CONCLUSION & FUTURE WORK
     # ---------------------------------------------------------
-    story.append(Paragraph("VIII. CONCLUSION & FUTURE WORK", style_sec_h1))
+    story.append(Paragraph("VIII. Conclusion & Future Work", style_sec_h1))
     story.append(Paragraph(
         "This paper presented <b>AgentShield AI</b>, an autonomous multi-agent framework that significantly advances the state of the art in Infrastructure-as-Code security. By systematically resolving the core limitations of prior static linters and baseline LLM frameworks [1]—including single-cloud restrictions, high false-positive rates (25%–40%), lack of secret scanning, and unvalidated textual hallucinations—AgentShield AI establishes a robust, production-ready DevSecOps automation paradigm.",
         style_body
@@ -1051,7 +1045,7 @@ def generate_paper_pdf(body_size=8.0, body_lead=9.8, space_p=3.0, table_pad=1.2)
     # ---------------------------------------------------------
     # REFERENCES
     # ---------------------------------------------------------
-    story.append(Paragraph("REFERENCES", style_sec_h1))
+    story.append(Paragraph("Reference", style_sec_h1))
     
     references_list = [
         "[1] D. Toprani and V. K. Madisetti, \"LLM Agentic Workflow for Automated Vulnerability Detection and Remediation in Infrastructure-as-Code,\" <i>IEEE Access</i>, vol. 13, pp. 69175-69181, 2025.",
@@ -1170,7 +1164,7 @@ def build_docx_version():
         p.paragraph_format.keep_with_next = True
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = DocxPt(11)
+        r.font.size = DocxPt(12)
         r.bold = True
         r.font.color.rgb = DocxRGBColor(0x00, 0x20, 0x60)
 
@@ -1181,7 +1175,7 @@ def build_docx_version():
         p.paragraph_format.keep_with_next = True
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = DocxPt(10.5)
+        r.font.size = DocxPt(12)
         r.bold = True
         r.italic = True
         r.font.color.rgb = DocxRGBColor(0x11, 0x11, 0x11)

@@ -50,14 +50,8 @@ class IEEENumberedCanvas(canvas.Canvas):
         self.setFont('Times-Roman', 7.5)
         self.setFillColor(colors.HexColor('#222222'))
         
-        # Running Top Header (IEEE standard format)
-        header_text_1 = 'Proceedings of the IEEE International Conference on Cloud Security & Autonomous Systems (ICCSAS-2026)'
-        header_text_2 = 'IEEE Xplore Part Number: CFP26CS-ART; ISBN: 979-8-3315-9120-1'
-        self.drawString(36, 762, header_text_1)
-        self.drawRightString(576, 762, header_text_2)
         self.setStrokeColor(colors.HexColor('#888888'))
         self.setLineWidth(0.5)
-        self.line(36, 755, 576, 755)
         
         # Running Bottom Footer
         self.line(36, 32, 576, 32)
@@ -148,8 +142,8 @@ def build_pdf_pass(pdf_path, body_font_size=8.05, body_leading=9.6, p_space=2.2,
     sec_head_style = ParagraphStyle(
         'SectionHeading',
         fontName='Times-Bold',
-        fontSize=body_font_size + 1.2,
-        leading=body_leading + 1.5,
+        fontSize=12,
+        leading=14.0,
         alignment=1, # Center (IEEE standard)
         spaceBefore=p_space + 2.5,
         spaceAfter=p_space + 1.0,
@@ -419,7 +413,7 @@ def build_pdf_pass(pdf_path, body_font_size=8.05, body_leading=9.6, p_space=2.2,
                 story.append(Spacer(1, p_space))
 
     # References Section
-    story.append(Paragraph("REFERENCES", sec_head_style))
+    story.append(Paragraph("Reference", sec_head_style))
     for ref_str in paper_data.REFERENCES:
         story.append(Paragraph(ref_str, ref_style))
 
@@ -451,14 +445,7 @@ def build_docx(docx_path):
         section.page_width = DocxInches(8.5)
         section.page_height = DocxInches(11.0)
         
-        # Running Header
-        header = section.header
-        hp = header.paragraphs[0]
-        hp.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        hrun = hp.add_run("Proceedings of the IEEE ICCSAS-2026 | IEEE Trans. Dependable & Secure Comput.")
-        hrun.font.name = "Times New Roman"
-        hrun.font.size = DocxPt(8.0)
-        hrun.font.color.rgb = DocxRGBColor(100, 100, 100)
+
 
     # Title
     p_title = doc.add_paragraph()
@@ -571,7 +558,7 @@ def build_docx(docx_path):
         r_sec = p_sec.add_run(sec_title)
         r_sec.bold = True
         r_sec.font.name = "Times New Roman"
-        r_sec.font.size = DocxPt(10.5)
+        r_sec.font.size = DocxPt(12)
 
         for p_text in paragraphs:
             clean_text = p_text.replace('<b>', '').replace('</b>', '').replace('<i>', '').replace('</i>', '').replace('<br/>', '\n').replace('<pre>', '').replace('</pre>', '')
@@ -613,10 +600,10 @@ def build_docx(docx_path):
     # References
     p_ref_head = doc.add_paragraph()
     p_ref_head.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r_rfh = p_ref_head.add_run("REFERENCES")
+    r_rfh = p_ref_head.add_run("Reference")
     r_rfh.bold = True
     r_rfh.font.name = "Times New Roman"
-    r_rfh.font.size = DocxPt(10.5)
+    r_rfh.font.size = DocxPt(12)
 
     for ref_line in paper_data.REFERENCES:
         p_ref = doc.add_paragraph()

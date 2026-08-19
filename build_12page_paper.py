@@ -193,7 +193,7 @@ def build_paper():
         p.paragraph_format.keep_with_next = True
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = Pt(11)
+        r.font.size = Pt(12)
         r.bold = True
         r.font.color.rgb = RGBColor(0x00, 0x20, 0x60)
         return p
@@ -205,7 +205,7 @@ def build_paper():
         p.paragraph_format.keep_with_next = True
         r = p.add_run(text)
         r.font.name = 'Times New Roman'
-        r.font.size = Pt(10.5)
+        r.font.size = Pt(12)
         r.bold = True
         r.italic = True
         r.font.color.rgb = RGBColor(0x22, 0x22, 0x22)
@@ -253,7 +253,7 @@ def build_paper():
     )
 
     # --- SECTION I: INTRODUCTION ---
-    add_h1("I. INTRODUCTION")
+    add_h1("I. Introduction")
     add_p("Infrastructure-as-Code (IaC) has fundamentally transformed cloud engineering by enabling software teams to define virtual private networks, identity permissions, storage buckets, database instances, and container clusters in machine-readable files (Terraform HCL, CloudFormation YAML, Azure Bicep, Kubernetes Helm manifests). Declarative IaC frameworks allow rapid replication of complex cloud environments across heterogeneous continuous integration and continuous delivery (CI/CD) pipelines. However, this declarative paradigm also amplifies human error: a single misconfigured IAM policy wildcard or publicly exposed S3 bucket in a shared module can immediately compromise an entire multi-cloud architecture [7], [8], [13]. Industry telemetry indicates that over 80% of enterprise cloud security incidents stem directly from IaC misconfigurations rather than zero-day software vulnerabilities [8], [9].")
     
     add_p("To catch security misconfigurations prior to deployment, DevSecOps teams traditionally deploy static code linters such as Checkov [2], TFLint, and AWS Config. While static linters execute rapidly within CI/CD build steps, their underlying regex and rule-based evaluation engines suffer from fundamental architectural limitations [2], [10], [14]. First, static linters analyze files in isolation without resolving external module inputs, local variable maps, or environment variable overrides. Consequently, when security configurations depend on dynamically passed variables, static tools generate false positive rates ranging from 25% to 40%, forcing developers to mute or ignore security alerts. Second, conventional static linters provide static documentation URLs rather than executable code fixes, leaving the burden of remediation entirely on human engineers.")
@@ -278,7 +278,7 @@ def build_paper():
     add_p("Furthermore, AgentShield AI establishes a stateful feedback loop between static AST representations and dynamic runtime execution state. By pre-evaluating local variable trees and input parameter mappings before prompt construction, the framework avoids passing ambiguous placeholder text to the underlying LLM ensemble. Empirical evaluations demonstrate that this structured ingestion pipeline eliminates the primary source of LLM security hallucination identified in recent literature [6], [16].")
 
     # --- SECTION II: LITERATURE SURVEY & RELATED WORKS ---
-    add_h1("II. LITERATURE SURVEY & RELATED WORKS")
+    add_h1("II. Literature Survey & Related Works")
     add_p("Automated security validation of Infrastructure-as-Code (IaC) spans two primary technological paradigms: traditional rule-based static analysis and recent LLM-driven generative workflows [1]–[6], [17]–[20]. This section reviews published literature across both domains to position the core contributions of AgentShield AI.")
 
     add_h2("A. Static Linters and Pattern Analyzers")
@@ -324,7 +324,7 @@ def build_paper():
     )
 
     # --- SECTION III: PROPOSED METHODOLOGY ---
-    add_h1("III. PROPOSED METHODOLOGY & SYSTEM ARCHITECTURE")
+    add_h1("III. Proposed Methodology & System Architecture")
     add_p("AgentShield AI implements a stateful, directed graph multi-agent architecture built on the LangGraph framework. Rather than passing unrefined raw source code directly to a Large Language Model, AgentShield AI decomposes IaC security analysis into discrete, specialized agent execution stages. The architecture guarantees deterministic parameter extraction, context-aware policy retrieval, multi-model consensus, and empirical patch verification.")
 
     add_caption("TABLE III: MULTI-AGENT SYSTEM ARCHITECTURE BREAKDOWN AND AGENT ROLES")
@@ -362,7 +362,7 @@ def build_paper():
     add_p("To prevent race conditions and cross-agent context contamination during complex repository analysis, AgentShield AI enforces strict immutability across state transitions. State objects passed along the LangGraph execution path are versioned and read-only. Each agent node receives a scoped slice of the state—such as the AST-IR representation or the redacted secrets list—and returns a signed state mutation object. This decoupled design allows parallel execution of secrets scanning and vector RAG retrieval, significantly reducing total pipeline latency without sacrificing analytical rigor.")
 
     # --- SECTION IV: MATHEMATICAL FORMULATION & COMPLIANCE CROSSWALK ---
-    add_h1("IV. MATHEMATICAL FORMULATION & COMPLIANCE CROSSWALK")
+    add_h1("IV. Mathematical Formulation & Compliance Crosswalk")
 
     add_h2("A. AST Parameter Resolution & Variable Substitution Engine")
     add_p("Static linters fail on dynamic IaC code because resource attributes are defined via variable references. AgentShield AI formalizes dynamic variable resolution over the AST hierarchy as a directed acyclic evaluation graph G = (V, E), where V represents resource attributes and variable definitions, and E represents assignment dependencies.")
@@ -394,7 +394,7 @@ def build_paper():
     )
 
     # --- SECTION V: EXPERIMENTAL RESULTS AND PERFORMANCE ANALYSIS ---
-    add_h1("V. EXPERIMENTAL RESULTS AND PERFORMANCE ANALYSIS")
+    add_h1("V. Experimental Results and Performance Analysis")
     add_p("To empirically validate AgentShield AI, we constructed a benchmark dataset of 500 multi-cloud IaC templates comprising 200 Terraform scripts (AWS, Azure, GCP), 150 AWS CloudFormation templates, 75 Azure Bicep manifests, and 75 Kubernetes/Helm charts. The dataset includes 1,240 intentional security misconfigurations across IAM, storage, networking, secret management, and database exposure.")
 
     add_caption("TABLE V: BENCHMARK COMPARATIVE PERFORMANCE ANALYSIS ACROSS IAC SECURITY SYSTEMS")
@@ -520,7 +520,7 @@ def build_paper():
     add_p("To contextualize AgentShield AI within commercial DevSecOps tooling, we performed comparative benchmark evaluations against Palo Alto Bridgecrew, Wiz, Snyk IaC, and Datadog Cloud Security Management. While commercial linters excel at pre-built policy cataloging, they exhibit false positive rates between 18% and 34% on dynamic code and provide static advice rather than validated diff patches. AgentShield AI reduces false positive rates to 2.4% while automating patch generation and LocalStack dry-run validation, establishing a new state of the art in shift-left cloud security automation.")
 
     # --- SECTION VI: CONCLUSION & FUTURE WORK ---
-    add_h1("VI. CONCLUSION & FUTURE WORK")
+    add_h1("VI. Conclusion & Future Work")
     add_p("This paper presented AgentShield AI, an autonomous multi-agent framework that significantly advances Infrastructure-as-Code security across heterogeneous multi-cloud environments. By systematically resolving the core research gaps of the base IEEE paper by Toprani & Madisetti (2025) [1]—including single-cloud restrictions, high false-positive rates (~15%), text-only remediations, and unvalidated patches—AgentShield AI establishes a robust, enterprise-ready security framework.")
     add_p("Through stateful 8-agent LangGraph orchestration, Hybrid AST parameter evaluation, Gitleaks secret scanning, Multi-LLM Ensemble Voting (Claude 3.5 Sonnet + GPT-4o), LocalStack sandbox patch validation, and automated compliance crosswalking, AgentShield AI achieves an empirical detection precision of 97.6%, a false-positive rate of 2.4%, and a patch pass rate of 94.8% across multi-cloud IaC templates.")
 
@@ -531,7 +531,7 @@ def build_paper():
     add_p("4) Multi-Cloud Cost Optimization & Sustainability Telemetry: Integrating cloud resource cost estimation and carbon footprint modeling directly into the RAG policy evaluation engine to provide sustainability-aware security recommendations.")
 
     # --- REFERENCES ---
-    add_h1("REFERENCES")
+    add_h1("Reference")
     refs = [
         "[1] D. Toprani and V. K. Madisetti, \"LLM Agentic Workflow for Automated Vulnerability Detection and Remediation in Infrastructure-as-Code,\" IEEE Access, vol. 13, pp. 69175-69181, 2025.",
         "[2] N. Saavedra and J. F. Ferreira, \"GLITCH: Automated polyglot security smell detection in infrastructure as code,\" arXiv preprint arXiv:2205.14371, 2022.",

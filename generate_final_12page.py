@@ -49,14 +49,8 @@ class IEEENumberedCanvas(canvas.Canvas):
         self.setFont('Times-Roman', 7.5)
         self.setFillColor(colors.HexColor('#222222'))
         
-        # Running Top Header (IEEE standard format)
-        header_text_1 = 'Proceedings of the IEEE International Conference on Cloud Security & Autonomous Systems (ICCSAS-2026)'
-        header_text_2 = 'IEEE Xplore Part Number: CFP26CS-ART; ISBN: 979-8-3315-9120-1'
-        self.drawString(36, 762, header_text_1)
-        self.drawRightString(576, 762, header_text_2)
         self.setStrokeColor(colors.HexColor('#888888'))
         self.setLineWidth(0.5)
-        self.line(36, 755, 576, 755)
         
         # Running Bottom Footer
         self.line(36, 32, 576, 32)

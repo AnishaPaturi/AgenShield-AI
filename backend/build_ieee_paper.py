@@ -115,7 +115,7 @@ def create_ieee_conference_paper(output_path):
     
     p_abs_h = cell_abs.paragraphs[0]
     p_abs_h.paragraph_format.space_after = Pt(3)
-    r_abs_h = p_abs_h.add_run("ABSTRACT")
+    r_abs_h = p_abs_h.add_run("Abstract")
     r_abs_h.bold = True
     r_abs_h.font.name = "Times New Roman"
     r_abs_h.font.size = Pt(10.5)
@@ -171,7 +171,7 @@ def create_ieee_conference_paper(output_path):
         run = p.add_run(text)
         run.bold = True
         run.font.name = "Times New Roman"
-        run.font.size = Pt(11)
+        run.font.size = Pt(12)
         run.font.color.rgb = NAVY
 
     def add_h2(text):
@@ -183,7 +183,7 @@ def create_ieee_conference_paper(output_path):
         run.bold = True
         run.italic = True
         run.font.name = "Times New Roman"
-        run.font.size = Pt(10)
+        run.font.size = Pt(12)
         run.font.color.rgb = SLATE
 
     def add_p(text, bold_prefix=None):
@@ -237,7 +237,7 @@ def create_ieee_conference_paper(output_path):
     # ---------------------------------------------------------
     # SECTION I: INTRODUCTION (Explicit citations [1], [2], [7])
     # ---------------------------------------------------------
-    add_h1("I. INTRODUCTION")
+    add_h1("I. Introduction")
     add_p(
         "Infrastructure-as-Code (IaC) has fundamentally transformed cloud engineering by enabling declarative, version-controlled resource provisioning. Software developers extensively rely on IaC templates—such as HashiCorp Terraform (HCL2), AWS CloudFormation (JSON/YAML), Kubernetes Manifests, and Helm Charts—to automate multi-cloud infrastructure across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP). While IaC significantly enhances velocity and repeatability, security misconfigurations introduced within templates automatically propagate across cloud environments at scale [1], [2]."
     )
@@ -370,7 +370,7 @@ def create_ieee_conference_paper(output_path):
     # ---------------------------------------------------------
     # SECTION III: PROPOSED METHOD (Architecture & 8 Agents)
     # ---------------------------------------------------------
-    add_h1("III. PROPOSED METHOD")
+    add_h1("III. Proposed Method")
     add_p(
         "AgentShield AI replaces linear 3-agent pipelines with a stateful, non-linear multi-agent orchestration graph built on LangGraph. The system coordinates 8 specialized AI agents operating over an immutable Pydantic state schema (`AgentShieldState`), ensuring complete auditability and fallback control."
     )
@@ -438,7 +438,7 @@ def create_ieee_conference_paper(output_path):
     # ---------------------------------------------------------
     # SECTION IV: PERFORMANCE ANALYSIS (Benchmark Results & Ablations)
     # ---------------------------------------------------------
-    add_h1("IV. PERFORMANCE ANALYSIS")
+    add_h1("IV. Performance Analysis")
     add_p(
         "To rigorously evaluate AgentShield AI, we constructed a benchmark corpus of 120 IaC templates (40 AWS CloudFormation, 40 HashiCorp Terraform, 20 Kubernetes Manifests, 20 Helm Charts) sourced from public vulnerable repositories (Terragoat, cfngoat, KICS suites) and enterprise baselines. Ground truth was annotated by certified cloud security architects."
     )
@@ -534,7 +534,7 @@ def create_ieee_conference_paper(output_path):
     # ---------------------------------------------------------
     # SECTION V: CONCLUSIONS (Explicitly requested in outline)
     # ---------------------------------------------------------
-    add_h1("V. CONCLUSIONS")
+    add_h1("V. Conclusions")
     add_p(
         "This paper presented AgentShield AI, an autonomous multi-agent framework that significantly advances Infrastructure-as-Code security across heterogeneous multi-cloud environments. By systematically resolving the core research gaps of the base paper by Toprani & Madisetti (2025) [1]—including single-cloud restrictions, high false-positive rates (~15%), text-only remediations, and unvalidated patches—AgentShield AI establishes a robust, enterprise-ready security framework."
     )
@@ -545,7 +545,7 @@ def create_ieee_conference_paper(output_path):
     # ---------------------------------------------------------
     # SECTION VI: FUTURE WORK (Explicitly requested in outline)
     # ---------------------------------------------------------
-    add_h1("VI. FUTURE WORK")
+    add_h1("VI. Future Work")
     add_p(
         "Building upon our current findings, several promising directions exist for future research:"
     )
@@ -565,7 +565,7 @@ def create_ieee_conference_paper(output_path):
     # ---------------------------------------------------------
     # REFERENCES (Explicitly cited [1]-[12] matching the diagram arrows)
     # ---------------------------------------------------------
-    add_h1("REFERENCES")
+    add_h1("Reference")
     
     references = [
         "[1] D. Toprani and V. K. Madisetti, \"LLM Agentic Workflow for Automated Vulnerability Detection and Remediation in Infrastructure-as-Code,\" IEEE Access, vol. 13, pp. 69175-69181, 2025.",

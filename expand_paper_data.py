@@ -48,7 +48,7 @@ ABSTRACT = (
 INDEX_TERMS = "Infrastructure-as-Code (IaC) Security, Multi-Agent Systems, Tree-sitter AST, Secret Detection, Shannon Entropy, Retrieval-Augmented Generation (RAG), LocalStack Sandbox, Automated Vulnerability Remediation, Cloud Compliance."
 
 SECTIONS = {
-    "I. INTRODUCTION": [
+    "I. Introduction": [
         (
             "The paradigm of Infrastructure-as-Code (IaC) has fundamentally transformed enterprise software engineering by enabling "
             "software-defined lifecycle management for distributed cloud architectures [1]. Through declarative domain-specific languages (DSLs) "
@@ -114,7 +114,7 @@ SECTIONS = {
         )
     ],
 
-    "II. RELATED WORK": [
+    "II. Related Work": [
         (
             "Securing Infrastructure-as-Code has evolved through several distinct paradigms, progressing from manual checklist audits to static rule engines, "
             "graph-theoretic dependency analyzers, formal SMT-based reasoning, and recent explorations in generative artificial intelligence."
@@ -161,7 +161,7 @@ SECTIONS = {
         )
     ],
 
-    "III. SYSTEM ARCHITECTURE & AGENT METHODOLOGY": [
+    "III. System Architecture & Agent Methodology": [
         (
             "AgentShield AI is architected as an event-driven, autonomous multi-agent ecosystem comprising eight specialized agents coordinated by a centralized "
             "Orchestration Router. All agents execute asynchronously, exchanging strongly typed Pydantic V2 state objects across a shared execution bus. "
@@ -251,7 +251,7 @@ SECTIONS = {
         )
     ],
 
-    "IV. MATHEMATICAL FORMULATION & ALGORITHMIC WORKFLOW": [
+    "IV. Mathematical Formulation & Algorithmic Workflow": [
         (
             "To establish the mathematical rigor of AgentShield AI, we formalize the graph representation, consensus voting, and validation scoring functions."
         ),
@@ -291,7 +291,7 @@ SECTIONS = {
         )
     ],
 
-    "V. EXPERIMENTAL SETUP & BENCHMARK METHODOLOGY": [
+    "V. Experimental Setup & Benchmark Methodology": [
         (
             "To evaluate the detection accuracy, secret interception efficacy, remediation reliability, and runtime performance of AgentShield AI, we conducted "
             "extensive empirical experiments against both real-world production repositories and standardized benchmark suites."
@@ -322,7 +322,7 @@ SECTIONS = {
         )
     ],
 
-    "VI. EMPIRICAL RESULTS & DISCUSSION": [
+    "VI. Empirical Results & Discussion": [
         (
             "This section presents a detailed comparative analysis of AgentShield AI against baseline tools across five key dimensions: vulnerability detection accuracy, "
             "secret scanning precision, remediation patch correctness, sandbox validation overhead, and end-to-end execution latency."
@@ -357,7 +357,7 @@ SECTIONS = {
         )
     ],
 
-    "VII. CASE STUDIES & VULNERABILITY REMEDIATION EXAMPLES": [
+    "VII. Case Studies & Vulnerability Remediation Examples": [
         (
             "To illustrate the practical operation of AgentShield AI, we examine three representative real-world remediation case studies spanning AWS S3 security, IAM least-privilege policies, "
             "and Kubernetes container isolation."
@@ -379,7 +379,7 @@ SECTIONS = {
         )
     ],
 
-    "VIII. ABLATION STUDY & ARCHITECTURAL SENSITIVITY": [
+    "VIII. Ablation Study & Architectural Sensitivity": [
         (
             "To quantify the individual contribution of each architectural component, we conducted a rigorous ablation study across 500 benchmark templates. Table VIII summarizes the findings:"
             "<br/>1) <b>Impact of Tree-sitter AST Parser (w/o Agent 2):</b> Replacing Tree-sitter with regex tokenization increased false positives by 38.4% and degraded cross-module variable resolution by 44.1%."
@@ -393,7 +393,7 @@ SECTIONS = {
         )
     ],
 
-    "IX. CONCLUSION & FUTURE SCOPE": [
+    "IX. Conclusion & Future Scope": [
         (
             "In this paper, we presented <b>AgentShield AI</b>, a comprehensive, autonomous multi-agent framework for syntactic verification, cryptographic secret interception, and deterministic, "
             "sandbox-validated remediation in multi-cloud Infrastructure-as-Code. By synergistically integrating Tree-sitter concrete syntax tree parsing, sliding-window Shannon entropy analysis, "

@@ -127,7 +127,7 @@ def create_paper_document(output_path):
         run = p.add_run(text)
         run.bold = True
         run.font.name = "Calibri"
-        run.font.size = Pt(15)
+        run.font.size = Pt(12)
         run.font.color.rgb = NAVY
 
     def add_heading_2(text):
@@ -138,7 +138,7 @@ def create_paper_document(output_path):
         run = p.add_run(text)
         run.bold = True
         run.font.name = "Calibri"
-        run.font.size = Pt(12.5)
+        run.font.size = Pt(12)
         run.font.color.rgb = SLATE
 
     def add_heading_3(text):
@@ -150,7 +150,7 @@ def create_paper_document(output_path):
         run.bold = True
         run.italic = True
         run.font.name = "Calibri"
-        run.font.size = Pt(11)
+        run.font.size = Pt(12)
         run.font.color.rgb = CHARCOAL
 
     def add_body_p(text, bold_prefix=None, space_after=5):
@@ -274,7 +274,7 @@ def create_paper_document(output_path):
     
     p_abs_title = cell_abs.paragraphs[0]
     p_abs_title.paragraph_format.space_after = Pt(4)
-    r_abs_h = p_abs_title.add_run("ABSTRACT")
+    r_abs_h = p_abs_title.add_run("Abstract")
     r_abs_h.bold = True
     r_abs_h.font.name = "Calibri"
     r_abs_h.font.size = Pt(11)
@@ -310,7 +310,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION I: INTRODUCTION
     # ---------------------------------------------------------
-    add_heading_1("I. INTRODUCTION")
+    add_heading_1("I. Introduction")
     
     add_body_p(
         "Infrastructure-as-Code (IaC) has fundamentally transformed contemporary cloud engineering by replacing manual console provisioning with declarative, version-controlled software templates. Organizations routinely deploy complex multi-cloud topologies across Amazon Web Services (AWS), Microsoft Azure, and Google Cloud Platform (GCP) using heterogeneous IaC frameworks including HashiCorp Terraform (HCL2), AWS CloudFormation (JSON/YAML), Kubernetes Manifests, and Helm Charts. While IaC drastically improves deployment velocity, consistency, and scalability, it concurrently introduces significant security risks. Security misconfigurations embedded in IaC templates—such as unencrypted data stores, overly permissive Identity and Access Management (IAM) policies, open security group ingress rules, and hardcoded API tokens—are automatically propagated across production environments at scale."
@@ -369,7 +369,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION II: LITERATURE SURVEY & RELATED WORK
     # ---------------------------------------------------------
-    add_heading_1("II. LITERATURE SURVEY AND RELATED WORK")
+    add_heading_1("II. Literature Survey and Related Work")
     
     add_body_p(
         "As detailed in our foundational literature survey, research in Infrastructure-as-Code security spans four major historical paradigms:"
@@ -464,7 +464,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION III: AGENTSHIELD AI SYSTEM ARCHITECTURE
     # ---------------------------------------------------------
-    add_heading_1("III. AGENTSHIELD AI SYSTEM ARCHITECTURE")
+    add_heading_1("III. AgentShield AI System Architecture")
     
     add_body_p(
         "AgentShield AI replaces linear 3-agent pipelines with a stateful, non-linear multi-agent orchestration graph implemented in LangGraph. The system coordinates 8 specialized AI agents operating over a shared, immutable Pydantic state container (`AgentShieldState`), ensuring full auditability, modularity, and error-resilient execution."
@@ -543,7 +543,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION IV: TECHNICAL METHODOLOGY & FORMULATIONS
     # ---------------------------------------------------------
-    add_heading_1("IV. TECHNICAL METHODOLOGY AND MATHEMATICAL FORMULATIONS")
+    add_heading_1("IV. Technical Methodology and Mathematical Formulations")
     
     add_heading_2("A. Hybrid AST Variable Resolution Algorithm")
     add_body_p(
@@ -587,7 +587,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION V: EXPERIMENTAL EVALUATION AND RESULTS
     # ---------------------------------------------------------
-    add_heading_1("V. EXPERIMENTAL EVALUATION AND BENCHMARK RESULTS")
+    add_heading_1("V. Experimental Evaluation and Benchmark Results")
     
     add_body_p(
         "To rigorously evaluate AgentShield AI, we constructed a comprehensive multi-cloud benchmark corpus comprising 120 IaC templates (40 AWS CloudFormation, 40 HashiCorp Terraform, 20 Kubernetes Manifests, and 20 Helm Charts) sourced from public vulnerable repositories (Terragoat, cfngoat, KICS test suites) and enterprise architecture baselines. Ground-truth security annotations were independently established by two AWS/Azure certified security architects."
@@ -685,7 +685,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION VI: SHIFT-LEFT INTEGRATION AND DRIFT DETECTION
     # ---------------------------------------------------------
-    add_heading_1("VI. SHIFT-LEFT INTEGRATION AND DRIFT DETECTION")
+    add_heading_1("VI. Shift-Left Integration and Drift Detection")
     
     add_body_p(
         "AgentShield AI is designed for frictionless embedding across the entire software development lifecycle (SDLC):"
@@ -711,7 +711,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # SECTION VII: CONCLUSION AND FUTURE SCOPE
     # ---------------------------------------------------------
-    add_heading_1("VII. CONCLUSION AND FUTURE SCOPE")
+    add_heading_1("VII. Conclusion and Future Scope")
     
     add_body_p(
         "This paper presented AgentShield AI, an autonomous multi-agent framework that significantly advances the state-of-the-art in Infrastructure-as-Code security. By addressing the critical limitations of the base research paper by Toprani & Madisetti (2025)—including single-cloud scope, high false positives, text-only remediations, and unvalidated patches—AgentShield AI establishes a robust, enterprise-ready security paradigm."
@@ -726,7 +726,7 @@ def create_paper_document(output_path):
     # ---------------------------------------------------------
     # REFERENCES
     # ---------------------------------------------------------
-    add_heading_1("REFERENCES")
+    add_heading_1("Reference")
     
     references = [
         "[1] D. Toprani and V. K. Madisetti, \"LLM Agentic Workflow for Automated Vulnerability Detection and Remediation in Infrastructure-as-Code,\" IEEE Access, vol. 13, pp. 69175-69181, 2025.",
