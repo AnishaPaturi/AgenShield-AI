@@ -13,7 +13,6 @@ AUTHORS = [
 ]
 
 AFFILIATION = "Department of Computer Science and Engineering, Keshav Memorial Institute of Technology, Hyderabad, Telangana, India"
-SUPERVISOR = "Dr. Vishal Reddy, Department of Computer Science and Engineering, Keshav Memorial Institute of Technology, Hyderabad, Telangana, India"
 
 ABSTRACT = (
     "Infrastructure-as-Code (IaC) has emerged as the foundational paradigm for declarative, automated, and scalable cloud resource "
