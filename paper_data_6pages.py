@@ -167,25 +167,25 @@ SECTIONS = {
             "Shannon Entropy of candidate token string S of length L with character frequencies f(c):"
         ),
         (
-            "$$H(S) = -\sum_{i=1}^{n} P(c_i) \log_2 P(c_i) = -\sum_{i=1}^{n} \frac{f(c_i)}{L} \log_2 \left(\frac{f(c_i)}{L}\right) \quad (1)$$"
+            r"$$H(S) = -\sum_{i=1}^{n} P(c_i) \log_2 P(c_i) = -\sum_{i=1}^{n} \frac{f(c_i)}{L} \log_2 \left(\frac{f(c_i)}{L}\right) \qquad (1)$$"
         ),
         (
             "Reciprocal Rank Fusion (RRF) score for document d across dense (Qdrant HNSW) and sparse (BM25) retrieval models (constant k = 60):"
         ),
         (
-            "$$RRF\_Score(d) = \sum_{m \in \{Dense, Sparse\}} \frac{1}{k + r_m(d)} \quad (2)$$"
+            r"$$\mathrm{RRF\_Score}(d) = \sum_{m \in \{\mathrm{Dense}, \mathrm{Sparse}\}} \frac{1}{k + r_m(d)} \qquad (2)$$"
         ),
         (
             "Token-level AST Dice similarity coefficient between candidate patches delta_1 (Claude 3.5) and delta_2 (GPT-4o):"
         ),
         (
-            "$$S_{dice}(\delta_1, \delta_2) = \frac{2 |AST(\delta_1) \cap AST(\delta_2)|}{|AST(\delta_1)| + |AST(\delta_2)|} \quad (3)$$"
+            r"$$S_{\mathrm{dice}}(\delta_1, \delta_2) = \frac{2 |\mathrm{AST}(\delta_1) \cap \mathrm{AST}(\delta_2)|}{|\mathrm{AST}(\delta_1)| + |\mathrm{AST}(\delta_2)|} \qquad (3)$$"
         ),
         (
             "Two-tier LocalStack sandbox validation scoring function:"
         ),
         (
-            "$$V_{score}(\delta) = 0.2 \cdot \mathcal{S}_{syntax}(\delta) + 0.3 \cdot \mathcal{S}_{plan}(\delta) + 0.5 \cdot \mathcal{S}_{apply}(\delta) \quad (4)$$"
+            r"$$V_{\mathrm{score}}(\delta) = 0.2 \cdot \mathcal{S}_{\mathrm{syntax}}(\delta) + 0.3 \cdot \mathcal{S}_{\mathrm{plan}}(\delta) + 0.5 \cdot \mathcal{S}_{\mathrm{apply}}(\delta) \qquad (4)$$"
         ),
         (
             "where S_syntax, S_plan, and S_apply in {0, 1} represent boolean execution success flags. Algorithm 1 formalizes the end-to-end multi-agent execution pipeline."
@@ -249,7 +249,7 @@ SECTIONS = {
 # Tables for 6-page version
 TABLES_DATA_6P = {
     "TABLE I": {
-        "title": "TABLE I. VULNERABILITY DETECTION BENCHMARK ACROSS 2,450 IAC TEMPLATES",
+        "title": "Table I. Vulnerability Detection Benchmark Across 2,450 IaC Templates",
         "headers": ["Framework / Tool", "Total Scanned", "TP", "FP", "FN", "Precision (%)", "Recall (%)", "F1-Score (%)"],
         "rows": [
             ["Checkov v3.2 [6]", "2,450", "4,620", "2,785", "2,800", "62.4%", "62.3%", "62.3%"],
@@ -262,7 +262,7 @@ TABLES_DATA_6P = {
         ]
     },
     "TABLE II": {
-        "title": "TABLE II. SECRET DETECTION PERFORMANCE & ENTROPY COMPARISON",
+        "title": "Table II. Secret Detection Performance & Entropy Comparison",
         "headers": ["Scanning Mechanism", "Secrets Tested", "TP", "FP", "FN", "Precision (%)", "Recall (%)", "F1-Score (%)"],
         "rows": [
             ["Regex Only (Gitleaks [19])", "1,200", "1,058", "342", "142", "75.6%", "88.2%", "81.4%"],
@@ -272,7 +272,7 @@ TABLES_DATA_6P = {
         ]
     },
     "TABLE III": {
-        "title": "TABLE III. REMEDIATION VALIDATION & FIRST-PASS SUCCESS RATE",
+        "title": "Table III. Remediation Validation & First-Pass Success Rate",
         "headers": ["Remediation Approach", "Tested", "Tier 1 AST Pass", "Tier 2 Sandbox Pass", "1st-Pass Fix", "Multi-Pass (<=3)"],
         "rows": [
             ["Zero-Shot GPT-4o", "1,000", "62.4%", "54.2%", "54.2%", "68.4%"],
@@ -282,7 +282,7 @@ TABLES_DATA_6P = {
         ]
     },
     "TABLE IV": {
-        "title": "TABLE IV. RUNTIME LATENCY BREAKDOWN ACROSS 8 AGENTS",
+        "title": "Table IV. Runtime Latency Breakdown Across 8 Agents",
         "headers": ["Agent Identification & Name", "Core Mechanism", "Mean (ms)", "Median (ms)", "% Overhead"],
         "rows": [
             ["Agent 1: Orchestration Router", "Context graph initialization", "14.2", "12.0", "0.8%"],
@@ -297,7 +297,7 @@ TABLES_DATA_6P = {
         ]
     },
     "TABLE V": {
-        "title": "TABLE V. ABLATION STUDY ACROSS 500 BENCHMARK TEMPLATES",
+        "title": "Table V. Ablation Study Across 500 Benchmark Templates",
         "headers": ["Configuration Variant", "Precision (%)", "Recall (%)", "F1-Score (%)", "1st-Pass Fix (%)", "Latency (s)"],
         "rows": [
             ["Full AgentShield AI Framework", "99.1%", "98.4%", "98.7%", "97.8%", "1.84s"],
@@ -308,7 +308,7 @@ TABLES_DATA_6P = {
         ]
     },
     "TABLE VI": {
-        "title": "TABLE VI. ENTERPRISE COST & OPERATIONAL IMPACT ANALYSIS",
+        "title": "Table VI. Enterprise Cost & Operational Impact Analysis",
         "headers": ["Metric / Operational Dimension", "Manual Engineering", "Static SAST Only", "AgentShield AI", "Net Gain"],
         "rows": [
             ["Mean Time to Remediate (MTTR)", "24.6 days", "14.2 days", "1.84 seconds", "99.99% reduction"],

@@ -23,9 +23,40 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 
+import io
+import matplotlib.pyplot as plt
+from PIL import Image as PILImage
+
 import paper_data_6pages as pdata
 
 IMAGE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "image.png")
+
+
+def render_latex_flowable(latex_str, max_width=255.0, max_height=26.0):
+    clean = latex_str.strip('$').strip()
+    fig = plt.figure(figsize=(6.0, 0.6), dpi=300)
+    fig.patch.set_alpha(0.0)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
+    ax.text(0.5, 0.5, f'${clean}$', fontsize=9.5, ha='center', va='center', color='#111111')
+    
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=300, transparent=True, bbox_inches='tight', pad_inches=0.02)
+    plt.close(fig)
+    buf.seek(0)
+    
+    pil_im = PILImage.open(buf)
+    w_px, h_px = pil_im.size
+    aspect = h_px / w_px
+    
+    pt_w = min(max_width, (w_px * 72 / 300) * 0.75)
+    pt_h = pt_w * aspect
+    if pt_h > max_height:
+        pt_h = max_height
+        pt_w = pt_h / aspect
+        
+    buf.seek(0)
+    return RLImage(buf, width=pt_w, height=pt_h)
 
 class IEEENumberedCanvas6P(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -71,14 +102,14 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
     )
 
     col_w = 260.0
-    col_h_p1 = 576.0
+    col_h_p1 = 566.0
     col_h_other = 708.0
     col_gap = 20.0
     left_x = 36.0
     right_x = left_x + col_w + col_gap
     bottom_y = 38.0
 
-    frame_p1_header = Frame(left_x, 620, 540, 132, id='F_P1_Top', leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
+    frame_p1_header = Frame(left_x, 606, 540, 146, id='F_P1_Top', leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
     frame_p1_c1 = Frame(left_x, bottom_y, col_w, col_h_p1, id='F_P1_C1', leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
     frame_p1_c2 = Frame(right_x, bottom_y, col_w, col_h_p1, id='F_P1_C2', leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
 
@@ -91,7 +122,9 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
 
     # Styles
     title_style = ParagraphStyle('DocTitle', fontName='Times-Bold', fontSize=14.5, leading=17.0, alignment=1, spaceAfter=4)
-    author_style = ParagraphStyle('AuthorBlock', fontName='Times-Roman', fontSize=7.6, leading=9.2, alignment=1, spaceAfter=3)
+    auth_hdr_style = ParagraphStyle('AuthHdr', fontName='Times-Bold', fontSize=8.5, leading=10.0, alignment=1)
+    auth_sub_style = ParagraphStyle('AuthSub', fontName='Times-Italic', fontSize=7.0, leading=8.5, alignment=1)
+    auth_mail_style = ParagraphStyle('AuthMail', fontName='Times-Roman', fontSize=7.0, leading=8.5, alignment=1)
     abstract_title_style = ParagraphStyle('AbstractTitle', fontName='Times-BoldItalic', fontSize=body_fs, leading=body_lead, alignment=4, spaceAfter=p_sp)
     abstract_body_style = ParagraphStyle('AbstractBody', fontName='Times-Italic', fontSize=body_fs - 0.2, leading=body_lead - 0.2, alignment=4, spaceAfter=p_sp)
     sec_head_style = ParagraphStyle('SectionHeading', fontName='Times-Bold', fontSize=12, leading=14.0, alignment=1, spaceBefore=sec_sp_before, spaceAfter=sec_sp_after, keepWithNext=True)
@@ -107,17 +140,39 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
 
     story = []
 
-    # Page 1 Header
+    # Page 1 Header (IEEE Standard Multi-Column Author Block)
     story.append(Paragraph(pdata.TITLE, title_style))
-    story.append(Spacer(1, 2))
-    auth_lines = [
-        f"<b>{pdata.AUTHORS[0]['name']}</b> ({pdata.AUTHORS[0]['id']}), <b>{pdata.AUTHORS[1]['name']}</b> ({pdata.AUTHORS[1]['id']}), <b>{pdata.AUTHORS[2]['name']}</b> ({pdata.AUTHORS[2]['id']}), <b>{pdata.AUTHORS[3]['name']}</b> ({pdata.AUTHORS[3]['id']})",
-        f"<i>Emails:</i> {pdata.AUTHORS[0]['email']}, {pdata.AUTHORS[1]['email']}, {pdata.AUTHORS[2]['email']}, {pdata.AUTHORS[3]['email']}",
-        f"<b>Supervisor:</b> {pdata.SUPERVISOR}",
-        f"<i>{pdata.AFFILIATION}</i>"
+    story.append(Spacer(1, 3))
+    
+    authors_data = [
+        (' Anisha Paturi', 'paturi.anisha@gmail.com'),
+        (' Ch Venkata Vahini', 'vahinivenkatac@gmail.com'),
+        (' Ch Parinamika Bhanu', 'chparinamikabhanu@gmail.com'),
+        (' Sravani Janak', 'sravanijanak@gmail.com')
     ]
-    for al in auth_lines:
-        story.append(Paragraph(al, author_style))
+
+    col_cells = []
+    for name, email in authors_data:
+        paras = [
+            Paragraph(name, auth_hdr_style),
+            Paragraph('<i>Dept. of Computer Science &amp; Engg.</i>', auth_sub_style),
+            Paragraph('<i>Keshav Memorial Inst. of Tech.</i>', auth_sub_style),
+            Paragraph('<i>Hyderabad, Telangana, India</i>', auth_sub_style),
+            Paragraph(email, auth_mail_style)
+        ]
+        col_cells.append(paras)
+
+    auth_table = Table([col_cells], colWidths=[135.0, 135.0, 135.0, 135.0])
+    auth_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 1),
+        ('RIGHTPADDING', (0,0), (-1,-1), 1),
+        ('TOPPADDING', (0,0), (-1,-1), 1),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 1),
+    ]))
+    story.append(auth_table)
+    story.append(Spacer(1, 2))
+    story.append(Paragraph("<b>Faculty Supervisor:</b> <i>Dr. Vishal Reddy, Dept. of Computer Science &amp; Engineering, Keshav Memorial Institute of Technology, Hyderabad, India</i>", ParagraphStyle('AuthSup', fontName='Times-Italic', fontSize=7.0, leading=8.5, alignment=1)))
     story.append(FrameBreak())
 
     # Abstract & Keywords
@@ -193,8 +248,9 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
 
         for idx, p_text in enumerate(paragraphs):
             if p_text.startswith("$$"):
-                eq_clean = p_text.strip('$').strip()
-                story.append(Paragraph(eq_clean, equation_style))
+                story.append(Spacer(1, 1.5))
+                story.append(render_latex_flowable(p_text, max_width=col_w - 6))
+                story.append(Spacer(1, 1.5))
             elif p_text.startswith("<pre>"):
                 story.append(Paragraph(p_text, body_noindent))
             else:
@@ -242,11 +298,11 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
             if sec_title.startswith("VII."):
                 if "Listing 1" in p_text:
                     story.append(Spacer(1, p_sp))
-                    story.append(make_code_box("LISTING 1. S3 BUCKET HARDENING (TERRAFORM HCL)", pdata.CODE_LISTINGS_6P["LISTING 1"]))
+                    story.append(make_code_box("Listing 1. S3 Bucket Hardening (Terraform HCL)", pdata.CODE_LISTINGS_6P["LISTING 1"]))
                     story.append(Spacer(1, p_sp))
                 elif "Listing 2" in p_text:
                     story.append(Spacer(1, p_sp))
-                    story.append(make_code_box("LISTING 2. LEAST-PRIVILEGE IAM SCOPING (JSON)", pdata.CODE_LISTINGS_6P["LISTING 2"]))
+                    story.append(make_code_box("Listing 2. Least-Privilege IAM Scoping (JSON)", pdata.CODE_LISTINGS_6P["LISTING 2"]))
                     story.append(Spacer(1, p_sp))
 
             if sec_title.startswith("VIII.") and "Table V" in p_text:
@@ -293,19 +349,53 @@ def build_docx_6p(docx_path):
     run_t.font.size = DocxPt(14)
     run_t.font.bold = True
 
-    p_auth = doc.add_paragraph()
-    p_auth.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    auth_text = (
-        f"{pdata.AUTHORS[0]['name']} ({pdata.AUTHORS[0]['id']}), "
-        f"{pdata.AUTHORS[1]['name']} ({pdata.AUTHORS[1]['id']}), "
-        f"{pdata.AUTHORS[2]['name']} ({pdata.AUTHORS[2]['id']}), "
-        f"{pdata.AUTHORS[3]['name']} ({pdata.AUTHORS[3]['id']})\n"
-        f"Supervisor: {pdata.SUPERVISOR}\n"
-        f"{pdata.AFFILIATION}"
-    )
-    run_a = p_auth.add_run(auth_text)
-    run_a.font.name = "Times New Roman"
-    run_a.font.size = DocxPt(8.0)
+    # 4-Column Author Table in DOCX matching IEEE layout
+    tbl_auth = doc.add_table(rows=1, cols=4)
+    tbl_auth.alignment = WD_TABLE_ALIGNMENT.CENTER
+    authors_data = [
+        ("1st Anisha Paturi", "paturi.anisha@gmail.com"),
+        ("2nd Ch Venkata Vahini", "vahinivenkatac@gmail.com"),
+        ("3rd Ch Parinamika Bhanu", "chparinamikabhanu@gmail.com"),
+        ("4th Sravani Janak", "sravanijanak@gmail.com")
+    ]
+    for c_idx, (name, email) in enumerate(authors_data):
+        cell = tbl_auth.cell(0, c_idx)
+        cell.width = DocxInches(1.85)
+        
+        p = cell.paragraphs[0]
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_before = DocxPt(0)
+        p.paragraph_format.space_after = DocxPt(1)
+        r_name = p.add_run(name)
+        r_name.font.name = "Times New Roman"
+        r_name.font.size = DocxPt(8.5)
+        r_name.font.bold = True
+        
+        p_sub = cell.add_paragraph()
+        p_sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_sub.paragraph_format.space_before = DocxPt(0)
+        p_sub.paragraph_format.space_after = DocxPt(1)
+        r_sub = p_sub.add_run("Dept. of Computer Science & Engg.\nKeshav Memorial Inst. of Tech.\nHyderabad, Telangana, India")
+        r_sub.font.name = "Times New Roman"
+        r_sub.font.size = DocxPt(7.2)
+        r_sub.font.italic = True
+        
+        p_mail = cell.add_paragraph()
+        p_mail.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_mail.paragraph_format.space_before = DocxPt(0)
+        p_mail.paragraph_format.space_after = DocxPt(2)
+        r_mail = p_mail.add_run(email)
+        r_mail.font.name = "Times New Roman"
+        r_mail.font.size = DocxPt(7.2)
+
+    p_sup = doc.add_paragraph()
+    p_sup.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_sup.paragraph_format.space_before = DocxPt(4)
+    p_sup.paragraph_format.space_after = DocxPt(6)
+    r_sup = p_sup.add_run("Faculty Supervisor: Dr. Vishal Reddy, Dept. of Computer Science & Engineering, Keshav Memorial Institute of Technology, Hyderabad, India")
+    r_sup.font.name = "Times New Roman"
+    r_sup.font.size = DocxPt(7.5)
+    r_sup.font.italic = True
 
     p_abs = doc.add_paragraph()
     p_abs.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -353,12 +443,23 @@ def build_docx_6p(docx_path):
             r_cap.font.italic = True
 
         for p_text in paragraphs:
-            clean_text = sanitize_text(p_text)
-            p_b = doc.add_paragraph()
-            p_b.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-            r_b = p_b.add_run(clean_text)
-            r_b.font.name = "Times New Roman"
-            r_b.font.size = DocxPt(8.0)
+            if p_text.startswith("$$"):
+                clean_text = p_text.strip('$').strip()
+                p_b = doc.add_paragraph()
+                p_b.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_b.paragraph_format.space_before = DocxPt(4)
+                p_b.paragraph_format.space_after = DocxPt(4)
+                r_b = p_b.add_run(clean_text)
+                r_b.font.name = "Cambria Math"
+                r_b.font.size = DocxPt(8.5)
+                r_b.font.italic = True
+            else:
+                clean_text = sanitize_text(p_text)
+                p_b = doc.add_paragraph()
+                p_b.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+                r_b = p_b.add_run(clean_text)
+                r_b.font.name = "Times New Roman"
+                r_b.font.size = DocxPt(8.0)
 
     for t_key, t_info in pdata.TABLES_DATA_6P.items():
         p_t_title = doc.add_paragraph()
@@ -412,8 +513,7 @@ def main():
     target_pdf = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.pdf")
     target_docx = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.docx")
     
-    # Exact calibration parameters targeting 6.0 pages with image embedded
-    pages = compile_pdf_6p(target_pdf, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0, tbl_pad=1.2, img_w=254, img_h=122)
+    pages = compile_pdf_6p(target_pdf, body_fs=10.5, body_lead=12.39, p_sp=4.5, tbl_fs=6.0, tbl_pad=1.2, img_w=254, img_h=122)
     print(f"PDF 6-Page generated: {target_pdf} -> Total Pages = {pages}")
     
     build_docx_6p(target_docx)
