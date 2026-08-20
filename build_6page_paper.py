@@ -171,8 +171,6 @@ def compile_pdf_6p(pdf_path, body_fs=10.4, body_lead=12.27, p_sp=4.5, tbl_fs=6.0
         ('BOTTOMPADDING', (0,0), (-1,-1), 1),
     ]))
     story.append(auth_table)
-    story.append(Spacer(1, 2))
-    story.append(Paragraph("<b>Faculty Supervisor:</b> <i>Dr. Vishal Reddy, Dept. of Computer Science &amp; Engineering, Keshav Memorial Institute of Technology, Hyderabad, India</i>", ParagraphStyle('AuthSup', fontName='Times-Italic', fontSize=7.0, leading=8.5, alignment=1)))
     story.append(FrameBreak())
 
     # Abstract & Keywords
@@ -388,14 +386,7 @@ def build_docx_6p(docx_path):
         r_mail.font.name = "Times New Roman"
         r_mail.font.size = DocxPt(7.2)
 
-    p_sup = doc.add_paragraph()
-    p_sup.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_sup.paragraph_format.space_before = DocxPt(4)
-    p_sup.paragraph_format.space_after = DocxPt(6)
-    r_sup = p_sup.add_run("Faculty Supervisor: Dr. Vishal Reddy, Dept. of Computer Science & Engineering, Keshav Memorial Institute of Technology, Hyderabad, India")
-    r_sup.font.name = "Times New Roman"
-    r_sup.font.size = DocxPt(7.5)
-    r_sup.font.italic = True
+
 
     p_abs = doc.add_paragraph()
     p_abs.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
