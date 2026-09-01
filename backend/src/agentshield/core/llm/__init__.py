@@ -6,6 +6,7 @@ from agentshield.core.llm.client import (
     LLMProvider,
     LLMResponse,
     MultiLLMEnsemble,
+    StructuredLLMResult,
 )
 
 __all__ = [
