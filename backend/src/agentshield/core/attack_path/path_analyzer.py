@@ -14,14 +14,39 @@ class AttackPathAnalyzer:
     def __init__(self, graph: ResourceGraph) -> None:
         self.graph = graph
 
-    def find_entry_points(self) -> list[str]:
-        """Return resources that can serve as internet-facing entry points."""
+    def find_entry_points(self, root_only: bool = True) -> list[str]:
+        """Return resources that can serve as internet-facing entry points.
 
-        return sorted(
+        If root_only is True, entry points that are downstream dependents of another
+        entry point (e.g. an internet-facing Security Group reached through an Internet Gateway)
+        are treated as intermediate perimeter filters rather than the initial entry point.
+        """
+        all_exposed = [
             resource_id
             for resource_id in self.graph.resources
             if self.graph.is_internet_exposed(resource_id)
-        )
+        ]
+
+        if not root_only or len(all_exposed) <= 1:
+            return sorted(all_exposed)
+
+        # Identify entry points that are reachable downstream from another entry point
+        downstream_entry_points: set[str] = set()
+        for ep in all_exposed:
+            reachable = self.graph.get_dependents(ep)
+            queue: deque[str] = deque(reachable)
+            visited: set[str] = set(reachable)
+            while queue:
+                curr = queue.popleft()
+                if curr in all_exposed and curr != ep:
+                    downstream_entry_points.add(curr)
+                for nxt in self.graph.get_dependents(curr):
+                    if nxt not in visited:
+                        visited.add(nxt)
+                        queue.append(nxt)
+
+        root_eps = [ep for ep in all_exposed if ep not in downstream_entry_points]
+        return sorted(root_eps if root_eps else all_exposed)
 
     def find_attack_paths(
         self,

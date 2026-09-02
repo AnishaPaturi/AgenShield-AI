@@ -39,8 +39,20 @@ export default function FindingCard({ finding, patch, onDecide }) {
         {finding.consensus_score !== null && finding.consensus_score !== undefined && (
           <span>consensus: <b>{finding.consensus_score}</b></span>
         )}
+        {finding.raw_details?.priority && (
+          <span>priority: <b>{finding.raw_details.priority} ({finding.raw_details.priority_score})</b></span>
+        )}
+        {finding.raw_details?.blast_radius !== undefined && (
+          <span>blast radius: <b>{finding.raw_details.blast_radius} node(s)</b></span>
+        )}
         {compliance && <span>compliance: <b>{compliance}</b></span>}
       </div>
+
+      {finding.attack_path && finding.attack_path.length > 0 && (
+        <div style={{ margin: '8px 0', fontSize: '11.5px', fontFamily: 'var(--mono)', color: 'var(--high)', background: 'rgba(255,153,85,0.08)', padding: '6px 10px', borderRadius: '5px' }}>
+          ⚡ <b>Exploit Route:</b> {finding.attack_path.join(' → ')}
+        </div>
+      )}
 
       {patch && (
         <>

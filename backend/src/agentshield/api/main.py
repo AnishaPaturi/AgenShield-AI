@@ -11,7 +11,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from agentshield.api.routers import health, patches, scan, workspaces
+from agentshield.api.routers import audit, health, patches, scan, workspaces
 
 app = FastAPI(
     title="AgentShield AI API",
@@ -31,3 +31,5 @@ app.include_router(health.router)
 app.include_router(scan.router)
 app.include_router(workspaces.router)
 app.include_router(patches.router)
+app.include_router(audit.router)
+

@@ -230,10 +230,10 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 * [x] **Task 3.2: Calibrated Confidence Scoring & Consensus Algorithm**
   * Develop mathematical agreement scoring between LLM outputs to eliminate single-model hallucinations.
   * Establish confidence thresholds ($C \ge 0.85$ for auto-patching, $C < 0.85$ for human review).
-* [ ] **Task 3.3: Attack-Path & Blast-Radius Prioritization Engine**
+* [x] **Task 3.3: Attack-Path & Blast-Radius Prioritization Engine**
   * Construct resource topological graph to evaluate exploitability routes (e.g., Internet Gateway $\rightarrow$ Security Group $\rightarrow$ Unencrypted DB).
   * Rank findings based on combined severity, blast radius, and topological exposure.
-* [ ] **Task 3.4: Human Security Audit Queue & Triage Dashboard**
+* [x] **Task 3.4: Human Security Audit Queue & Triage Dashboard**
   * Build an automated escalation mechanism for low-confidence or non-consensus findings.
   * Implement a CLI/Web triage interface allowing security engineers to inspect, approve, or reject flagged findings.
 
@@ -292,7 +292,7 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 | :--- | :--- | :--- | :--- | :--- |
 | **M1: Parser & Secrets Core** | Weeks 1–3 | Multi-IaC AST parsing & credential interception | 100% test pass on parsing HCL, CFN, K8s, Helm | ✅ Completed |
 | **M2: Knowledge Core & RAG** | Weeks 4–6 | Vector DB, CIS benchmarks, compliance mapping | Retrieval Precision @ 5 $\ge 90\%$ | ✅ Completed |
-| **M3: Ensemble & Consensus** | Weeks 7–9 | LangGraph 8-Agent network & Multi-LLM voting | Hallucination rate $< 3\%$, F1 $\ge 0.92$ | ⏳ In Progress |
+| **M3: Ensemble & Consensus** | Weeks 7–9 | LangGraph 8-Agent network & Multi-LLM voting | Hallucination rate $< 3\%$, F1 $\ge 0.92$ | ✅ Completed |
 | **M4: Validation & Patching** | Weeks 10–12 | Diff patch generation & LocalStack sandbox | $100\%$ syntax validity, patch pass rate $\ge 95\%$ | ⏳ In Progress |
 | **M5: Shift-Left & Benchmarks**| Weeks 13–14 | IDE extension, pre-commit, ablation benchmarks | Full benchmark suite execution vs. IEEE paper | 🎯 Scheduled |
 

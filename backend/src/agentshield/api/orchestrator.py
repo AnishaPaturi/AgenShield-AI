@@ -218,4 +218,21 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
         }
     )
 
+    # Task 3.4: Automated Escalation to Human Security Audit Queue
+    try:
+        from agentshield.core.audit import audit_queue_manager
+
+        enqueued = audit_queue_manager.evaluate_and_enqueue(workspace)
+        if enqueued:
+            workspace.execution_logs.append(
+                {
+                    "agent": "HumanAuditQueue",
+                    "action": "enqueued_for_human_review",
+                    "count": len(enqueued),
+                    "items": [item.item_id for item in enqueued],
+                }
+            )
+    except Exception:
+        logger.exception("Failed to enqueue findings to Human Security Audit Queue")
+
     return workspace
