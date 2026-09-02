@@ -205,7 +205,7 @@ class SecurityAnalystAgent:
             self, findings: list[VulnerabilityFinding]
         ) -> float:
             """Calculate Jaccard line-overlap agreement between model findings.
-
+   
             A single-model finding has no cross-model agreement, so its
             agreement score is 0.0 rather than 1.0.
             """
