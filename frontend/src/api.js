@@ -67,3 +67,27 @@ export async function decidePatch(workspaceId, patchId, decision) {
   })
   return asJson(res)
 }
+
+export async function listAuditQueue(status = null, priority = null) {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  if (priority) params.set('priority', priority)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  const res = await fetch(`${base()}/api/audit-queue${qs}`)
+  return asJson(res)
+}
+
+export async function getAuditQueueStats() {
+  const res = await fetch(`${base()}/api/audit-queue/stats`)
+  return asJson(res)
+}
+
+export async function decideAuditItem(itemId, decision, reviewer = 'security_engineer', comment = null) {
+  const res = await fetch(`${base()}/api/audit-queue/${itemId}/decision`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ decision, reviewer, comment }),
+  })
+  return asJson(res)
+}
+

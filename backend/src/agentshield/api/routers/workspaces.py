@@ -84,3 +84,24 @@ def export_workspace(workspace_id: str, fmt: str) -> Response:
         media_type=media_type,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/workspaces/{workspace_id}/attack-graph")
+def get_workspace_attack_graph(workspace_id: str) -> dict[str, Any]:
+    ws = workspace_store.get(workspace_id)
+    if ws is None:
+        raise HTTPException(status_code=404, detail="Workspace not found.")
+
+    if ws.attack_graph is not None:
+        return ws.attack_graph
+
+    from agentshield.core.attack_path import AttackPathAnalyzer, ResourceGraph
+
+    graph = ResourceGraph.from_template(ws.template)
+    analyzer = AttackPathAnalyzer(graph)
+    data = graph.get_graph()
+    data["entry_points"] = analyzer.find_entry_points()
+    data["choke_points"] = analyzer.find_choke_points()
+    data["mermaid"] = graph.to_mermaid()
+    return data
+

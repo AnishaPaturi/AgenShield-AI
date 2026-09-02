@@ -49,6 +49,9 @@ class AgentShieldWorkspace(BaseModel):
     execution_logs: list[dict[str, Any]] = Field(
         default_factory=list, description="Audit trace log of agent actions"
     )
+    attack_graph: dict[str, Any] | None = Field(
+        default=None, description="Resource topological graph and attack routes"
+    )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC), description="Workspace creation timestamp"
     )

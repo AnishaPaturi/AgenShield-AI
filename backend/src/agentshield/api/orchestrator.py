@@ -199,6 +199,36 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
         }
     )
 
+    # Task 3.3: Attack-Path & Blast-Radius Prioritization Engine
+    try:
+        from agentshield.core.attack_path import FindingPrioritizer, ResourceGraph
+
+        workspace.active_agent = "FindingPrioritizer"
+        resource_graph = ResourceGraph.from_template(template)
+        prioritizer = FindingPrioritizer(resource_graph)
+        report.findings = prioritizer.rank_findings(report.findings)
+        report.recalculate_summary()
+
+        attack_graph_data = resource_graph.get_graph()
+        attack_graph_data["entry_points"] = prioritizer.path_analyzer.find_entry_points()
+        attack_graph_data["choke_points"] = prioritizer.path_analyzer.find_choke_points()
+        attack_graph_data["mermaid"] = resource_graph.to_mermaid()
+        workspace.attack_graph = attack_graph_data
+
+        attack_paths_count = sum(1 for f in report.findings if f.attack_path)
+        workspace.execution_logs.append(
+            {
+                "agent": "FindingPrioritizer",
+                "action": "prioritized_findings",
+                "findings_count": len(report.findings),
+                "attack_paths_detected": attack_paths_count,
+                "entry_points_count": len(attack_graph_data["entry_points"]),
+                "graph_nodes": len(resource_graph),
+            }
+        )
+    except Exception:
+        logger.exception("Attack-path prioritization failed; continuing with unranked findings")
+
     workspace.active_agent = "RemediationAgent"
     actionable = [f for f in report.findings if f.rule_id != "AS-INFO-000"]
     patches = _remediator.generate_patches(template, report.model_copy(update={"findings": actionable}))
@@ -214,5 +244,22 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
             "human_review_count": report.summary.human_review_count,
         }
     )
+
+    # Task 3.4: Automated Escalation to Human Security Audit Queue
+    try:
+        from agentshield.core.audit import audit_queue_manager
+
+        enqueued = audit_queue_manager.evaluate_and_enqueue(workspace)
+        if enqueued:
+            workspace.execution_logs.append(
+                {
+                    "agent": "HumanAuditQueue",
+                    "action": "enqueued_for_human_review",
+                    "count": len(enqueued),
+                    "items": [item.item_id for item in enqueued],
+                }
+            )
+    except Exception:
+        logger.exception("Failed to enqueue findings to Human Security Audit Queue")
 
     return workspace
