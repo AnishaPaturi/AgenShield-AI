@@ -7,7 +7,9 @@ structured Pydantic response parsing, error handling, and ensemble voting logic.
 import json
 import re
 from enum import StrEnum
-from typing import TypeVar
+from typing import Generic,TypeVar
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 
 from pydantic import BaseModel, Field, SecretStr
 
@@ -51,6 +53,19 @@ class LLMResponse(BaseModel):
     usage: dict[str, int] = Field(
         default_factory=dict, description="Token consumption metrics"
     )
+
+@dataclass
+class StructuredLLMResult(Generic[T]):
+    """Structured result from one LLM invocation in an ensemble."""
+
+    parsed: T | None
+    response: LLMResponse | None
+    error: str | None = None
+
+    @property
+    def success(self) -> bool:
+        """Return True when the model produced a valid structured response."""
+        return self.parsed is not None and self.error is None
 
 
 class LLMClient:
@@ -101,6 +116,44 @@ class LLMClient:
 
         response = self.generate(full_prompt, system_prompt=system_prompt)
         return self._extract_and_parse_json(response.content, schema_cls)
+
+    def generate_structured_result(
+            self,
+            prompt: str,
+            schema_cls: type[T],
+            system_prompt: str | None = None,
+        ) -> StructuredLLMResult[T]:
+            """Generate and parse a structured response while preserving model metadata."""
+
+            try:
+                instructions = (
+                    "\n\nCRITICAL INSTRUCTION: You MUST return ONLY a valid JSON object "
+                    "adhering strictly to the following JSON schema. Do not include "
+                    "markdown codeblock tags, markdown text, or conversational output.\n"
+                    f"JSON Schema:\n{json.dumps(schema_cls.model_json_schema(), indent=2)}"
+                )
+
+                response = self.generate(
+                    prompt + instructions,
+                    system_prompt=system_prompt,
+                )
+
+                parsed = self._extract_and_parse_json(
+                    response.content,
+                    schema_cls,
+                )
+
+                return StructuredLLMResult(
+                    parsed=parsed,
+                    response=response,
+                )
+
+            except Exception as exc:
+                return StructuredLLMResult(
+                    parsed=None,
+                    response=response if "response" in locals() else None,
+                    error=str(exc),
+                 )
 
     def _extract_and_parse_json(self, raw_text: str, schema_cls: type[T]) -> T:
         """Clean markdown formatting and parse JSON string into Pydantic schema."""
@@ -240,20 +293,46 @@ class MultiLLMEnsemble:
             clients = [LLMClient()]
         self.clients = clients
 
+    # def generate_ensemble(
+    #     self, prompt: str, schema_cls: type[T], system_prompt: str | None = None
+    # ) -> list[T]:
+    #     """Query all ensemble clients in parallel or sequence and collect responses."""
+    #     results: list[T] = []
+    #     for client in self.clients:
+    #         try:
+    #             parsed = client.generate_structured(
+    #                 prompt, schema_cls, system_prompt=system_prompt
+    #             )
+    #             results.append(parsed)
+    #         except Exception:
+    #             continue
+    #     return results
     def generate_ensemble(
-        self, prompt: str, schema_cls: type[T], system_prompt: str | None = None
-    ) -> list[T]:
-        """Query all ensemble clients in parallel or sequence and collect responses."""
-        results: list[T] = []
-        for client in self.clients:
-            try:
-                parsed = client.generate_structured(
-                    prompt, schema_cls, system_prompt=system_prompt
+            self,
+            prompt: str,
+            schema_cls: type[T],
+            system_prompt: str | None = None,
+        ) -> list[StructuredLLMResult[T]]:
+            """Query all ensemble models in parallel and preserve per-model results."""
+
+            def run_client(client: LLMClient) -> StructuredLLMResult[T]:
+                return client.generate_structured_result(
+                    prompt,
+                    schema_cls,
+                    system_prompt=system_prompt,
                 )
-                results.append(parsed)
-            except Exception:
-                continue
-        return results
+
+            # LLM calls are I/O-bound, so execute them concurrently.
+            with ThreadPoolExecutor(max_workers=len(self.clients)) as executor:
+                futures = [
+                    executor.submit(run_client, client)
+                    for client in self.clients
+                ]
+
+                # Preserve client/model order for deterministic results.
+                results = [future.result() for future in futures]
+
+            return results
 
     def compute_consensus_confidence(
         self, agreed_count: int, total_models: int, base_confidence: float = 0.8

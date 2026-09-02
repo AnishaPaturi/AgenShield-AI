@@ -22,6 +22,7 @@ import tempfile
 from pathlib import Path
 
 from agentshield.agents import RemediationAgent, SecurityAnalystAgent
+from agentshield.core.llm import LLMClient,MultiLLMEnsemble
 from agentshield.core.schemas import (
     AgentShieldWorkspace,
     ASTNode,
@@ -38,7 +39,17 @@ logger = logging.getLogger("agentshield.api.orchestrator")
 # via env vars — see agentshield.core.llm.LLMConfig — so `uv run` works offline
 # out of the box, and swaps to real providers with zero code changes once
 # OPENAI_API_KEY / ANTHROPIC_API_KEY are set).
-_analyst = SecurityAnalystAgent()
+
+# _analyst = SecurityAnalystAgent()
+# _remediator = RemediationAgent()
+_ensemble = MultiLLMEnsemble(
+    clients=[
+        LLMClient(),
+        LLMClient(),
+    ]
+)
+
+_analyst = SecurityAnalystAgent(ensemble=_ensemble)
 _remediator = RemediationAgent()
 
 
