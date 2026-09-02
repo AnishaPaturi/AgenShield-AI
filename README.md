@@ -324,7 +324,27 @@ AgentShield-AI/
 │   │       │   ├── secrets.py                 # Dedicated Secrets & Credential Interceptor Agent
 │   │       │   └── prompts/                   # System prompt engineering templates & schemas
 │   │       │       └── templates.py           # CoT prompts, system roles, & structured response formats
+│   │       ├── api/                           # FastAPI REST application layer
+│   │       │   ├── main.py                    # Application entrypoint & middleware configuration
+│   │       │   ├── orchestrator.py            # End-to-end scan & prioritization pipeline runner
+│   │       │   ├── store.py                   # Thread-safe disk-mirrored workspace store
+│   │       │   ├── report_export.py           # Multi-format report exporter (JSON, MD, HTML, SARIF, PDF)
+│   │       │   └── routers/                   # API route handlers
+│   │       │       ├── scan.py                # File upload & synchronous scan endpoint
+│   │       │       ├── workspaces.py          # Workspace retrieval, export & attack-graph routes
+│   │       │       ├── patches.py             # Patch decisioning (accept/reject) endpoint
+│   │       │       └── audit.py               # Human Security Audit Queue triage REST endpoints
+│   │       ├── cli/                           # Command Line Interfaces
+│   │       │   └── triage.py                  # Human Security Audit Queue CLI triage tool
 │   │       ├── core/                          # State management, RAG core, & LLM client wrappers
+│   │       │   ├── attack_path/               # Task 3.3 Attack-Path & Blast-Radius Prioritization Engine
+│   │       │   │   ├── graph.py               # ResourceGraph with topological inference & Mermaid export
+│   │       │   │   ├── path_analyzer.py       # BFS exploitability route analysis & choke points
+│   │       │   │   ├── blast_radius.py        # BlastRadiusCalculator with asset category breakdown
+│   │       │   │   └── prioritizer.py         # FindingPrioritizer ranking by severity, blast & exposure
+│   │       │   ├── audit/                     # Task 3.4 Human Security Audit Queue Engine
+│   │       │   │   ├── models.py              # AuditQueueItem, AuditStatus, AuditDecision schemas
+│   │       │   │   └── queue.py               # AuditQueueManager with automated escalation logic
 │   │       │   ├── llm/                       # Multi-LLM client abstractions
 │   │       │   │   └── client.py              # Claude 3.5 + GPT-4o client, mock mode, & JSON parser
 │   │       │   ├── schemas/                   # Pydantic v2 data contracts & state schemas
@@ -343,7 +363,7 @@ AgentShield-AI/
 │   │       │       ├── loaders.py             # PDF & text document ingestion loaders
 │   │       │       ├── scrapers.py            # Live scraper service for AWS/Azure/GCP feeds & CVEs
 │   │       │       ├── update_kb.py           # CLI script to execute KB re-indexing
-      │   │       ├── scheduler.py           # Background job scheduler (APScheduler) for daily updates
+│   │       │       ├── scheduler.py           # Background job scheduler (APScheduler) for daily updates
 │   │       │       ├── cache.py               # AST hash caching module
 │   │       │       ├── dedup.py               # Semantic deduplication module
 │   │       │       ├── config.py              # Vector store & RAG threshold configuration loader
@@ -358,10 +378,17 @@ AgentShield-AI/
 │   │       └── scanners/                      # Interceptor engines & static scanner adapters
 │   │           ├── secrets_scanner.py         # Gitleaks regex + Shannon entropy secret scanner engine
 │   │           └── static_adapters.py         # Adapter layer for Checkov, tfsec, and KICS outputs
-│   ├── tests/                                 # Pytest test suite & test fixtures
+│   ├── tests/                                 # Pytest test suite & test fixtures (90 tests)
 │   │   ├── conftest.py                        # Shared pytest fixtures & test environment setup
 │   │   ├── test_analyst_agent.py              # Unit tests for Security Analyst Agent
 │   │   ├── test_remediation_agent.py          # Unit tests for Remediation Agent & diff patching
+│   │   ├── test_attack_path.py                # Unit tests for exploit route BFS & shortest path
+│   │   ├── test_attack_graph.py               # Unit tests for topological graph & internet exposure
+│   │   ├── test_blast_radius.py               # Unit tests for reachable resources & blast radius
+│   │   ├── test_prioritizer.py                # Unit tests for finding prioritization scoring
+│   │   ├── test_attack_path_prioritization_engine.py # Task 3.3 end-to-end prioritization tests
+│   │   ├── test_audit_queue.py                # Task 3.4 automated escalation & triage tests
+│   │   ├── test_cli_triage.py                 # Task 3.4 CLI triage & API endpoint tests
 │   │   ├── test_polyglot_parsers.py           # Unit tests for CloudFormation, K8s, Helm & Dispatcher
 │   │   ├── test_secrets_scanner.py            # Unit tests for Gitleaks patterns & Shannon entropy
 │   │   ├── test_static_adapters.py            # Unit tests for Checkov, tfsec, & KICS adapters
@@ -372,6 +399,8 @@ AgentShield-AI/
 │   │   ├── test_vulnerability_schema.py       # Unit tests for vulnerability finding schemas
 │   │   ├── test_remediation_schema.py         # Unit tests for patch diff schemas & validation results
 │   │   ├── test_contracts.py                  # Unit tests for AgentShieldWorkspace contracts
+│   │   ├── test_report_export.py              # Unit tests for multi-format report renderers
+│   │   ├── test_api_scan.py                   # Integration tests for FastAPI endpoints
 │   │   ├── test_prompts.py                    # Unit tests verifying system prompt templates
 │   │   ├── test_pyproject.py                  # Unit tests verifying pyproject.toml configuration
 │   │   └── fixtures/                          # Sample test files & IaC templates
@@ -389,8 +418,21 @@ AgentShield-AI/
 │       ├── main.jsx                           # React DOM root renderer
 │       ├── api.js                             # API client interfacing with FastAPI backend (`/api/scan`)
 │       ├── index.css                          # Custom CSS styling tokens, glassmorphism & dark themes
-│       ├── components/                        # UI components (Upload, Findings, DiffViewer, Export)
-│       └── pages/                             # Dashboard pages (ScanPage, WorkspaceView, Settings)
+│       ├── components/                        # UI components (Upload, Findings, DiffViewer, TriageDashboard)
+│       │   ├── ComplianceStrip.jsx            # Regulatory compliance banner & control badges
+│       │   ├── FindingCard.jsx                # Finding card with exploit route & priority metrics
+│       │   ├── Header.jsx                     # Application header with health dot & API config
+│       │   ├── Pipeline.jsx                   # Visual 8-agent LangGraph workflow pipeline
+│       │   ├── ReportView.jsx                 # Security report summary, metrics, & finding list
+│       │   ├── RiskGauge.jsx                  # Radial SVG risk score gauge with severity breakdown
+│       │   ├── ScanDemo.jsx                   # Interactive scan demo component
+│       │   ├── Toast.jsx                      # Floating notifications for async actions
+│       │   ├── TriageDashboard.jsx            # Task 3.4 Web Triage Dashboard for human audit queue
+│       │   ├── UploadPanel.jsx                # Drag-and-drop IaC file uploader panel
+│       │   └── WorkspaceList.jsx              # Historical scan session browser
+│       └── pages/                             # Dashboard pages (Console, Landing)
+│           ├── Console.jsx                    # Core engineer console with Scan & Triage tab views
+│           └── Landing.jsx                    # Product landing page & architecture overview
 ├── scratch/                                   # Temporary artifacts & extracted base paper text
 │   └── base_paper_text.txt                    # Extracted raw text from IEEE base paper (Toprani, 2025)
 ├── .gitignore                                 # Git version control ignore rules
