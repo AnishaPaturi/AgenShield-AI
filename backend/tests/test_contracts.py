@@ -22,6 +22,9 @@ def test_schema_exports():
         ASTNode as ExportedASTNode,
     )
     from agentshield.core.schemas import (
+        AUTO_PATCH_THRESHOLD as ExportedThreshold,
+    )
+    from agentshield.core.schemas import (
         IaCTemplate as ExportedIaCTemplate,
     )
     from agentshield.core.schemas import (
@@ -31,6 +34,7 @@ def test_schema_exports():
         VulnerabilityReport as ExportedVulnerabilityReport,
     )
 
+    assert ExportedThreshold == 0.85
     assert ExportedASTNode is ASTNode
     assert ExportedIaCTemplate is IaCTemplate
     assert ExportedPatchDiff is PatchDiff

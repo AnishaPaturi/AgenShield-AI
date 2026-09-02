@@ -38,6 +38,8 @@ class RemediationAgent:
             patch.finding_id = finding.finding_id
             patch.target_file = template.file_path
             patch.remediation_status = RemediationStatus.PENDING
+            patch.auto_patchable = finding.auto_patchable
+            patch.requires_human_review = finding.requires_human_review
             patch.generate_unified_diff()
             return patch
         except Exception:
@@ -94,6 +96,8 @@ class RemediationAgent:
             patched_code=patched_snippet,
             target_resource=finding.affected_resource,
             remediation_status=RemediationStatus.PENDING,
+            auto_patchable=finding.auto_patchable,
+            requires_human_review=finding.requires_human_review,
             explanation=explanation,
         )
         patch.generate_unified_diff()

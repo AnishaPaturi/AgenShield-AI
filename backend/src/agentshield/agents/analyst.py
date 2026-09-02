@@ -14,6 +14,7 @@ from agentshield.agents.prompts.templates import (
 )
 from agentshield.core.llm import LLMClient, MultiLLMEnsemble
 from agentshield.core.schemas import (
+    AUTO_PATCH_THRESHOLD,
     ComplianceFramework,
     ComplianceMapping,
     IaCTemplate,
@@ -74,6 +75,9 @@ class SecurityAnalystAgent:
                 # Rule-based fallback if LLM is mock or returns unparseable content
                 findings = self._heuristic_fallback_audit(template)
 
+            # Apply confidence thresholds to single-model findings
+            self._apply_confidence_thresholds(findings)
+
         # Enforce compliance mappings and default values if missing
         self._enrich_findings_compliance(findings, template)
 
@@ -89,7 +93,14 @@ class SecurityAnalystAgent:
     def _reconcile_ensemble_findings(
         self, ensemble_results: list[AnalystResponseSchema], total_models: int
     ) -> list[VulnerabilityFinding]:
-        """Aggregate and calculate consensus confidence across ensemble results."""
+        """Aggregate and calculate calibrated consensus confidence across ensemble results.
+
+        Mathematical Agreement Formulation:
+            C_ensemble(v) = sum(w_i * C(M_i, v)) + gamma * JaccardAgreement * (N_agreed / N_total)
+        Eliminates single-model hallucinations and establishes routing thresholds:
+            - C_ensemble >= 0.85 -> Auto-patchable
+            - C_ensemble < 0.85  -> Human Security Audit Queue
+        """
         finding_map: dict[str, list[VulnerabilityFinding]] = {}
         for result in ensemble_results:
             for f in result.findings:
@@ -101,14 +112,72 @@ class SecurityAnalystAgent:
         consensus_findings: list[VulnerabilityFinding] = []
         for _key, f_list in finding_map.items():
             base_finding = f_list[0]
-            agree_count = len(f_list)
-            score = self.ensemble.compute_consensus_confidence(  # type: ignore[union-attr]
-                agree_count, total_models, base_confidence=base_finding.confidence_score
+            confidences = [f.confidence_score for f in f_list]
+            models = [
+                f.raw_details.get("model", f"model_{idx+1}")
+                for idx, f in enumerate(f_list)
+            ]
+            agreement_score = self._compute_jaccard_agreement(f_list)
+
+            if self.ensemble:
+                calibrated_score = self.ensemble.calculate_calibrated_confidence(
+                    confidences,
+                    total_models=total_models,
+                    agreement_score=agreement_score,
+                )
+            else:
+                calibrated_score = round(sum(confidences) / len(confidences), 4)
+
+            base_finding.confidence_score = calibrated_score
+            base_finding.consensus_score = calibrated_score
+            base_finding.model_agreements = models
+
+            # Threshold-based routing (C >= 0.85 auto-patch, C < 0.85 human review)
+            auto_patchable, requires_review, escalation_reason = (
+                MultiLLMEnsemble.evaluate_routing(calibrated_score, AUTO_PATCH_THRESHOLD)
             )
-            base_finding.confidence_score = score
+            base_finding.auto_patchable = auto_patchable
+            base_finding.requires_human_review = requires_review
+            base_finding.escalation_reason = escalation_reason
+
             consensus_findings.append(base_finding)
 
         return consensus_findings
+
+    def _compute_jaccard_agreement(self, findings: list[VulnerabilityFinding]) -> float:
+        """Calculate Jaccard line overlap agreement between model findings."""
+        if len(findings) <= 1:
+            return 1.0
+        ranges = [f.line_range for f in findings if f.line_range]
+        if len(ranges) < len(findings):
+            return 1.0
+
+        min_starts = [r.start_line for r in ranges]
+        max_ends = [r.end_line for r in ranges]
+
+        intersection_start = max(min_starts)
+        intersection_end = min(max_ends)
+        union_start = min(min_starts)
+        union_end = max(max_ends)
+
+        intersection_len = max(0, intersection_end - intersection_start + 1)
+        union_len = max(1, union_end - union_start + 1)
+
+        return round(intersection_len / union_len, 4)
+
+    def _apply_confidence_thresholds(
+        self, findings: list[VulnerabilityFinding]
+    ) -> None:
+        """Evaluate confidence thresholds for single-model or fallback findings."""
+        for f in findings:
+            auto_patchable, requires_review, escalation_reason = (
+                MultiLLMEnsemble.evaluate_routing(f.confidence_score, AUTO_PATCH_THRESHOLD)
+            )
+            f.auto_patchable = auto_patchable
+            f.requires_human_review = requires_review
+            f.escalation_reason = escalation_reason
+            if not f.model_agreements:
+                f.model_agreements = [self.llm_client.config.model_name]
 
     def _enrich_findings_compliance(
         self, findings: list[VulnerabilityFinding], template: IaCTemplate

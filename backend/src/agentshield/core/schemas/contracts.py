@@ -17,6 +17,7 @@ from agentshield.core.schemas.remediation import (
     ValidationCheckResult,
 )
 from agentshield.core.schemas.vulnerability import (
+    AUTO_PATCH_THRESHOLD,
     ComplianceFramework,
     ComplianceMapping,
     Severity,
@@ -54,6 +55,7 @@ class AgentShieldWorkspace(BaseModel):
 
 
 __all__ = [
+    "AUTO_PATCH_THRESHOLD",
     "IaCTemplate",
     "ASTNode",
     "LineRange",

@@ -1,6 +1,7 @@
 """AgentShield AI Core Schemas Package."""
 
 from agentshield.core.schemas.contracts import (
+    AUTO_PATCH_THRESHOLD,
     AgentShieldWorkspace,
     ASTNode,
     CloudProvider,
@@ -19,6 +20,7 @@ from agentshield.core.schemas.contracts import (
 )
 
 __all__ = [
+    "AUTO_PATCH_THRESHOLD",
     "IaCTemplate",
     "ASTNode",
     "LineRange",

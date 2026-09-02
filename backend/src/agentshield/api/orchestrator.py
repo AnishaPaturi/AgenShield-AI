@@ -168,7 +168,13 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
     workspace.status = "REMEDIATED"
     workspace.active_agent = None
     workspace.execution_logs.append(
-        {"agent": "RemediationAgent", "action": "patches_generated", "count": len(patches)}
+        {
+            "agent": "RemediationAgent",
+            "action": "patches_generated",
+            "count": len(patches),
+            "auto_patchable_count": report.summary.auto_patchable_count,
+            "human_review_count": report.summary.human_review_count,
+        }
     )
 
     return workspace

@@ -22,11 +22,23 @@ export default function FindingCard({ finding, patch, onDecide }) {
         <span className={`sev-badge ${finding.severity}`}>{finding.severity}</span>
         <span className="f-title">{finding.title}</span>
         <span className="f-rule">{finding.rule_id}</span>
+        {finding.auto_patchable ? (
+          <span className="routing-badge auto-patch" title="Confidence meets auto-patch threshold (C >= 0.85)">
+            ⚡ Auto-Patchable (C={finding.confidence_score})
+          </span>
+        ) : (
+          <span className="routing-badge human-review" title={finding.escalation_reason || "Escalated to human review queue (C < 0.85)"}>
+            ⚠️ Human Review Required (C={finding.confidence_score})
+          </span>
+        )}
       </div>
       <div className="f-desc">{finding.description}</div>
       <div className="f-meta">
         <span>resource: <b>{finding.affected_resource}</b></span>
         <span>confidence: <b>{finding.confidence_score}</b></span>
+        {finding.consensus_score !== null && finding.consensus_score !== undefined && (
+          <span>consensus: <b>{finding.consensus_score}</b></span>
+        )}
         {compliance && <span>compliance: <b>{compliance}</b></span>}
       </div>
 

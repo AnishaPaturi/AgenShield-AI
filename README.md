@@ -227,7 +227,7 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 * [x] **Task 3.1: Security Analyst Agent & Multi-LLM Ensemble Engine**
   * Connect **Claude 3.5 Sonnet** and **OpenAI GPT-4o** APIs for dual-model parallel vulnerability evaluation (`agents/analyst.py`, `llm/client.py`).
   * Implement structured reasoning templates (Chain-of-Thought prompting) enforcing standardized output JSON schemas.
-* [ ] **Task 3.2: Calibrated Confidence Scoring & Consensus Algorithm**
+* [x] **Task 3.2: Calibrated Confidence Scoring & Consensus Algorithm**
   * Develop mathematical agreement scoring between LLM outputs to eliminate single-model hallucinations.
   * Establish confidence thresholds ($C \ge 0.85$ for auto-patching, $C < 0.85$ for human review).
 * [ ] **Task 3.3: Attack-Path & Blast-Radius Prioritization Engine**

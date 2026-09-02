@@ -55,6 +55,14 @@ class PatchDiff(BaseModel):
     remediation_status: RemediationStatus = Field(
         default=RemediationStatus.PENDING, description="Current lifecycle state of the patch"
     )
+    auto_patchable: bool = Field(
+        default=True,
+        description="Whether patch was derived from a high-confidence finding (C >= 0.85) eligible for automated application",
+    )
+    requires_human_review: bool = Field(
+        default=False,
+        description="Whether patch requires human security engineer audit/approval prior to merge (C < 0.85)",
+    )
     validation_results: list[ValidationCheckResult] = Field(
         default_factory=list, description="Linter and sandbox test results"
     )

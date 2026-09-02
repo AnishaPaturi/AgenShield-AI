@@ -53,6 +53,8 @@ export default function ReportView({ workspace, onDecide }) {
           <div className="gstat HIGH"><div className="n">{s.high_count}</div><div className="l">high</div></div>
           <div className="gstat MEDIUM"><div className="n">{s.medium_count}</div><div className="l">medium</div></div>
           <div className="gstat LOW"><div className="n">{s.low_count}</div><div className="l">low</div></div>
+          <div className="gstat AUTO"><div className="n">{s.auto_patchable_count || 0}</div><div className="l">⚡ auto-patch</div></div>
+          <div className="gstat REVIEW"><div className="n">{s.human_review_count || 0}</div><div className="l">⚠️ human review</div></div>
         </div>
       </div>
 

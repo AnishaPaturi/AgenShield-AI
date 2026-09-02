@@ -233,6 +233,8 @@ class LLMClient:
 class MultiLLMEnsemble:
     """Ensemble executor for cross-verifying findings between multiple LLM models."""
 
+    AUTO_PATCH_THRESHOLD: float = 0.85
+
     def __init__(self, clients: list[LLMClient]) -> None:
         if not clients:
             clients = [LLMClient()]
@@ -263,3 +265,58 @@ class MultiLLMEnsemble:
         # Scale base_confidence by agreement ratio
         consensus_score = base_confidence * (0.5 + 0.5 * agreement_ratio)
         return min(1.0, max(0.0, round(consensus_score, 4)))
+
+    def calculate_calibrated_confidence(
+        self,
+        model_confidences: list[float],
+        total_models: int,
+        agreement_score: float = 1.0,
+        gamma: float = 0.10,
+        weights: list[float] | None = None,
+    ) -> float:
+        """Calculate calibrated ensemble consensus confidence score.
+
+        Mathematical Formulation:
+            C_ensemble(v) = sum_{i in agreed}(w_i * C(M_i, v)) + gamma * S_agreement * (N_agreed / N_total)
+        where:
+            - w_i = (1 - gamma) / total_models (for uniform weights)
+            - S_agreement in [0.0, 1.0] measures AST/resource/rule overlap
+            - (N_agreed / N_total) penalizes single-model hallucinations
+
+        Eliminates single-model hallucinations:
+            - When 2 models agree with C=0.90: C_ensemble = 0.45(0.90)+0.45(0.90)+0.10(1.0) = 0.91 >= 0.85 (Auto-patch)
+            - When only 1 of 2 models flags finding with C=0.90: C_ensemble = 0.45(0.90)+0.10(0.5) = 0.455 < 0.85 (Human Review)
+        """
+        if not model_confidences or total_models <= 0:
+            return 0.0
+
+        if total_models == 1:
+            return min(1.0, max(0.0, round(model_confidences[0], 4)))
+
+        num_agreed = len(model_confidences)
+        if weights and len(weights) == num_agreed:
+            weighted_sum = sum(w * c for w, c in zip(weights, model_confidences))
+        else:
+            w = (1.0 - gamma) / total_models
+            weighted_sum = sum(w * c for c in model_confidences)
+
+        agreement_bonus = gamma * agreement_score * (num_agreed / total_models)
+        calibrated_score = min(1.0, max(0.0, round(weighted_sum + agreement_bonus, 4)))
+        return calibrated_score
+
+    @classmethod
+    def evaluate_routing(
+        cls, confidence_score: float, threshold: float = AUTO_PATCH_THRESHOLD
+    ) -> tuple[bool, bool, str | None]:
+        """Evaluate whether a finding qualifies for auto-patching or requires human review.
+
+        Returns:
+            (auto_patchable, requires_human_review, escalation_reason)
+        """
+        if confidence_score >= threshold:
+            return True, False, None
+        escalation_reason = (
+            f"Confidence score {confidence_score:.4f} is below auto-patch threshold {threshold:.2f}; "
+            "escalated to human review queue to prevent potential hallucination."
+        )
+        return False, True, escalation_reason
