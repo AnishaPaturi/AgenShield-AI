@@ -10,11 +10,13 @@ from enum import StrEnum
 from typing import Generic,TypeVar
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+import os
+import logging
 
 from pydantic import BaseModel, Field, SecretStr
 
 T = TypeVar("T", bound=BaseModel)
-
+logger = logging.getLogger(__name__)
 
 class LLMProvider(StrEnum):
     """Supported LLM service providers."""
@@ -71,8 +73,25 @@ class StructuredLLMResult(Generic[T]):
 class LLMClient:
     """Unified LLM client interface for prompt execution and structured parsing."""
 
+    # def __init__(self, config: LLMConfig | None = None) -> None:
+    #     self.config = config or LLMConfig()
+    #     self._mock_responses: list[str] = []
     def __init__(self, config: LLMConfig | None = None) -> None:
         self.config = config or LLMConfig()
+
+        # Load provider credentials from environment variables when the
+        # configuration does not already contain an API key.
+        if self.config.api_key is None:
+            if self.config.provider == LLMProvider.OPENAI:
+                api_key = os.getenv("OPENAI_API_KEY")
+            elif self.config.provider == LLMProvider.ANTHROPIC:
+                api_key = os.getenv("ANTHROPIC_API_KEY")
+            else:
+                api_key = None
+
+            if api_key:
+                self.config.api_key = SecretStr(api_key)
+
         self._mock_responses: list[str] = []
 
     def set_mock_responses(self, responses: list[str]) -> None:
@@ -208,13 +227,16 @@ class LLMClient:
                 provider=LLMProvider.OPENAI,
                 usage=usage,
             )
+        # except Exception as e:
+        #     # Fallback to mock on API or auth error for robustness
+        #     return LLMResponse(
+        #         content=f"Error invoking OpenAI API: {e}",
+        #         model=self.config.model_name,
+        #         provider=LLMProvider.OPENAI,
+        #     )
         except Exception as e:
-            # Fallback to mock on API or auth error for robustness
-            return LLMResponse(
-                content=f"Error invoking OpenAI API: {e}",
-                model=self.config.model_name,
-                provider=LLMProvider.OPENAI,
-            )
+            logger.error("OpenAI API call failed: %s", e)
+            raise
 
     def _call_anthropic(self, prompt: str, system_prompt: str | None = None) -> LLMResponse:
         """Call Anthropic API if installed and configured."""
@@ -246,12 +268,16 @@ class LLMClient:
                 provider=LLMProvider.ANTHROPIC,
                 usage=usage,
             )
+        # except Exception as e:
+        #     return LLMResponse(
+        #         content=f"Error invoking Anthropic API: {e}",
+        #         model=self.config.model_name,
+        #         provider=LLMProvider.ANTHROPIC,
+        #     )
+
         except Exception as e:
-            return LLMResponse(
-                content=f"Error invoking Anthropic API: {e}",
-                model=self.config.model_name,
-                provider=LLMProvider.ANTHROPIC,
-            )
+            logger.error("Anthropic API call failed: %s", e)
+            raise
 
     def _call_litellm(self, prompt: str, system_prompt: str | None = None) -> LLMResponse:
         """Call LiteLLM wrapper if installed and configured."""

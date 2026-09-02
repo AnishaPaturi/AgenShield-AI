@@ -179,28 +179,65 @@ class SecurityAnalystAgent:
 
         return consensus_findings
 
+    # def _compute_jaccard_agreement(
+    #     self, findings: list[VulnerabilityFinding]
+    # ) -> float:
+    #     """Calculate Jaccard line overlap agreement between model findings."""
+    #     if len(findings) <= 1:
+    #         return 1.0
+    #     ranges = [f.line_range for f in findings if f.line_range]
+    #     if len(ranges) < len(findings):
+    #         return 1.0
+
+    #     min_starts = [r.start_line for r in ranges]
+    #     max_ends = [r.end_line for r in ranges]
+
+    #     intersection_start = max(min_starts)
+    #     intersection_end = min(max_ends)
+    #     union_start = min(min_starts)
+    #     union_end = max(max_ends)
+
+    #     intersection_len = max(0, intersection_end - intersection_start + 1)
+    #     union_len = max(1, union_end - union_start + 1)
+
+    #     return round(intersection_len / union_len, 4)
     def _compute_jaccard_agreement(
-        self, findings: list[VulnerabilityFinding]
-    ) -> float:
-        """Calculate Jaccard line overlap agreement between model findings."""
-        if len(findings) <= 1:
-            return 1.0
-        ranges = [f.line_range for f in findings if f.line_range]
-        if len(ranges) < len(findings):
-            return 1.0
+            self, findings: list[VulnerabilityFinding]
+        ) -> float:
+            """Calculate Jaccard line-overlap agreement between model findings.
 
-        min_starts = [r.start_line for r in ranges]
-        max_ends = [r.end_line for r in ranges]
+            A single-model finding has no cross-model agreement, so its
+            agreement score is 0.0 rather than 1.0.
+            """
+            if len(findings) <= 1:
+                return 1.0
 
-        intersection_start = max(min_starts)
-        intersection_end = min(max_ends)
-        union_start = min(min_starts)
-        union_end = max(max_ends)
+            ranges = [f.line_range for f in findings if f.line_range]
 
-        intersection_len = max(0, intersection_end - intersection_start + 1)
-        union_len = max(1, union_end - union_start + 1)
+            # If any model omitted a line range, we cannot establish
+            # positional agreement reliably.
+            if len(ranges) < len(findings):
+                return 1.0
 
-        return round(intersection_len / union_len, 4)
+            min_starts = [r.start_line for r in ranges]
+            max_ends = [r.end_line for r in ranges]
+
+            intersection_start = max(min_starts)
+            intersection_end = min(max_ends)
+
+            union_start = min(min_starts)
+            union_end = max(max_ends)
+
+            intersection_len = max(
+                0,
+                intersection_end - intersection_start + 1,
+            )
+            union_len = max(
+                1,
+                union_end - union_start + 1,
+            )
+
+            return round(intersection_len / union_len, 4)
 
     def _apply_confidence_thresholds(
         self, findings: list[VulnerabilityFinding]

@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 from agentshield.agents import RemediationAgent, SecurityAnalystAgent
-from agentshield.core.llm import LLMClient,MultiLLMEnsemble
+from agentshield.core.llm import LLMClient,MultiLLMEnsemble,LLMConfig,LLMProvider
 from agentshield.core.schemas import (
     AgentShieldWorkspace,
     ASTNode,
@@ -42,10 +42,37 @@ logger = logging.getLogger("agentshield.api.orchestrator")
 
 # _analyst = SecurityAnalystAgent()
 # _remediator = RemediationAgent()
+
+# _ensemble = MultiLLMEnsemble(
+#     clients=[
+#         LLMClient(),
+#         LLMClient(),
+#     ]
+# )
+
+# _analyst = SecurityAnalystAgent(ensemble=_ensemble)
+# _remediator = RemediationAgent()
+
+
+
+_openai_client = LLMClient(
+    LLMConfig(
+        provider=LLMProvider.OPENAI,
+        model_name="gpt-4o",
+    )
+)
+
+_anthropic_client = LLMClient(
+    LLMConfig(
+        provider=LLMProvider.ANTHROPIC,
+        model_name="claude-3-5-sonnet-20241022",
+    )
+)
+
 _ensemble = MultiLLMEnsemble(
     clients=[
-        LLMClient(),
-        LLMClient(),
+        _openai_client,
+        _anthropic_client,
     ]
 )
 
