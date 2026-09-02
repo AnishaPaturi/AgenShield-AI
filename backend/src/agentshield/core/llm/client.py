@@ -15,6 +15,11 @@ import logging
 
 from pydantic import BaseModel, Field, SecretStr
 
+from agentshield.core.consensus.engine import (
+    calculate_calibrated_confidence as _calculate_calibrated_confidence,
+)
+from agentshield.core.consensus.engine import evaluate_routing as _evaluate_routing
+
 T = TypeVar("T", bound=BaseModel)
 logger = logging.getLogger(__name__)
 
@@ -73,9 +78,6 @@ class StructuredLLMResult(Generic[T]):
 class LLMClient:
     """Unified LLM client interface for prompt execution and structured parsing."""
 
-    # def __init__(self, config: LLMConfig | None = None) -> None:
-    #     self.config = config or LLMConfig()
-    #     self._mock_responses: list[str] = []
     def __init__(self, config: LLMConfig | None = None) -> None:
         self.config = config or LLMConfig()
 
@@ -227,13 +229,6 @@ class LLMClient:
                 provider=LLMProvider.OPENAI,
                 usage=usage,
             )
-        # except Exception as e:
-        #     # Fallback to mock on API or auth error for robustness
-        #     return LLMResponse(
-        #         content=f"Error invoking OpenAI API: {e}",
-        #         model=self.config.model_name,
-        #         provider=LLMProvider.OPENAI,
-        #     )
         except Exception as e:
             logger.error("OpenAI API call failed: %s", e)
             raise
@@ -268,13 +263,6 @@ class LLMClient:
                 provider=LLMProvider.ANTHROPIC,
                 usage=usage,
             )
-        # except Exception as e:
-        #     return LLMResponse(
-        #         content=f"Error invoking Anthropic API: {e}",
-        #         model=self.config.model_name,
-        #         provider=LLMProvider.ANTHROPIC,
-        #     )
-
         except Exception as e:
             logger.error("Anthropic API call failed: %s", e)
             raise
@@ -319,20 +307,6 @@ class MultiLLMEnsemble:
             clients = [LLMClient()]
         self.clients = clients
 
-    # def generate_ensemble(
-    #     self, prompt: str, schema_cls: type[T], system_prompt: str | None = None
-    # ) -> list[T]:
-    #     """Query all ensemble clients in parallel or sequence and collect responses."""
-    #     results: list[T] = []
-    #     for client in self.clients:
-    #         try:
-    #             parsed = client.generate_structured(
-    #                 prompt, schema_cls, system_prompt=system_prompt
-    #             )
-    #             results.append(parsed)
-    #         except Exception:
-    #             continue
-    #     return results
     def generate_ensemble(
             self,
             prompt: str,
@@ -379,49 +353,33 @@ class MultiLLMEnsemble:
         gamma: float = 0.10,
         weights: list[float] | None = None,
     ) -> float:
-        """Calculate calibrated ensemble consensus confidence score.
+        """Calculate the calibrated ensemble consensus confidence score.
 
-        Mathematical Formulation:
-            C_ensemble(v) = sum_{i in agreed}(w_i * C(M_i, v)) + gamma * S_agreement * (N_agreed / N_total)
-        where:
-            - w_i = (1 - gamma) / total_models (for uniform weights)
-            - S_agreement in [0.0, 1.0] measures AST/resource/rule overlap
-            - (N_agreed / N_total) penalizes single-model hallucinations
+        Thin delegation to :mod:`agentshield.core.consensus.engine`, which owns
+        the Task 3.2 formulation:
 
-        Eliminates single-model hallucinations:
-            - When 2 models agree with C=0.90: C_ensemble = 0.45(0.90)+0.45(0.90)+0.10(1.0) = 0.91 >= 0.85 (Auto-patch)
-            - When only 1 of 2 models flags finding with C=0.90: C_ensemble = 0.45(0.90)+0.10(0.5) = 0.455 < 0.85 (Human Review)
+            C_ensemble(v) = sum_{i in agreed}(w_i * C(M_i, v))
+                            + gamma * S_agreement * (N_agreed / N_total)
+
+        Retained here so existing ensemble callers keep working; new code
+        should use :class:`~agentshield.core.consensus.ConsensusEngine`, which
+        also performs cross-model matching and calibration.
         """
-        if not model_confidences or total_models <= 0:
-            return 0.0
-
-        if total_models == 1:
-            return min(1.0, max(0.0, round(model_confidences[0], 4)))
-
-        num_agreed = len(model_confidences)
-        if weights and len(weights) == num_agreed:
-            weighted_sum = sum(w * c for w, c in zip(weights, model_confidences))
-        else:
-            w = (1.0 - gamma) / total_models
-            weighted_sum = sum(w * c for c in model_confidences)
-
-        agreement_bonus = gamma * agreement_score * (num_agreed / total_models)
-        calibrated_score = min(1.0, max(0.0, round(weighted_sum + agreement_bonus, 4)))
-        return calibrated_score
+        return _calculate_calibrated_confidence(
+            model_confidences,
+            total_models=total_models,
+            agreement_score=agreement_score,
+            gamma=gamma,
+            weights=weights,
+        )
 
     @classmethod
     def evaluate_routing(
         cls, confidence_score: float, threshold: float = AUTO_PATCH_THRESHOLD
     ) -> tuple[bool, bool, str | None]:
-        """Evaluate whether a finding qualifies for auto-patching or requires human review.
+        """Route a finding to auto-patching or the human security audit queue.
 
         Returns:
             (auto_patchable, requires_human_review, escalation_reason)
         """
-        if confidence_score >= threshold:
-            return True, False, None
-        escalation_reason = (
-            f"Confidence score {confidence_score:.4f} is below auto-patch threshold {threshold:.2f}; "
-            "escalated to human review queue to prevent potential hallucination."
-        )
-        return False, True, escalation_reason
+        return _evaluate_routing(confidence_score, threshold)

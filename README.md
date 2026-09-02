@@ -500,7 +500,18 @@ AgentShield-AI/
 * **`backend/src/agentshield/parsers/helm.py`**: Helm chart and values template parser extracting rendered configurations.
 * **`backend/src/agentshield/parsers/dispatcher.py`**: Unified parser dispatcher routing templates to appropriate polyglot parsers.
 
-#### **E. Attack-Path & Blast-Radius Prioritization Engine (`core/attack_path/` — Task 3.3)**
+#### **E. Calibrated Confidence & Consensus Algorithm (`core/consensus/` — Task 3.2)**
+* **`backend/src/agentshield/core/consensus/normalization.py`**: Canonicalization primitives projecting heterogeneous model output onto a comparable space — resource identity normalization (`resource.aws_s3_bucket.data_bucket` $\rightarrow$ `aws_s3_bucket.data_bucket`), vendor-independent rule families (`CKV_AWS_20`, `AS-AWS-001`), stopword-filtered tokenization, Jaccard set overlap, ordinal severity distance, and line-interval overlap.
+* **`backend/src/agentshield/core/consensus/matching.py`**: `cluster_findings` performing two-pass cross-model matching (exact canonical signature, then semantic similarity gated on resource identity and severity proximity). Solves the failure mode where GPT-4o reports `CKV_AWS_20` and Claude reports `AS-AWS-001` for the *same* misconfiguration — under exact `rule_id` matching both were counted as single-model findings and both escalated, defeating the ensemble. Enforces at most one finding per model per cluster so $N_{agreed} \le N_{total}$ always holds.
+* **`backend/src/agentshield/core/consensus/agreement.py`**: `compute_agreement` decomposing inter-model agreement $S_{agreement}$ into four independently weighted signals — **severity** concordance (0.30), **resource** identity (0.25), **semantic** prose overlap (0.25), and source **location** overlap (0.20). Signals that are not measurable (e.g. line ranges no model emitted) are excluded and the remaining weights renormalized, rather than silently defaulting to 1.0.
+* **`backend/src/agentshield/core/consensus/calibration.py`**: `ConfidenceCalibrator` applying monotonic Platt/temperature scaling in logit space, $C_{cal} = \sigma(a \cdot \text{logit}(C_{raw}) + b)$, fitted from human triage outcomes by dependency-free gradient descent on negative log-likelihood. Ships reliability metrics — **Expected Calibration Error** and **Brier score** with reliability-diagram bins — so the calibration claim is *measured* rather than asserted. Defaults to identity so an unfitted pipeline reproduces the raw ensemble formula exactly.
+* **`backend/src/agentshield/core/consensus/engine.py`**: `ConsensusEngine`, the single source of truth for the scoring pipeline (clustering $\rightarrow$ agreement $\rightarrow$ weighted confidence $\rightarrow$ calibration $\rightarrow$ routing). Implements
+
+  $$C_{ensemble}(v) = \sum_{i \in agreed} w_i \cdot C(M_i, v) + \gamma \cdot S_{agreement} \cdot \frac{N_{agreed}}{N_{total}}, \quad w_i = \frac{1 - \gamma}{N_{total}}$$
+
+  The $N_{agreed}/N_{total}$ factor is what **structurally eliminates single-model hallucinations**: with two models, a finding only one model raised is capped at $0.45 \cdot C + 0.05 \le 0.50$, provably below the $0.85$ auto-patch gate regardless of how confident that one model was. Merges evidence across models (union of compliance mappings, majority-vote severity with ties broken toward the more severe level) and records full per-finding diagnostics in `raw_details["consensus"]` for audit traceability.
+
+#### **F. Attack-Path & Blast-Radius Prioritization Engine (`core/attack_path/` — Task 3.3)**
 * **`backend/src/agentshield/core/attack_path/graph.py`**: `ResourceGraph` constructing resource topological dependency graphs. Automatically infers reference relationships (`${...}`, `.id`, `Fn::GetAtt`, `Ref`), detects public internet entry points (Internet Gateways, Load Balancers, `0.0.0.0/0` Security Groups), and infers cloud topological links (e.g. `Internet Gateway -> Security Group -> Unencrypted DB`). Exports interactive Mermaid diagrams.
 * **`backend/src/agentshield/core/attack_path/path_analyzer.py`**: `AttackPathAnalyzer` executing BFS graph traversal to discover shortest and all exploitability paths from perimeter ingress to sensitive assets. Evaluates hop-by-hop role transitions, calculates topological exposure scores ($0.0 - 1.0$), and detects architectural **choke points** (intermediate nodes whose remediation severs multiple attack vectors).
 * **`backend/src/agentshield/core/attack_path/blast_radius.py`**: `BlastRadiusCalculator` determining downstream cascade impact. Categorizes affected resources into databases, compute instances, storage buckets, IAM identities, and networking components with normalized impact scoring.
@@ -508,13 +519,13 @@ AgentShield-AI/
   $$\text{Priority Score} = \left( 0.50 \cdot S_{base} + 0.30 \cdot E_{topo} + 0.20 \cdot B_{impact} \right) \times \left( 0.5 + 0.5 \cdot C_{ensemble} \right)$$
   Enriches findings with attack path breadcrumbs, Mermaid flowcharts, choke point mitigations, and priority classifications (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`).
 
-#### **F. Human Security Audit Queue Engine & CLI Triage (`core/audit/` & `cli/` — Task 3.4)**
+#### **G. Human Security Audit Queue Engine & CLI Triage (`core/audit/` & `cli/` — Task 3.4)**
 * **`backend/src/agentshield/core/audit/models.py`**: Pydantic schemas defining `AuditQueueItem`, `AuditStatus` (`PENDING_REVIEW`, `APPROVED`, `REJECTED`), `AuditDecision`, and `EscalationReason` triggers.
 * **`backend/src/agentshield/core/audit/queue.py`**: `AuditQueueManager` implementing automated escalation rules intercepting low-confidence findings ($C < 0.85$), multi-LLM non-consensus/disagreements, single-model hallucinations, critical findings with active attack paths, or high blast radius ($\ge 5$ resources). Supports disk-backed persistence and bidirectional state synchronization back to workspace findings.
 * **`backend/src/agentshield/cli/triage.py`**: Interactive CLI triage tool enabling security engineers to inspect escalated findings, view exploitability routes and diffs, approve findings for auto-patching, or dismiss false positives.
 * **`backend/src/agentshield/api/routers/audit.py`**: FastAPI router exposing endpoints for queue browsing, status filtering, priority querying, and decision submission.
 
-#### **G. FastAPI Application & Export Engine (`api/`)**
+#### **H. FastAPI Application & Export Engine (`api/`)**
 * **`backend/src/agentshield/api/main.py`**: FastAPI application setup with CORS middleware, health endpoints, and router registrations.
 * **`backend/src/agentshield/api/orchestrator.py`**: Core scan runner wiring together parsing, secrets interception, RAG context retrieval, ensemble analysis, attack-path prioritization, remediation diff generation, and automated audit queue escalation.
 * **`backend/src/agentshield/api/store.py`**: Disk-backed, thread-safe workspace store persisting scan sessions.

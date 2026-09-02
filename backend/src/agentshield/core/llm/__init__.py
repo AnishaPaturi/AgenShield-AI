@@ -15,4 +15,5 @@ __all__ = [
     "LLMProvider",
     "LLMResponse",
     "MultiLLMEnsemble",
+    "StructuredLLMResult",
 ]

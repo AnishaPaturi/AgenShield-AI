@@ -12,6 +12,11 @@ from agentshield.agents.prompts.templates import (
     ANALYST_SYSTEM_PROMPT,
     build_analyst_user_prompt,
 )
+from agentshield.core.consensus import (
+    ConsensusEngine,
+    ModelFindings,
+    evaluate_routing,
+)
 from agentshield.core.llm import (
     LLMClient,
     MultiLLMEnsemble,
@@ -43,9 +48,14 @@ class SecurityAnalystAgent:
         self,
         llm_client: LLMClient | None = None,
         ensemble: MultiLLMEnsemble | None = None,
+        consensus_engine: ConsensusEngine | None = None,
     ) -> None:
         self.llm_client = llm_client or LLMClient()
         self.ensemble = ensemble
+        # Task 3.2: calibrated consensus scoring. Defaults to an identity
+        # calibrator, so behaviour matches the raw ensemble formula until a
+        # calibrator is fitted from human triage outcomes.
+        self.consensus_engine = consensus_engine or ConsensusEngine()
 
     def analyze(
         self,
@@ -119,133 +129,58 @@ class SecurityAnalystAgent:
         ensemble_results: list[StructuredLLMResult[AnalystResponseSchema]],
         total_models: int,
     ) -> list[VulnerabilityFinding]:
-        """Aggregate and calculate calibrated consensus confidence across ensemble results.
+        """Reconcile per-model findings into calibrated consensus findings.
 
-        Mathematical Agreement Formulation:
-            C_ensemble(v) = sum(w_i * C(M_i, v)) + gamma * JaccardAgreement * (N_agreed / N_total)
-        Eliminates single-model hallucinations and establishes routing thresholds:
-            - C_ensemble >= 0.85 -> Auto-patchable
-            - C_ensemble < 0.85  -> Human Security Audit Queue
+        Delegates the mathematics to :class:`ConsensusEngine` (Task 3.2):
+        cross-model clustering, multi-signal agreement scoring, the calibrated
+        confidence formula, and threshold routing. Models whose call failed or
+        whose output could not be parsed are dropped from the agreed set but
+        still counted in ``total_models`` -- a model that errored is not a
+        model that agreed.
         """
-        finding_map: dict[str, list[VulnerabilityFinding]] = {}
+        model_findings: list[ModelFindings] = []
 
-        for result in ensemble_results:
+        for index, result in enumerate(ensemble_results):
             # Ignore failed model responses, but keep successful model findings.
             if not result.success or result.parsed is None:
                 continue
 
-            model_name = result.response.model if result.response else "unknown"
-            for finding in result.parsed.findings:
-                key = f"{finding.rule_id}:{finding.affected_resource}"
-                if key not in finding_map:
-                    finding_map[key] = []
-                if "model" not in finding.raw_details:
-                    finding.raw_details["model"] = model_name
-                finding_map[key].append(finding)
-
-        consensus_findings: list[VulnerabilityFinding] = []
-
-        for _key, f_list in finding_map.items():
-            base_finding = f_list[0]
-            confidences = [f.confidence_score for f in f_list]
-            models = [
-                f.raw_details.get("model", f"model_{idx+1}")
-                for idx, f in enumerate(f_list)
-            ]
-            agreement_score = self._compute_jaccard_agreement(f_list)
-
-            if self.ensemble:
-                calibrated_score = self.ensemble.calculate_calibrated_confidence(
-                    confidences,
-                    total_models=total_models,
-                    agreement_score=agreement_score,
+            client_model = (
+                result.response.model if result.response else f"model_{index + 1}"
+            )
+            # A model may self-report a more specific identifier than its client
+            # config carries; prefer it as the display label.
+            label = client_model
+            if result.parsed.findings:
+                label = str(
+                    result.parsed.findings[0].raw_details.get("model", client_model)
                 )
-            else:
-                calibrated_score = round(sum(confidences) / len(confidences), 4)
 
-            base_finding.confidence_score = calibrated_score
-            base_finding.consensus_score = calibrated_score
-            base_finding.model_agreements = models
+            for finding in result.parsed.findings:
+                finding.raw_details.setdefault("model", label)
 
-            # Threshold-based routing (C >= 0.85 auto-patch, C < 0.85 human review)
-            auto_patchable, requires_review, escalation_reason = (
-                MultiLLMEnsemble.evaluate_routing(calibrated_score, AUTO_PATCH_THRESHOLD)
-            )
-            base_finding.auto_patchable = auto_patchable
-            base_finding.requires_human_review = requires_review
-            base_finding.escalation_reason = escalation_reason
-
-            consensus_findings.append(base_finding)
-
-        return consensus_findings
-
-    # def _compute_jaccard_agreement(
-    #     self, findings: list[VulnerabilityFinding]
-    # ) -> float:
-    #     """Calculate Jaccard line overlap agreement between model findings."""
-    #     if len(findings) <= 1:
-    #         return 1.0
-    #     ranges = [f.line_range for f in findings if f.line_range]
-    #     if len(ranges) < len(findings):
-    #         return 1.0
-
-    #     min_starts = [r.start_line for r in ranges]
-    #     max_ends = [r.end_line for r in ranges]
-
-    #     intersection_start = max(min_starts)
-    #     intersection_end = min(max_ends)
-    #     union_start = min(min_starts)
-    #     union_end = max(max_ends)
-
-    #     intersection_len = max(0, intersection_end - intersection_start + 1)
-    #     union_len = max(1, union_end - union_start + 1)
-
-    #     return round(intersection_len / union_len, 4)
-    def _compute_jaccard_agreement(
-            self, findings: list[VulnerabilityFinding]
-        ) -> float:
-            """Calculate Jaccard line-overlap agreement between model findings.
-   
-            A single-model finding has no cross-model agreement, so its
-            agreement score is 0.0 rather than 1.0.
-            """
-            if len(findings) <= 1:
-                return 1.0
-
-            ranges = [f.line_range for f in findings if f.line_range]
-
-            # If any model omitted a line range, we cannot establish
-            # positional agreement reliably.
-            if len(ranges) < len(findings):
-                return 1.0
-
-            min_starts = [r.start_line for r in ranges]
-            max_ends = [r.end_line for r in ranges]
-
-            intersection_start = max(min_starts)
-            intersection_end = min(max_ends)
-
-            union_start = min(min_starts)
-            union_end = max(max_ends)
-
-            intersection_len = max(
-                0,
-                intersection_end - intersection_start + 1,
-            )
-            union_len = max(
-                1,
-                union_end - union_start + 1,
+            model_findings.append(
+                ModelFindings(
+                    model_name=label,
+                    findings=result.parsed.findings,
+                    # Identity is the ensemble slot, not the reported name: two
+                    # clients may share a configured model name.
+                    model_id=f"slot{index}:{client_model}",
+                )
             )
 
-            return round(intersection_len / union_len, 4)
+        outcomes = self.consensus_engine.reconcile(
+            model_findings, total_models=total_models
+        )
+        return [outcome.finding for outcome in outcomes]
 
     def _apply_confidence_thresholds(
         self, findings: list[VulnerabilityFinding]
     ) -> None:
         """Evaluate confidence thresholds for single-model or fallback findings."""
         for f in findings:
-            auto_patchable, requires_review, escalation_reason = (
-                MultiLLMEnsemble.evaluate_routing(f.confidence_score, AUTO_PATCH_THRESHOLD)
+            auto_patchable, requires_review, escalation_reason = evaluate_routing(
+                f.confidence_score, AUTO_PATCH_THRESHOLD
             )
             f.auto_patchable = auto_patchable
             f.requires_human_review = requires_review
