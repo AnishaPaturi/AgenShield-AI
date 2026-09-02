@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections import deque
+from collections import Counter, deque
+from typing import Any
 
 from agentshield.core.attack_path.graph import ResourceGraph
 
 
 class AttackPathAnalyzer:
-    """Find possible attacker routes through an infrastructure graph."""
+    """Find and evaluate exploitability routes through an infrastructure graph."""
 
     def __init__(self, graph: ResourceGraph) -> None:
         self.graph = graph
@@ -35,6 +36,7 @@ class AttackPathAnalyzer:
             dependent -> dependency
 
         Attack traversal therefore follows the reverse/dependent direction.
+        (e.g., Internet Gateway -> Security Group -> EC2 -> Unencrypted DB).
         """
 
         if target_resource not in self.graph:
@@ -153,3 +155,147 @@ class AttackPathAnalyzer:
         )
 
         return round(min(exposure, 1.0), 4)
+
+    def find_all_exploitability_routes(
+        self,
+        max_paths_per_target: int = 5,
+    ) -> dict[str, list[list[str]]]:
+        """Discover exploitability routes to all sensitive assets and targets."""
+        routes: dict[str, list[list[str]]] = {}
+        for rid in self.graph.resources:
+            if self.graph.is_sensitive_asset(rid) or not self.graph.is_internet_exposed(rid):
+                paths = self.find_attack_paths(rid, max_paths=max_paths_per_target)
+                if paths:
+                    routes[rid] = paths
+        return routes
+
+    def evaluate_route_exploitability(
+        self,
+        path: list[str],
+    ) -> list[dict[str, Any]]:
+        """Return a structured step-by-step evaluation of an exploitability route."""
+        if not path:
+            return []
+
+        hops: list[dict[str, Any]] = []
+
+        for i in range(len(path)):
+            current_id = path[i]
+            res = self.graph.get_resource(current_id) or {}
+            role = self.graph.get_asset_role(current_id)
+            rtype = res.get("resource_type") or "unknown"
+
+            if i == 0:
+                action = f"Initial unauthenticated ingress at perimeter ({role})"
+            elif i == len(path) - 1:
+                action = f"Target impact on {role} ({current_id})"
+            else:
+                action = f"Lateral pivot through {role} ({current_id})"
+
+            hop_info: dict[str, Any] = {
+                "step": i + 1,
+                "resource_id": current_id,
+                "resource_type": rtype,
+                "role": role,
+                "action": action,
+            }
+
+            if i < len(path) - 1:
+                next_id = path[i + 1]
+                edge_type = self.graph.edge_types.get(
+                    (next_id, current_id),
+                    self.graph.edge_types.get((current_id, next_id), "allows_traffic"),
+                )
+                hop_info["next_hop"] = next_id
+                hop_info["transition_type"] = edge_type
+
+            hops.append(hop_info)
+
+        return hops
+
+    @staticmethod
+    def format_path_string(path: list[str]) -> str:
+        """Format an attack path as a human-readable arrow sequence."""
+        if not path:
+            return "No attack path detected (isolated)"
+        return " → ".join(path)
+
+    def generate_mermaid_path(
+        self,
+        path: list[str],
+        title: str = "Exploitability Route",
+    ) -> str:
+        """Generate a focused Mermaid diagram for a specific attack path."""
+        if not path:
+            return "graph LR\n    none[No Attack Path Detected]"
+
+        lines = [f"graph LR", f"    %% {title}"]
+
+        def sanitize_id(raw_id: str) -> str:
+            return raw_id.replace(".", "_").replace("-", "_").replace(":", "_")
+
+        for i, node_id in enumerate(path):
+            sid = sanitize_id(node_id)
+            role = self.graph.get_asset_role(node_id)
+            res = self.graph.get_resource(node_id) or {}
+            name = res.get("name", node_id)
+            label = f'"{name}<br/><small>{role}</small>"'
+            lines.append(f"    {sid}[{label}]")
+
+        for i in range(len(path) - 1):
+            s_sid = sanitize_id(path[i])
+            t_sid = sanitize_id(path[i + 1])
+            edge_type = self.graph.edge_types.get((path[i + 1], path[i]), "routes_to")
+            lines.append(f"    {s_sid} =={edge_type}==> {t_sid}")
+
+        # Highlight start (entry) and end (target)
+        start_sid = sanitize_id(path[0])
+        end_sid = sanitize_id(path[-1])
+        lines.append(f"    style {start_sid} fill:#ffa940,stroke:#333,stroke-width:2px,color:#fff")
+        lines.append(f"    style {end_sid} fill:#ff4d4f,stroke:#333,stroke-width:2px,color:#fff")
+
+        return "\n".join(lines)
+
+    def find_choke_points(
+        self,
+        target_resource: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Identify critical topological choke points.
+
+        A choke point is an intermediate node that appears in multiple attack paths.
+        Remediating or securing a choke point breaks the greatest number of exploit routes.
+        """
+        all_paths: list[list[str]] = []
+
+        if target_resource:
+            all_paths = self.find_attack_paths(target_resource, max_paths=50)
+        else:
+            routes = self.find_all_exploitability_routes(max_paths_per_target=10)
+            for path_list in routes.values():
+                all_paths.extend(path_list)
+
+        if not all_paths:
+            return []
+
+        # Count intermediate nodes (exclude start and final destination)
+        node_counts: Counter[str] = Counter()
+        for path in all_paths:
+            if len(path) > 2:
+                for intermediate in path[1:-1]:
+                    node_counts[intermediate] += 1
+
+        total_paths = len(all_paths)
+        choke_points: list[dict[str, Any]] = []
+
+        for node_id, count in node_counts.most_common():
+            res = self.graph.get_resource(node_id) or {}
+            choke_points.append({
+                "resource_id": node_id,
+                "resource_type": res.get("resource_type"),
+                "name": res.get("name", node_id),
+                "paths_severed_if_remediated": count,
+                "mitigation_coverage_pct": round((count / total_paths) * 100, 1),
+                "role": self.graph.get_asset_role(node_id),
+            })
+
+        return choke_points

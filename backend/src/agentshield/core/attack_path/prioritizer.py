@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from agentshield.core.attack_path.blast_radius import (
     BlastRadiusCalculator,
 )
@@ -74,7 +76,7 @@ class FindingPrioritizer:
         )
 
         return round(
-            confidence_adjusted * 100,
+            min(confidence_adjusted * 100, 100.0),
             2,
         )
 
@@ -102,7 +104,7 @@ class FindingPrioritizer:
         self,
         finding: VulnerabilityFinding,
     ) -> VulnerabilityFinding:
-        """Calculate and attach Task 3.3 results to a finding."""
+        """Calculate and attach Task 3.3 attack path and blast radius results to a finding."""
 
         paths = self.path_analyzer.find_attack_paths(
             finding.affected_resource
@@ -120,11 +122,23 @@ class FindingPrioritizer:
             )
         )
 
+        blast_breakdown = self.blast_radius.get_blast_radius_breakdown(
+            finding.affected_resource
+        )
+
         topological_exposure = (
             self.path_analyzer.calculate_topological_exposure(
                 finding.affected_resource
             )
         )
+
+        choke_points = self.path_analyzer.find_choke_points(
+            finding.affected_resource
+        )
+
+        path_summary = self.path_analyzer.format_path_string(shortest_path)
+        path_diagram = self.path_analyzer.generate_mermaid_path(shortest_path)
+        path_explanation = self.path_analyzer.evaluate_route_exploitability(shortest_path)
 
         score = self.calculate_priority_score(finding)
         priority = self.assign_priority(score)
@@ -134,11 +148,17 @@ class FindingPrioritizer:
         finding.raw_details.update(
             {
                 "attack_paths": paths,
+                "attack_path_summary": path_summary,
+                "attack_path_diagram": path_diagram,
+                "attack_path_explanation": path_explanation,
+                "choke_points": choke_points,
                 "topological_exposure": topological_exposure,
                 "blast_radius": len(blast_resources),
                 "blast_radius_resources": blast_resources,
+                "blast_radius_breakdown": blast_breakdown,
                 "priority_score": score,
                 "priority": priority,
+                "is_sensitive_asset": self.graph.is_sensitive_asset(finding.affected_resource),
             }
         )
 

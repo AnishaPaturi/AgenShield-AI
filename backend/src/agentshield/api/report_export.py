@@ -90,6 +90,13 @@ def render_markdown(workspace: AgentShieldWorkspace) -> str:
             lines.append(f"- **Compliance:** {mappings}")
         if f.attack_path:
             lines.append(f"- **Attack path:** {' → '.join(f.attack_path)}")
+        if f.raw_details.get("priority"):
+            lines.append(f"- **Risk Priority:** `{f.raw_details.get('priority')}` (Score: {f.raw_details.get('priority_score')})")
+        if f.raw_details.get("blast_radius") is not None:
+            lines.append(f"- **Blast radius:** {f.raw_details.get('blast_radius')} downstream resource(s)")
+        if f.raw_details.get("choke_points"):
+            cp_names = [cp["name"] for cp in f.raw_details["choke_points"][:3]]
+            lines.append(f"- **Key choke points:** {', '.join(cp_names)}")
         if f.remediation_hint:
             lines.append(f"- **Remediation hint:** {f.remediation_hint}")
 
