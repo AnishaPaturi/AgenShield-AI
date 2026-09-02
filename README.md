@@ -495,16 +495,46 @@ AgentShield-AI/
 #### **D. Polyglot AST Parsers (`parsers/`)**
 * **`backend/src/agentshield/parsers/terraform.py`**: HCL2 parser module (`parse_terraform_file`, `extract_terraform_resources`) parsing `.tf` files into structured resource objects while extracting line numbers and property trees.
 * **`backend/src/agentshield/parsers/normalizer.py`**: Normalization module (`normalize_value`, `normalize_terraform_resources`) cleaning HCL parser wrappers, stripping quote artifacts, and preserving list attributes like `cidr_blocks`.
+* **`backend/src/agentshield/parsers/cloudformation.py`**: AWS CloudFormation parser extracting resources, properties, and parameters from JSON/YAML templates.
+* **`backend/src/agentshield/parsers/kubernetes.py`**: Multi-document Kubernetes YAML manifest parser resolving pod specifications and security contexts.
+* **`backend/src/agentshield/parsers/helm.py`**: Helm chart and values template parser extracting rendered configurations.
+* **`backend/src/agentshield/parsers/dispatcher.py`**: Unified parser dispatcher routing templates to appropriate polyglot parsers.
 
----
+#### **E. Attack-Path & Blast-Radius Prioritization Engine (`core/attack_path/` — Task 3.3)**
+* **`backend/src/agentshield/core/attack_path/graph.py`**: `ResourceGraph` constructing resource topological dependency graphs. Automatically infers reference relationships (`${...}`, `.id`, `Fn::GetAtt`, `Ref`), detects public internet entry points (Internet Gateways, Load Balancers, `0.0.0.0/0` Security Groups), and infers cloud topological links (e.g. `Internet Gateway -> Security Group -> Unencrypted DB`). Exports interactive Mermaid diagrams.
+* **`backend/src/agentshield/core/attack_path/path_analyzer.py`**: `AttackPathAnalyzer` executing BFS graph traversal to discover shortest and all exploitability paths from perimeter ingress to sensitive assets. Evaluates hop-by-hop role transitions, calculates topological exposure scores ($0.0 - 1.0$), and detects architectural **choke points** (intermediate nodes whose remediation severs multiple attack vectors).
+* **`backend/src/agentshield/core/attack_path/blast_radius.py`**: `BlastRadiusCalculator` determining downstream cascade impact. Categorizes affected resources into databases, compute instances, storage buckets, IAM identities, and networking components with normalized impact scoring.
+* **`backend/src/agentshield/core/attack_path/prioritizer.py`**: `FindingPrioritizer` computing composite priority risk scores ($0 - 100$) based on:
+  $$\text{Priority Score} = \left( 0.50 \cdot S_{base} + 0.30 \cdot E_{topo} + 0.20 \cdot B_{impact} \right) \times \left( 0.5 + 0.5 \cdot C_{ensemble} \right)$$
+  Enriches findings with attack path breadcrumbs, Mermaid flowcharts, choke point mitigations, and priority classifications (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`).
 
-### 🧪 3. Pytest Test Suite (`backend/tests/`)
+#### **F. Human Security Audit Queue Engine & CLI Triage (`core/audit/` & `cli/` — Task 3.4)**
+* **`backend/src/agentshield/core/audit/models.py`**: Pydantic schemas defining `AuditQueueItem`, `AuditStatus` (`PENDING_REVIEW`, `APPROVED`, `REJECTED`), `AuditDecision`, and `EscalationReason` triggers.
+* **`backend/src/agentshield/core/audit/queue.py`**: `AuditQueueManager` implementing automated escalation rules intercepting low-confidence findings ($C < 0.85$), multi-LLM non-consensus/disagreements, single-model hallucinations, critical findings with active attack paths, or high blast radius ($\ge 5$ resources). Supports disk-backed persistence and bidirectional state synchronization back to workspace findings.
+* **`backend/src/agentshield/cli/triage.py`**: Interactive CLI triage tool enabling security engineers to inspect escalated findings, view exploitability routes and diffs, approve findings for auto-patching, or dismiss false positives.
+* **`backend/src/agentshield/api/routers/audit.py`**: FastAPI router exposing endpoints for queue browsing, status filtering, priority querying, and decision submission.
+
+#### **G. FastAPI Application & Export Engine (`api/`)**
+* **`backend/src/agentshield/api/main.py`**: FastAPI application setup with CORS middleware, health endpoints, and router registrations.
+* **`backend/src/agentshield/api/orchestrator.py`**: Core scan runner wiring together parsing, secrets interception, RAG context retrieval, ensemble analysis, attack-path prioritization, remediation diff generation, and automated audit queue escalation.
+* **`backend/src/agentshield/api/store.py`**: Disk-backed, thread-safe workspace store persisting scan sessions.
+* **`backend/src/agentshield/api/report_export.py`**: Multi-format report exporter rendering JSON, Markdown, HTML, SARIF (GitHub Security tab format), and PDF with attack path visualizations.
+
+
+### 🧪 3. Pytest Test Suite (`backend/tests/` — 90 Automated Tests)
 
 | Test File Name | Targeted Subsystem & Verified Functionality |
 | :--- | :--- |
 | **`conftest.py`** | Shared pytest fixtures providing mock states, sample AST trees, and test configuration defaults. |
 | **`test_analyst_agent.py`** | Unit tests verifying `SecurityAnalystAgent` structured output parsing, confidence score calculation, and fallback reasoning. |
 | **`test_remediation_agent.py`** | Unit tests verifying `RemediationAgent` code diff generation, batch patch creation, and fallback handling. |
+| **`test_attack_graph.py`** | Unit tests verifying topological graph resource additions, relationship edges, and internet exposure detection. |
+| **`test_attack_path.py`** | Unit tests verifying BFS traversal for exploitability paths, shortest paths, and unreachable resource isolation. |
+| **`test_blast_radius.py`** | Unit tests verifying downstream dependency reachability, blast radius counts, and normalized impact scores. |
+| **`test_prioritizer.py`** | Unit tests verifying priority score calculation (0–100) combining severity, topological exposure, and blast radius. |
+| **`test_attack_path_prioritization_engine.py`** | End-to-end tests for Task 3.3 validating exploitability routes (e.g. `IGW -> SG -> Unencrypted DB`), AST reference inference, and choke point discovery. |
+| **`test_audit_queue.py`** | Unit tests for Task 3.4 verifying automated escalation rules ($C < 0.85$, model disagreement), approval/rejection lifecycle, and workspace synchronization. |
+| **`test_cli_triage.py`** | CLI triage tests (`list`, `stats`, `inspect`, `approve`, `reject`) and REST API endpoints for `/api/audit-queue`. |
 | **`test_terraform_parser.py`** | Unit tests verifying HCL file parsing (`parse_terraform_file`) and resource block extraction (`extract_terraform_resources`). |
 | **`test_terraform_normalizer.py`** | Unit tests verifying resource property normalization (`normalize_terraform_resources`), quote stripping, and list preservation (`cidr_blocks`). |
 | **`test_llm_client.py`** | Unit tests verifying multi-LLM client initialization, structured JSON generation, and ensemble confidence scoring algorithms. |
@@ -512,6 +542,8 @@ AgentShield-AI/
 | **`test_vulnerability_schema.py`** | Unit tests verifying `VulnerabilityFinding` creation, confidence score validation, and summary metrics calculation. |
 | **`test_remediation_schema.py`** | Unit tests verifying `PatchDiff` unified diff generation and `ValidationCheckResult` status handling. |
 | **`test_contracts.py`** | Unit tests verifying `AgentShieldState` serialization, workspace state contracts, and schema exports. |
+| **`test_report_export.py`** | Multi-format report export tests verifying JSON, Markdown, HTML, SARIF, and PDF outputs with attack path breadcrumbs. |
+| **`test_api_scan.py`** | Integration tests verifying FastAPI `/api/scan`, `/api/workspaces`, export routes, and patch decisioning. |
 | **`test_prompts.py`** | Unit tests verifying system prompt templates and user prompt string formatting. |
 | **`test_pyproject.py`** | Unit tests verifying `pyproject.toml` package metadata, version numbers, and dependency definitions. |
 | **`fixtures/terraform/sample.tf`** | Reference Terraform HCL template containing S3 bucket, security group, and PostgreSQL database resources for unit testing. |
@@ -541,8 +573,17 @@ AgentShield-AI/
 # Navigate to backend directory
 cd backend
 
-# Option 1: Run with system Python directly (Recommended)
+# Option 1: Run with activated virtual environment (PowerShell)
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& c:\Users\anish\OneDrive\College\project-clg\AgenShield-AI\backend\.venv\Scripts\Activate.ps1) ; pytest
+
+# Option 2: Run directly with python -m pytest
 python -m pytest tests/ -v
+
+# Run Task 3.3 Attack-Path & Prioritization Tests
+python -m pytest tests/test_attack_path_prioritization_engine.py -v
+
+# Run Task 3.4 Human Security Audit Queue & CLI Triage Tests
+python -m pytest tests/test_audit_queue.py tests/test_cli_triage.py -v
 
 # Run diagnostic AST parser inspection script
 python inspect_parser.py
@@ -553,6 +594,33 @@ python build_ieee_paper.py
 # Launch FastAPI REST API server at http://localhost:8000
 python -m uvicorn agentshield.api.main:app --reload --port 8000
 ```
+
+---
+
+### 🛡️ Task 3.4: Human Security Audit Queue CLI Triage
+
+Security engineers can inspect, approve, or reject escalated findings directly from the terminal:
+
+```powershell
+# List all pending findings awaiting review
+python -m agentshield.cli.triage list --status PENDING_REVIEW
+
+# View queue metrics & escalation statistics
+python -m agentshield.cli.triage stats
+
+# Inspect detailed finding (reason, confidence, exploitability route, blast radius, patch)
+python -m agentshield.cli.triage inspect <ITEM_ID>
+
+# Approve finding (authorizes automated patch application)
+python -m agentshield.cli.triage approve <ITEM_ID> --reviewer "alice@corp.com" --comment "Verified real threat; approve patch"
+
+# Reject finding as false positive
+python -m agentshield.cli.triage reject <ITEM_ID> --reviewer "alice@corp.com" --comment "Intentional demo configuration"
+
+# Launch terminal interactive review wizard
+python -m agentshield.cli.triage interactive
+```
+
 
 ---
 
