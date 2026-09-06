@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 from agentshield.agents import RemediationAgent, SecurityAnalystAgent, ValidatorAgent
-from agentshield.core.llm import LLMClient, MultiLLMEnsemble
+from agentshield.core.llm import LLMClient, LLMConfig, LLMProvider, MultiLLMEnsemble
 from agentshield.core.schemas import (
     AgentShieldWorkspace,
     ASTNode,
@@ -41,12 +41,24 @@ logger = logging.getLogger("agentshield.api.orchestrator")
 # out of the box, and swaps to real providers with zero code changes once
 # OPENAI_API_KEY / ANTHROPIC_API_KEY are set).
 
-# _analyst = SecurityAnalystAgent()
-# _remediator = RemediationAgent()
+_openai_client = LLMClient(
+    LLMConfig(
+        provider=LLMProvider.OPENAI,
+        model_name="gpt-4o",
+    )
+)
+
+_anthropic_client = LLMClient(
+    LLMConfig(
+        provider=LLMProvider.ANTHROPIC,
+        model_name="claude-3-5-sonnet-20241022",
+    )
+)
+
 _ensemble = MultiLLMEnsemble(
     clients=[
-        LLMClient(),
-        LLMClient(),
+        _openai_client,
+        _anthropic_client,
     ]
 )
 
