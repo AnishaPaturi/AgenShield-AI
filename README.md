@@ -247,7 +247,7 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 * [x] **Task 4.1: Remediation Agent & Executable Code Patch Generator**
   * Implement code diff generator producing clean, syntactically correct patches targeting exact IaC resource blocks (`agents/remediator.py`).
   * Support patch generation across HCL2, CloudFormation JSON/YAML, K8s YAML, and Helm values.
-* [ ] **Task 4.2: Code & Sandbox Validator Agent — Static Linters**
+* [x] **Task 4.2: Code & Sandbox Validator Agent — Static Linters**
   * Integrate static verification tools (`terraform validate`, `tflint`, `cfn-lint`, `kube-linter`, `helm lint`).
   * Enforce automated rollback to the Remediation Agent if lint errors are detected in generated patches.
 * [ ] **Task 4.3: LocalStack Runtime Dry-Run Sandbox Testing**

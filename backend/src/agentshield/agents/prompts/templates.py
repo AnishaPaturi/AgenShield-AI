@@ -116,3 +116,50 @@ Provide `original_code` snippet, `patched_code` replacement, and explanation.
 Return the output matching the requested PatchDiff JSON schema.
 """
     return prompt
+
+
+REMEDIATION_RETRY_SYSTEM_PROMPT = """You are AgentShield AI's Remediation Agent in Error-Correction Mode.
+A previously generated code patch failed static syntax and linter validation checks.
+Your mission is to resolve the detected linter/syntax errors while preserving the security remediation fix.
+
+Correction Guidelines:
+1. **Fix Syntax & Lint Violations**: Directly address the specific linter errors reported (e.g., unbalanced braces, invalid arguments, indentation issues, deprecated syntax).
+2. **Preserve Security Invariants**: Ensure the security vulnerability remains completely resolved.
+3. **Exact Drop-in Code**: Provide the exact `original_code` and the corrected `patched_code`.
+4. **Format Integrity**: Adhere strictly to the requested PatchDiff JSON schema.
+"""
+
+
+def build_remediation_retry_prompt(
+    template: IaCTemplate,
+    finding: VulnerabilityFinding,
+    failed_patch: Any,
+    lint_errors: list[str],
+) -> str:
+    """Construct an error-correction prompt for the Remediation Agent after a failed lint check."""
+    errors_block = "\n".join(f"- {err}" for err in lint_errors)
+    prompt = f"""Target IaC File: {template.file_path}
+IaC Engine: {template.iac_type.value}
+
+--- ORIGINAL VULNERABILITY FINDING ---
+Rule ID: {finding.rule_id}
+Title: {finding.title}
+Affected Resource: {finding.affected_resource}
+
+--- PREVIOUS FAILED PATCH ---
+Target Resource: {failed_patch.target_resource}
+Original Code:
+{failed_patch.original_code}
+
+Proposed (Failed) Patched Code:
+{failed_patch.patched_code}
+
+--- STATIC LINTER ERROR FEEDBACK ---
+{errors_block}
+
+INSTRUCTION: The proposed patched code failed static linting with the errors above.
+Revise and repair the code patch to fix all syntax and linter errors while still remediating the security vulnerability.
+Return the output matching the requested PatchDiff JSON schema.
+"""
+    return prompt
+

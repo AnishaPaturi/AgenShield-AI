@@ -2,8 +2,12 @@
 
 from agentshield.agents.analyst import SecurityAnalystAgent
 from agentshield.agents.remediator import RemediationAgent
+from agentshield.agents.validator import CodeSandboxValidatorAgent, ValidatorAgent
 
 __all__ = [
     "SecurityAnalystAgent",
     "RemediationAgent",
+    "ValidatorAgent",
+    "CodeSandboxValidatorAgent",
 ]
+

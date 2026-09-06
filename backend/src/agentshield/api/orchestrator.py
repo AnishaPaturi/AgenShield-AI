@@ -21,14 +21,15 @@ import logging
 import tempfile
 from pathlib import Path
 
-from agentshield.agents import RemediationAgent, SecurityAnalystAgent
-from agentshield.core.llm import LLMClient,MultiLLMEnsemble
+from agentshield.agents import RemediationAgent, SecurityAnalystAgent, ValidatorAgent
+from agentshield.core.llm import LLMClient, MultiLLMEnsemble
 from agentshield.core.schemas import (
     AgentShieldWorkspace,
     ASTNode,
     CloudProvider,
     IaCTemplate,
     IaCType,
+    RemediationStatus,
 )
 from agentshield.parsers.normalizer import normalize_terraform_resources
 from agentshield.parsers.terraform import extract_terraform_resources, parse_terraform_file
@@ -51,6 +52,8 @@ _ensemble = MultiLLMEnsemble(
 
 _analyst = SecurityAnalystAgent(ensemble=_ensemble)
 _remediator = RemediationAgent()
+_validator = ValidatorAgent()
+
 
 
 def _detect_cloud_provider(raw_content: str) -> CloudProvider:
@@ -207,7 +210,6 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
     patches = _remediator.generate_patches(template, report.model_copy(update={"findings": actionable}))
     workspace.patches = patches
     workspace.status = "REMEDIATED"
-    workspace.active_agent = None
     workspace.execution_logs.append(
         {
             "agent": "RemediationAgent",
@@ -217,6 +219,37 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
             "human_review_count": report.summary.human_review_count,
         }
     )
+
+    # Task 4.2: Code & Sandbox Validator Agent — Static Linters
+    workspace.active_agent = "ValidatorAgent"
+    try:
+        validated_patches = _validator.validate_patches(
+            template=template,
+            patches=patches,
+            report=report,
+            remediator=_remediator,
+        )
+        workspace.patches = validated_patches
+        validated_count = sum(
+            1 for p in validated_patches if p.remediation_status == RemediationStatus.SYNTAX_VALIDATED
+        )
+        failed_count = sum(
+            1 for p in validated_patches if p.remediation_status == RemediationStatus.FAILED
+        )
+        workspace.execution_logs.append(
+            {
+                "agent": "ValidatorAgent",
+                "action": "static_lint_validation",
+                "total_patches": len(validated_patches),
+                "syntax_validated_count": validated_count,
+                "failed_count": failed_count,
+            }
+        )
+    except Exception:
+        logger.exception("Static lint validation failed; continuing with unvalidated patches")
+
+    workspace.active_agent = None
+
 
     # Task 3.4: Automated Escalation to Human Security Audit Queue
     try:
