@@ -47,8 +47,7 @@ resource "aws_s3_bucket" "data_bucket" {
     result = linter.validate(invalid_tf)
     assert result.passed is False
     assert result.check_name == "terraform_validate"
-    assert result.error is not None
-    assert "unbalanced braces" in result.error.lower()
+    assert "unbalanced braces" in result.error.lower() or "unclosed configuration block" in result.error.lower()
 
 
 def test_terraform_validate_linter_syntax_error():

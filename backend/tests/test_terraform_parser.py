@@ -1,14 +1,16 @@
+from pathlib import Path
 import json
 
-from agentshield.parsers.terraform import parse_terraform_file
 from agentshield.parsers.terraform import (
     extract_terraform_resources,
     parse_terraform_file,
 )
 
+FIXTURE_PATH = str(Path(__file__).parent / "fixtures" / "terraform" / "sample.tf")
+
 def test_parse_terraform_file():
     result = parse_terraform_file(
-        "tests/fixtures/terraform/sample.tf"
+        FIXTURE_PATH
     )
 
     print("\nParsed Terraform:")
@@ -19,7 +21,7 @@ def test_parse_terraform_file():
     
 def test_extract_terraform_resources():
     parsed_data = parse_terraform_file(
-        "tests/fixtures/terraform/sample.tf"
+        FIXTURE_PATH
     )
 
     resources = extract_terraform_resources(parsed_data)

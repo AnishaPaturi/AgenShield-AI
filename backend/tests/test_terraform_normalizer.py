@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from agentshield.parsers.normalizer import (
     normalize_terraform_resources,
 )
@@ -6,11 +8,13 @@ from agentshield.parsers.terraform import (
     parse_terraform_file,
 )
 
+FIXTURE_PATH = str(Path(__file__).parent / "fixtures" / "terraform" / "sample.tf")
+
 
 def test_normalize_terraform_resources():
     # Parse Terraform
     parsed_data = parse_terraform_file(
-        "tests/fixtures/terraform/sample.tf"
+        FIXTURE_PATH
     )
 
     # Extract resources

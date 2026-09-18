@@ -13,6 +13,10 @@ from agentshield.validation.patch_applier import (
     apply_patch_to_content,
     rollback_patch_from_content,
 )
+from agentshield.validation.sandbox import (
+    EmulatedLocalStackSandbox,
+    LocalStackSandbox,
+)
 
 __all__ = [
     "BaseLinter",
@@ -24,4 +28,6 @@ __all__ = [
     "get_linters_for_iac_type",
     "apply_patch_to_content",
     "rollback_patch_from_content",
+    "LocalStackSandbox",
+    "EmulatedLocalStackSandbox",
 ]
