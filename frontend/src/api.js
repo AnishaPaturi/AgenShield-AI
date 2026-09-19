@@ -91,3 +91,21 @@ export async function decideAuditItem(itemId, decision, reviewer = 'security_eng
   return asJson(res)
 }
 
+export async function scanDrift(workspaceId) {
+  const res = await fetch(`${base()}/api/workspaces/${workspaceId}/drift/scan`, {
+    method: 'POST',
+  })
+  return asJson(res)
+}
+
+export async function getDrift(workspaceId) {
+  const res = await fetch(`${base()}/api/workspaces/${workspaceId}/drift`)
+  return asJson(res)
+}
+
+export async function getFeedbackStats() {
+  const res = await fetch(`${base()}/api/feedback/stats`)
+  return asJson(res)
+}
+
+

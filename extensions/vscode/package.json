@@ -1,0 +1,64 @@
+{
+  "name": "agentshield-vscode",
+  "displayName": "AgentShield AI — IaC Security & Auto-Patch",
+  "description": "Shift-left Infrastructure-as-Code security scanner and automated patch generator for Terraform, CloudFormation, and Kubernetes.",
+  "version": "1.0.0",
+  "publisher": "agentshield-ai",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Security",
+    "Other"
+  ],
+  "keywords": [
+    "iac",
+    "security",
+    "terraform",
+    "cloudformation",
+    "kubernetes",
+    "devsecops",
+    "autopatch"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:terraform",
+    "onLanguage:yaml",
+    "onLanguage:json"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentshield.scanCurrentFile",
+        "title": "AgentShield: Scan Current IaC File",
+        "category": "AgentShield AI"
+      },
+      {
+        "command": "agentshield.openDashboard",
+        "title": "AgentShield: Open Security Dashboard",
+        "category": "AgentShield AI"
+      }
+    ],
+    "configuration": {
+      "title": "AgentShield AI",
+      "properties": {
+        "agentshield.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "FastAPI AgentShield backend service URL"
+        },
+        "agentshield.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan IaC files on save"
+        },
+        "agentshield.strictMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include Medium and Low severity findings in diagnostic squiggles"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+- id: agentshield-scan
+  name: AgentShield AI IaC Security Scanner
+  description: Autonomous Multi-Agent Pre-Commit Scanner for Multi-Cloud Infrastructure-as-Code.
+  entry: python -m agentshield.cli.hook
+  language: python
+  types_or: [terraform, yaml, json]
+  pass_filenames: true

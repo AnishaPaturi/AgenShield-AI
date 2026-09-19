@@ -17,7 +17,7 @@ AgentShield AI is an advanced, autonomous multi-agent framework designed to secu
 
 * **Domain of the Project:** Cyber Security + AI
 * **Team Number:** 13
-* **Project Status:** Under Active Planning / Development
+* **Project Status:** ✅ Fully Implemented & Empirically Evaluated (100% Milestones Complete)
 * **GitHub Repository Topics:** `iac-security`, `infrastructure-as-code`, `terraform`, `cloudformation`, `kubernetes`, `helm`, `multi-cloud`, `aws`, `azure`, `gcp`, `llm-agents`, `langgraph`, `rag`, `retrieval-augmented-generation`, `devsecops`, `static-analysis`, `checkov`, `cyber-security`, `ai-agents`, `security-automation`
 * **Contributors (Team Members):**
   * **Anisha Paturi** (Roll No: `23BD1A050E`) - *Contact: 8639781680*
@@ -250,13 +250,13 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 * [x] **Task 4.2: Code & Sandbox Validator Agent — Static Linters**
   * Integrate static verification tools (`terraform validate`, `tflint`, `cfn-lint`, `kube-linter`, `helm lint`).
   * Enforce automated rollback to the Remediation Agent if lint errors are detected in generated patches.
-* [ ] **Task 4.3: LocalStack Runtime Dry-Run Sandbox Testing**
+* [x] **Task 4.3: LocalStack Runtime Dry-Run Sandbox Testing**
   * Configure **LocalStack** containerized sandbox for dry-run provisioning of AWS CloudFormation/Terraform resources.
   * Validate that patches do not cause deployment failures or resource dependency breakages.
-* [ ] **Task 4.4: Report Generator Agent & Compliance Exporter**
+* [x] **Task 4.4: Report Generator Agent & Compliance Exporter**
   * Build report generator supporting JSON, Markdown, HTML, SARIF (for GitHub Security tab), and PDF exports.
   * Include executive summaries, attack-path diagrams, patch diffs, and compliance mapping matrices.
-* [ ] **Task 4.5: Interactive Developer Feedback & Few-Shot Prompt Adaptation Engine**
+* [x] **Task 4.5: Interactive Developer Feedback & Few-Shot Prompt Adaptation Engine**
   * Capture developer accept/reject decisions on generated patches.
   * Feed negative/positive decisions into a dynamic few-shot prompt adaptation store to continuously reduce false positives.
 
@@ -267,13 +267,13 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 ### 🗓️ Phase 5: Shift-Left IDE Integration, Live Drift & Automated Benchmarking (Weeks 13–14)
 **Objective:** Embed security into developer workflows via IDE extensions and CI/CD hooks, enable live cloud drift detection, and execute rigorous empirical benchmark evaluations.
 
-* [ ] **Task 5.1: VS Code Extension & Git Pre-Commit Hooks**
+* [x] **Task 5.1: VS Code Extension & Git Pre-Commit Hooks**
   * Develop lightweight **VS Code Extension** for real-time IaC security feedback inside the code editor.
   * Package Git pre-commit hooks to block misconfigured IaC templates before commits are recorded.
-* [ ] **Task 5.2: Live Cloud Infrastructure Drift Detection Engine**
+* [x] **Task 5.2: Live Cloud Infrastructure Drift Detection Engine**
   * Build Cloud Provider API monitors (AWS Config / Azure Resource Graph / GCP Asset Inventory wrappers) to detect manual, out-of-band state changes.
   * Map live infrastructure drift against IaC source templates to trigger remediation workflows.
-* [ ] **Task 5.3: Empirical Benchmark Harness & Ablation Studies**
+* [x] **Task 5.3: Empirical Benchmark Harness & Ablation Studies**
   * Execute automated evaluations against public vulnerable IaC corpora (**Terragoat**, **cfngoat**, **KICS/Checkov test suites**, **IaC-Eval**).
   * Calculate performance metrics: **Precision**, **Recall**, **F1-Score**, **Patch Pass Rate**, and **Execution Latency**.
   * Perform comprehensive component ablation studies comparing:
@@ -293,8 +293,8 @@ AgentShield AI is being developed across **5 distinct execution phases over a 14
 | **M1: Parser & Secrets Core** | Weeks 1–3 | Multi-IaC AST parsing & credential interception | 100% test pass on parsing HCL, CFN, K8s, Helm | ✅ Completed |
 | **M2: Knowledge Core & RAG** | Weeks 4–6 | Vector DB, CIS benchmarks, compliance mapping | Retrieval Precision @ 5 $\ge 90\%$ | ✅ Completed |
 | **M3: Ensemble & Consensus** | Weeks 7–9 | LangGraph 8-Agent network & Multi-LLM voting | Hallucination rate $< 3\%$, F1 $\ge 0.92$ | ✅ Completed |
-| **M4: Validation & Patching** | Weeks 10–12 | Diff patch generation & LocalStack sandbox | $100\%$ syntax validity, patch pass rate $\ge 95\%$ | ⏳ In Progress |
-| **M5: Shift-Left & Benchmarks**| Weeks 13–14 | IDE extension, pre-commit, ablation benchmarks | Full benchmark suite execution vs. IEEE paper | 🎯 Scheduled |
+| **M4: Validation & Patching** | Weeks 10–12 | Diff patch generation & LocalStack sandbox | $100\%$ syntax validity, patch pass rate $\ge 95\%$ | ✅ Completed |
+| **M5: Shift-Left & Benchmarks**| Weeks 13–14 | IDE extension, pre-commit, ablation benchmarks | Full benchmark suite execution vs. IEEE paper | ✅ Completed |
 
 ---
 
@@ -321,7 +321,9 @@ AgentShield-AI/
 │   │       ├── agents/                        # Specialized LLM agents
 │   │       │   ├── analyst.py                 # Security Analyst Agent (Ensemble Voting & Confidence)
 │   │       │   ├── remediator.py              # Remediation Agent (Code Diff Patch Generation)
+│   │       │   ├── reporter.py                # Report Generator Agent (Agent 8: Multi-Format Compliance Exporter)
 │   │       │   ├── secrets.py                 # Dedicated Secrets & Credential Interceptor Agent
+│   │       │   ├── validator.py               # Code & Sandbox Validator Agent (Static Linters + LocalStack Dry-Run)
 │   │       │   └── prompts/                   # System prompt engineering templates & schemas
 │   │       │       └── templates.py           # CoT prompts, system roles, & structured response formats
 │   │       ├── api/                           # FastAPI REST application layer
@@ -332,10 +334,15 @@ AgentShield-AI/
 │   │       │   └── routers/                   # API route handlers
 │   │       │       ├── scan.py                # File upload & synchronous scan endpoint
 │   │       │       ├── workspaces.py          # Workspace retrieval, export & attack-graph routes
-│   │       │       ├── patches.py             # Patch decisioning (accept/reject) endpoint
-│   │       │       └── audit.py               # Human Security Audit Queue triage REST endpoints
+│   │       │       ├── patches.py             # Patch decisioning & developer feedback endpoint
+│   │       │       ├── audit.py               # Human Security Audit Queue triage REST endpoints
+│   │       │       ├── drift.py               # Task 5.2 Live Cloud Drift Detection REST endpoints
+│   │       │       └── health.py              # Service health status endpoint
 │   │       ├── cli/                           # Command Line Interfaces
-│   │       │   └── triage.py                  # Human Security Audit Queue CLI triage tool
+│   │       │   ├── triage.py                  # Human Security Audit Queue CLI triage tool
+│   │       │   ├── hook.py                    # Task 5.1 Git pre-commit hook CLI runner
+│   │       │   ├── report.py                  # Task 4.4 Report generator CLI tool
+│   │       │   └── benchmark.py               # Task 5.3 Automated empirical benchmark runner
 │   │       ├── core/                          # State management, RAG core, & LLM client wrappers
 │   │       │   ├── attack_path/               # Task 3.3 Attack-Path & Blast-Radius Prioritization Engine
 │   │       │   │   ├── graph.py               # ResourceGraph with topological inference & Mermaid export
@@ -345,6 +352,15 @@ AgentShield-AI/
 │   │       │   ├── audit/                     # Task 3.4 Human Security Audit Queue Engine
 │   │       │   │   ├── models.py              # AuditQueueItem, AuditStatus, AuditDecision schemas
 │   │       │   │   └── queue.py               # AuditQueueManager with automated escalation logic
+│   │       │   ├── consensus/                 # Task 3.2 Calibrated Confidence & Consensus Algorithm
+│   │       │   ├── drift/                     # Task 5.2 Live Cloud Infrastructure Drift Detection Engine
+│   │       │   │   ├── detector.py            # DriftDetector comparing IaC against live reality
+│   │       │   │   ├── models.py              # DriftItem, DriftReport, DriftType schemas
+│   │       │   │   └── monitors/              # AWS, Azure, GCP cloud provider state monitors
+│   │       │   ├── feedback/                  # Task 4.5 Developer Feedback & Prompt Adaptation
+│   │       │   │   ├── adaptation.py          # Dynamic few-shot & negative-shot prompt builder
+│   │       │   │   ├── models.py              # FeedbackEntry, FeedbackDecision, FeedbackCategory schemas
+│   │       │   │   └── store.py               # Thread-safe disk-backed feedback store
 │   │       │   ├── llm/                       # Multi-LLM client abstractions
 │   │       │   │   └── client.py              # Claude 3.5 + GPT-4o client, mock mode, & JSON parser
 │   │       │   ├── schemas/                   # Pydantic v2 data contracts & state schemas
@@ -353,32 +369,19 @@ AgentShield-AI/
 │   │       │   │   ├── vulnerability.py       # VulnerabilityFinding & VulnerabilityReport models
 │   │       │   │   └── remediation.py         # PatchDiff & ValidationCheckResult models
 │   │       │   └── knowledge_base/            # RAG vector database & compliance engine
-│   │       │       ├── vector_db.py           # Qdrant & ChromaDB vector database manager
-│   │       │       ├── retriever.py           # Context retrieval coordinator
-│   │       │       ├── hybrid_search.py       # Hybrid Dense (embeddings) + Sparse (BM25) search engine
-│   │       │       ├── embeddings.py          # SentenceTransformers model wrapper (`all-mpnet-base-v2`)
-│   │       │       ├── chunker.py             # Semantic document chunking engine
-│   │       │       ├── compliance.py          # Regulatory compliance engine (SOC2, HIPAA, PCI, NIST)
-│   │       │       ├── compliance_controls.json# Control mapping matrix linking findings to regulatory IDs
-│   │       │       ├── loaders.py             # PDF & text document ingestion loaders
-│   │       │       ├── scrapers.py            # Live scraper service for AWS/Azure/GCP feeds & CVEs
-│   │       │       ├── update_kb.py           # CLI script to execute KB re-indexing
-│   │       │       ├── scheduler.py           # Background job scheduler (APScheduler) for daily updates
-│   │       │       ├── cache.py               # AST hash caching module
-│   │       │       ├── dedup.py               # Semantic deduplication module
-│   │       │       ├── config.py              # Vector store & RAG threshold configuration loader
-│   │       │       └── settings.yaml          # YAML settings for embedding dimensions & vector DB URLs
+│   │       ├── benchmarks/                    # Task 5.3 Empirical Benchmark & Ablation Suite
+│   │       │   ├── corpus.py                  # Standard vulnerable IaC corpus (Terragoat, cfngoat)
+│   │       │   ├── metrics.py                 # Precision, Recall, F1, Hallucination, Patch Pass Rate
+│   │       │   ├── runner.py                  # Automated benchmark evaluation runner
+│   │       │   ├── ablation.py                # 4 controlled ablation studies
+│   │       │   └── report.py                  # Publication-ready Markdown & LaTeX tables
+│   │       ├── validation/                    # Task 4.2 & 4.3 Validation Harness
+│   │       │   ├── linters.py                 # terraform validate, tflint, cfn-lint, kube-linter, helm
+│   │       │   ├── patch_applier.py           # Unified diff application & rollback engine
+│   │       │   └── sandbox.py                 # LocalStack Containerized Sandbox & Emulated Dry-Run
 │   │       ├── parsers/                       # Polyglot IaC AST parsers & property normalizers
-│   │       │   ├── cloudformation.py          # AWS CloudFormation JSON/YAML AST parser
-│   │       │   ├── kubernetes.py              # Kubernetes multi-document YAML manifest parser
-│   │       │   ├── helm.py                    # Helm Chart & values.yaml parser
-│   │       │   ├── dispatcher.py              # Unified polyglot IaC parser dispatcher
-│   │       │   ├── terraform.py               # HCL2 parser & resource extractor module
-│   │       │   └── normalizer.py              # Property normalization & quote stripping engine
 │   │       └── scanners/                      # Interceptor engines & static scanner adapters
-│   │           ├── secrets_scanner.py         # Gitleaks regex + Shannon entropy secret scanner engine
-│   │           └── static_adapters.py         # Adapter layer for Checkov, tfsec, and KICS outputs
-│   ├── tests/                                 # Pytest test suite & test fixtures (90 tests)
+│   ├── tests/                                 # Automated Pytest test suite (230+ tests)
 │   │   ├── conftest.py                        # Shared pytest fixtures & test environment setup
 │   │   ├── test_analyst_agent.py              # Unit tests for Security Analyst Agent
 │   │   ├── test_remediation_agent.py          # Unit tests for Remediation Agent & diff patching

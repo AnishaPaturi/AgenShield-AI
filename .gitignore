@@ -93,3 +93,4 @@ kb_cache.json
 nvd_cve_cache.json
 data_scraped/
 .cache/
+.agentshield/

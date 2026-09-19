@@ -105,7 +105,10 @@ def test_validator_agent_clean_patch_passes(
         finding=sample_finding,
     )
 
-    assert validated.remediation_status == RemediationStatus.SYNTAX_VALIDATED
+    assert validated.remediation_status in (
+        RemediationStatus.SYNTAX_VALIDATED,
+        RemediationStatus.SANDBOX_PASSED,
+    )
     assert len(validated.validation_results) >= 1
     assert all(r.passed for r in validated.validation_results)
     check_names = [r.check_name for r in validated.validation_results]
@@ -151,8 +154,11 @@ def test_validator_agent_automated_rollback_and_retry_success(
         max_retries=2,
     )
 
-    # After rollback and re-remediation, the patch should be SYNTAX_VALIDATED
-    assert validated.remediation_status == RemediationStatus.SYNTAX_VALIDATED
+    # After rollback and re-remediation, the patch should be SYNTAX_VALIDATED or SANDBOX_PASSED
+    assert validated.remediation_status in (
+        RemediationStatus.SYNTAX_VALIDATED,
+        RemediationStatus.SANDBOX_PASSED,
+    )
     assert validated.patched_code == 'acl    = "private"'
     assert all(r.passed for r in validated.validation_results)
 
@@ -245,7 +251,10 @@ def test_validator_agent_batch_patches(
     )
 
     assert len(validated_patches) == 1
-    assert validated_patches[0].remediation_status == RemediationStatus.SYNTAX_VALIDATED
+    assert validated_patches[0].remediation_status in (
+        RemediationStatus.SYNTAX_VALIDATED,
+        RemediationStatus.SANDBOX_PASSED,
+    )
 
 
 def test_api_patch_validation_endpoints(sample_tf_template: IaCTemplate):
@@ -271,7 +280,7 @@ def test_api_patch_validation_endpoints(sample_tf_template: IaCTemplate):
     resp = client.post(f"/api/workspaces/{ws.workspace_id}/patches/{patch.patch_id}/validate")
     assert resp.status_code == 200
     res_body = resp.json()
-    assert res_body["remediation_status"] == "SYNTAX_VALIDATED"
+    assert res_body["remediation_status"] in ("SYNTAX_VALIDATED", "SANDBOX_PASSED")
     assert len(res_body["validation_results"]) >= 1
 
     # 2. Test validate-patches all endpoint
@@ -279,7 +288,7 @@ def test_api_patch_validation_endpoints(sample_tf_template: IaCTemplate):
     assert resp_all.status_code == 200
     all_body = resp_all.json()
     assert len(all_body) == 1
-    assert all_body[0]["remediation_status"] == "SYNTAX_VALIDATED"
+    assert all_body[0]["remediation_status"] in ("SYNTAX_VALIDATED", "SANDBOX_PASSED")
 
     # Clean up
     workspace_store.delete(ws.workspace_id)

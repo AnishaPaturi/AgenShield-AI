@@ -10,6 +10,7 @@ from agentshield.agents.prompts.templates import (
     build_remediation_retry_prompt,
     build_remediation_user_prompt,
 )
+from agentshield.core.feedback import FeedbackPromptAdaptor, feedback_adaptor
 from agentshield.core.llm import LLMClient
 from agentshield.core.schemas import (
     IaCTemplate,
@@ -23,14 +24,26 @@ from agentshield.core.schemas import (
 class RemediationAgent:
     """Specialized Remediation Agent executing automated code patch generation."""
 
-    def __init__(self, llm_client: LLMClient | None = None) -> None:
+    def __init__(
+        self,
+        llm_client: LLMClient | None = None,
+        feedback_adaptor: FeedbackPromptAdaptor | None = None,
+    ) -> None:
         self.llm_client = llm_client or LLMClient()
+        self.feedback_adaptor = feedback_adaptor or FeedbackPromptAdaptor()
 
     def generate_patch(
         self, template: IaCTemplate, finding: VulnerabilityFinding
     ) -> PatchDiff:
         """Generate a PatchDiff for a single VulnerabilityFinding."""
         user_prompt = build_remediation_user_prompt(template, finding)
+
+        # Task 4.5: Inject approved team remediation patterns for this rule
+        positive_shot = self.feedback_adaptor.build_remediation_few_shot_prompt(
+            rule_id=finding.rule_id
+        )
+        if positive_shot:
+            user_prompt = f"{user_prompt}\n\n{positive_shot}"
 
         try:
             patch = self.llm_client.generate_structured(
@@ -191,6 +204,17 @@ class RemediationAgent:
                 explanation = (
                     "Restricted open ingress rule to private VPC CIDR 10.0.0.0/16."
                 )
+            elif "public-read" in raw:
+                if 'acl    = "public-read"' in raw:
+                    original_snippet = 'acl    = "public-read"'
+                    patched_snippet = 'acl    = "private"'
+                elif 'acl = "public-read"' in raw:
+                    original_snippet = 'acl = "public-read"'
+                    patched_snippet = 'acl = "private"'
+                elif '"public-read"' in raw:
+                    original_snippet = '"public-read"'
+                    patched_snippet = '"private"'
+                explanation = "Replaced public-read ACL with private ACL."
 
         # ---------------------------------------------------------
         # 2. S3 bucket encryption missing

@@ -90,11 +90,11 @@ class TerraformValidateLinter(BaseLinter):
 
             # terraform validate requires initialized backend/providers; try init -backend=false
             subprocess.run(
-                [self.cli_binary, "init", "-backend=false"],
+                [self.cli_binary, "init", "-backend=false", "-input=false"],
                 cwd=tmp_dir,
                 capture_output=True,
                 text=True,
-                timeout=15,
+                timeout=3,
                 check=False,
             )
 

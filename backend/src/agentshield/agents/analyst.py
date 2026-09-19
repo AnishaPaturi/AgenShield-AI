@@ -17,6 +17,7 @@ from agentshield.core.consensus import (
     ModelFindings,
     evaluate_routing,
 )
+from agentshield.core.feedback import FeedbackPromptAdaptor, feedback_adaptor
 from agentshield.core.llm import (
     LLMClient,
     MultiLLMEnsemble,
@@ -49,6 +50,7 @@ class SecurityAnalystAgent:
         llm_client: LLMClient | None = None,
         ensemble: MultiLLMEnsemble | None = None,
         consensus_engine: ConsensusEngine | None = None,
+        feedback_adaptor: FeedbackPromptAdaptor | None = None,
     ) -> None:
         self.llm_client = llm_client or LLMClient()
         self.ensemble = ensemble
@@ -56,6 +58,8 @@ class SecurityAnalystAgent:
         # calibrator, so behaviour matches the raw ensemble formula until a
         # calibrator is fitted from human triage outcomes.
         self.consensus_engine = consensus_engine or ConsensusEngine()
+        # Task 4.5: Dynamic few-shot prompt adaptation
+        self.feedback_adaptor = feedback_adaptor or FeedbackPromptAdaptor()
 
     def analyze(
         self,
@@ -67,6 +71,11 @@ class SecurityAnalystAgent:
         user_prompt = build_analyst_user_prompt(
             template, static_findings=static_findings, context_docs=context_docs
         )
+
+        # Task 4.5: Inject negative few-shot feedback to suppress false positives
+        negative_shot = self.feedback_adaptor.build_analyst_negative_shot_prompt()
+        if negative_shot:
+            user_prompt = f"{user_prompt}\n\n{negative_shot}"
 
         findings: list[VulnerabilityFinding] = []
 

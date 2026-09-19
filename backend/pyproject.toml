@@ -40,6 +40,11 @@ dependencies = [
     "reportlab>=4.2.0"
 ]
 
+[project.scripts]
+agentshield-hook = "agentshield.cli.hook:main"
+agentshield-report = "agentshield.cli.report:main"
+agentshield-benchmark = "agentshield.cli.benchmark:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
