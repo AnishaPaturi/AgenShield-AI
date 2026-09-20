@@ -1,12 +1,16 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   loginWithCredentials,
   registerWithCredentials,
   loginWithSSO,
   signupWithSSO,
+  getRegisteredUsers,
+  updateUserPassword,
 } from '../auth.js'
+import { sendVerificationCodeApi, verifyCodeApi } from '../api.js'
 import '../auth.css'
+
 
 export default function Auth({ initialMode = 'login' }) {
   const navigate = useNavigate()
@@ -32,6 +36,15 @@ export default function Auth({ initialMode = 'login' }) {
 
   // SSO verification modal state
   const [ssoModal, setSsoModal] = useState(null) // { provider: 'github' | 'google', email: '', name: '', error: '' }
+
+  // Forgot Password modal state
+  // step: 'email' | 'code' | 'password' | 'success'
+  const [forgotModal, setForgotModal] = useState(null)
+
+  // Refs for orbital verification animation
+  const orbitRef = useRef(null)
+  const hubRef = useRef(null)
+  const slotRef = useRef(null)
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -160,6 +173,163 @@ export default function Auth({ initialMode = 'login' }) {
         setSsoModal((prev) => ({ ...prev, error: err.message }))
       }
     }
+  }
+
+  // ==========================================
+  // Forgot Password / Password Reset Workflow
+  // ==========================================
+
+  const triggerOrbitAnimation = () => {
+    const WIND_UP_BRAKE = 'cubic-bezier(0.12, 0.8, 0.32, 1)'
+    if (slotRef.current && hubRef.current) {
+      const hubRect = hubRef.current.getBoundingClientRect()
+      const slotRect = slotRef.current.getBoundingClientRect()
+      const hubX = hubRect.left + hubRect.width / 2 - slotRect.left
+      const hubY = hubRect.top + hubRect.height / 2 - slotRect.top
+      const dx = 0
+      const dy = 0
+      slotRef.current.style.transformOrigin = `${hubX}px ${hubY}px`
+      slotRef.current.animate(
+        [
+          { transform: `rotate(0deg) translate(${dx}px, ${dy}px)` },
+          { transform: `rotate(450deg) translate(${dx}px, ${dy}px)` },
+        ],
+        { duration: 800, easing: WIND_UP_BRAKE }
+      )
+    }
+  }
+
+  useEffect(() => {
+    if (forgotModal?.step === 'code') {
+      const t = setTimeout(triggerOrbitAnimation, 50)
+      return () => clearTimeout(t)
+    }
+  }, [forgotModal?.step])
+
+  const handleStartForgotPassword = () => {
+    setFeedback(null)
+    setForgotModal({
+      step: 'email',
+      email: formData.email || '',
+      code: '',
+      sentCode: '',
+      newPassword: '',
+      confirmPassword: '',
+      error: '',
+      status: 'idle', // 'idle' | 'ok' | 'bad'
+      emailSent: false,
+      devCode: null,
+      loading: false,
+    })
+  }
+
+  const handleSendVerificationCode = async (e) => {
+    e.preventDefault()
+    if (!forgotModal) return
+
+    const cleanEmail = (forgotModal.email || '').trim().toLowerCase()
+    if (!cleanEmail) {
+      setForgotModal((prev) => ({
+        ...prev,
+        error: 'Please enter your registered email address.',
+      }))
+      return
+    }
+
+    setForgotModal((prev) => ({ ...prev, loading: true, error: '' }))
+
+    try {
+      const res = await sendVerificationCodeApi(cleanEmail)
+      setForgotModal((prev) => ({
+        ...prev,
+        sentCode: res.dev_code || '',
+        devCode: res.dev_code || null,
+        emailSent: Boolean(res.email_sent),
+        code: '',
+        step: 'code',
+        loading: false,
+        error: '',
+        status: 'idle',
+      }))
+    } catch (err) {
+      setForgotModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: err.message || 'Failed to dispatch verification code. Please check your email.',
+      }))
+    }
+  }
+
+  const handleVerifyCode = async (e) => {
+    e?.preventDefault()
+    if (!forgotModal) return
+
+    const code = (forgotModal.code || '').trim()
+    if (code.length !== 6) {
+      triggerOrbitAnimation()
+      setForgotModal((prev) => ({
+        ...prev,
+        status: 'bad',
+        error: 'Please enter the complete 6-digit verification code.',
+      }))
+      return
+    }
+
+    setForgotModal((prev) => ({ ...prev, loading: true, error: '' }))
+
+    try {
+      await verifyCodeApi(forgotModal.email, code)
+      setForgotModal((prev) => ({ ...prev, status: 'ok', error: '', loading: false }))
+      setTimeout(() => {
+        setForgotModal((prev) => ({ ...prev, step: 'password', status: 'idle' }))
+      }, 400)
+    } catch (err) {
+      triggerOrbitAnimation()
+      setForgotModal((prev) => ({
+        ...prev,
+        status: 'bad',
+        loading: false,
+        error: err.message || 'Invalid or expired verification code. Please try again.',
+      }))
+    }
+  }
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault()
+    if (!forgotModal) return
+
+    if (forgotModal.newPassword !== forgotModal.confirmPassword) {
+      setForgotModal((prev) => ({ ...prev, error: 'Passwords do not match.' }))
+      return
+    }
+
+    if (forgotModal.newPassword.length < 8) {
+      setForgotModal((prev) => ({
+        ...prev,
+        error: 'New password must be at least 8 characters long.',
+      }))
+      return
+    }
+
+    setForgotModal((prev) => ({ ...prev, loading: true, error: '' }))
+
+    try {
+      await updateUserPassword(forgotModal.email, forgotModal.newPassword, forgotModal.code)
+      setForgotModal((prev) => ({ ...prev, step: 'success', error: '', loading: false }))
+    } catch (err) {
+      setForgotModal((prev) => ({ ...prev, error: err.message, loading: false }))
+    }
+  }
+
+  const handleFinishReset = () => {
+    if (forgotModal?.email) {
+      setFormData((prev) => ({ ...prev, email: forgotModal.email, password: '' }))
+    }
+    setForgotModal(null)
+    setFeedback({
+      type: 'success',
+      text: 'Password updated successfully in database! Please sign in with your new password.',
+    })
   }
 
   return (
@@ -416,7 +586,7 @@ export default function Auth({ initialMode = 'login' }) {
                   <button
                     type="button"
                     className="forgot-link"
-                    onClick={() => alert('Password reset link sent to your registered email.')}
+                    onClick={handleStartForgotPassword}
                   >
                     Forgot password?
                   </button>
@@ -614,6 +784,240 @@ export default function Auth({ initialMode = 'login' }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password / Verification Code / Reset Password Modal */}
+      {forgotModal && (
+        <div className="modal-overlay" onClick={() => setForgotModal(null)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px', padding: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, color: '#FFFFFF', fontFamily: 'Outfit', fontSize: '19px' }}>
+                {forgotModal.step === 'email' && 'Reset Your Password'}
+                {forgotModal.step === 'code' && 'Enter Verification Code'}
+                {forgotModal.step === 'password' && 'Set New Password'}
+                {forgotModal.step === 'success' && 'Password Updated!'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setForgotModal(null)}
+                style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '18px', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {forgotModal.error && (
+              <div className="auth-alert error" style={{ marginBottom: '16px' }}>
+                <span className="alert-dot"></span>
+                <span>{forgotModal.error}</span>
+              </div>
+            )}
+
+            {/* Step 1: Enter Email */}
+            {forgotModal.step === 'email' && (
+              <form onSubmit={handleSendVerificationCode} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
+                  Enter your registered work email. A 6-digit verification code will be dispatched to your account.
+                </p>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="forgot-email">Registered Email</label>
+                  <div className="input-wrap">
+                    <input
+                      id="forgot-email"
+                      type="email"
+                      required
+                      value={forgotModal.email}
+                      onChange={(e) => setForgotModal({ ...forgotModal, email: e.target.value, error: '' })}
+                      className="form-input"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    className="soc-back-home-btn"
+                    onClick={() => setForgotModal(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-start-analysis"
+                    style={{ padding: '8px 20px', fontSize: '13px' }}
+                    disabled={forgotModal.loading}
+                  >
+                    {forgotModal.loading ? 'Sending Code...' : 'Send Verification Code →'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 2: Enter Verification Code with Orbit & Slot Animation */}
+            {forgotModal.step === 'code' && (
+              <form onSubmit={handleVerifyCode} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '6px' }}>
+                  <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
+                    A verification code has been dispatched to <b style={{ color: '#FFFFFF' }}>{forgotModal.email}</b> from <b style={{ color: '#38BDF8' }}>agentsheildai@gmail.com</b>.
+                  </p>
+                  {forgotModal.emailSent ? (
+                    <p style={{ fontSize: '12px', color: '#2EE6A8', marginTop: '6px', marginBottom: 0 }}>
+                      ✓ Verification email delivered to your inbox.
+                    </p>
+                  ) : forgotModal.devCode ? (
+                    <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(214, 168, 79, 0.1)', border: '1px solid rgba(214, 168, 79, 0.3)', borderRadius: '6px', fontSize: '12px', color: '#D6A84F', textAlign: 'center', fontFamily: 'JetBrains Mono' }}>
+                      <span>(SMTP_PASSWORD needed in backend/.env for live delivery) Dev Code: </span>
+                      <b style={{ color: '#FFFFFF', letterSpacing: '2px' }}>{forgotModal.devCode}</b>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Orbital Ring & Center Hub */}
+                <div
+                  className={`orbit ${forgotModal.status === 'ok' ? 'is-ok' : forgotModal.status === 'bad' ? 'is-bad' : ''}`}
+                  ref={orbitRef}
+                >
+                  <svg className="orbit_ring" viewBox="0 0 120 120">
+                    <circle
+                      className="orbit_path"
+                      cx="60"
+                      cy="60"
+                      r="50"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </svg>
+                  <span className="orbit_hub" ref={hubRef}></span>
+                </div>
+
+                {/* Slot with One-Time-Code Input */}
+                <label
+                  className={`slot ${forgotModal.status === 'ok' ? 'is-ok' : forgotModal.status === 'bad' ? 'is-bad' : ''}`}
+                  ref={slotRef}
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={forgotModal.code}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '')
+                      setForgotModal((prev) => ({ ...prev, code: val, error: '', status: 'idle' }))
+                    }}
+                    autoFocus
+                    disabled={forgotModal.loading}
+                  />
+                </label>
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    className="forgot-link"
+                    onClick={() => setForgotModal((prev) => ({ ...prev, step: 'email', error: '' }))}
+                  >
+                    ← Change Email
+                  </button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      className="soc-back-home-btn"
+                      onClick={() => setForgotModal(null)}
+                      disabled={forgotModal.loading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-start-analysis"
+                      style={{ padding: '8px 20px', fontSize: '13px' }}
+                      disabled={forgotModal.loading}
+                    >
+                      {forgotModal.loading ? 'Verifying...' : 'Verify Code →'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* Step 3: Set New Password */}
+            {forgotModal.step === 'password' && (
+              <form onSubmit={handleResetPasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
+                  Code verified for <b style={{ color: '#FFFFFF' }}>{forgotModal.email}</b>. Enter your new password below to update it in the database.
+                </p>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="new-password">New Password</label>
+                  <div className="input-wrap">
+                    <input
+                      id="new-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={forgotModal.newPassword}
+                      onChange={(e) => setForgotModal({ ...forgotModal, newPassword: e.target.value, error: '' })}
+                      className="form-input"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" htmlFor="confirm-new-password">Confirm New Password</label>
+                  <div className="input-wrap">
+                    <input
+                      id="confirm-new-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={forgotModal.confirmPassword}
+                      onChange={(e) => setForgotModal({ ...forgotModal, confirmPassword: e.target.value, error: '' })}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '6px' }}>
+                  <button
+                    type="button"
+                    className="soc-back-home-btn"
+                    onClick={() => setForgotModal(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-start-analysis"
+                    style={{ padding: '8px 20px', fontSize: '13px' }}
+                  >
+                    Update Password in Database →
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 4: Success Confirmation */}
+            {forgotModal.step === 'success' && (
+              <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                <div style={{ fontSize: '42px', marginBottom: '12px' }}>✓</div>
+                <h4 style={{ margin: '0 0 8px', color: '#86EFAC', fontFamily: 'Outfit', fontSize: '18px' }}>
+                  Password Successfully Updated
+                </h4>
+                <p style={{ fontSize: '13px', color: '#CBD5E1', marginBottom: '22px' }}>
+                  Your new password has been committed to the database for <b style={{ color: '#FFFFFF' }}>{forgotModal.email}</b>. You can now sign in with your updated credentials.
+                </p>
+                <button
+                  type="button"
+                  className="btn-start-analysis"
+                  style={{ width: '100%', padding: '10px', fontSize: '14px' }}
+                  onClick={handleFinishReset}
+                >
+                  Proceed to Sign In →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -15,7 +15,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from agentshield.api.routers import audit, drift, health, patches, scan, workspaces
+from agentshield.api.routers import audit, auth, drift, health, patches, scan, workspaces
 
 app = FastAPI(
     title="AgentShield AI API",
@@ -37,4 +37,5 @@ app.include_router(workspaces.router)
 app.include_router(patches.router)
 app.include_router(audit.router)
 app.include_router(drift.router)
+app.include_router(auth.router)
 

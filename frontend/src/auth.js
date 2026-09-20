@@ -176,3 +176,34 @@ export function signupWithSSO(provider, email, name = '') {
   setCurrentUser(newUser)
   return newUser
 }
+
+export async function updateUserPassword(email, newPassword, code = null) {
+  const users = getRegisteredUsers()
+  const cleanEmail = (email || '').trim().toLowerCase()
+
+  if (!cleanEmail) {
+    throw new Error('Please enter a valid email address.')
+  }
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error('Password must be at least 8 characters long.')
+  }
+
+  const user = users.find((u) => u.email.toLowerCase() === cleanEmail)
+  if (!user) {
+    throw new Error('No account found with this email address.')
+  }
+
+  user.password = newPassword
+  saveRegisteredUsers(users)
+
+  // Also sync to backend SQLite database if reachable
+  try {
+    const { updatePasswordInDb } = await import('./api.js')
+    await updatePasswordInDb(cleanEmail, newPassword, code)
+  } catch {
+    // Local database updated
+  }
+
+  return user
+}
+

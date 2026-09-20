@@ -87,11 +87,59 @@ class WorkspaceStore:
                 """
             )
             conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    password TEXT NOT NULL,
+                    org_name TEXT,
+                    providers TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS verification_codes (
+                    email TEXT PRIMARY KEY,
+                    code TEXT NOT NULL,
+                    expires_at REAL NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                """
+            )
+            conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_workspaces_created_at ON workspaces(created_at DESC);"
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_workspaces_status ON workspaces(status);"
             )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_verification_codes_email ON verification_codes(email);"
+            )
+            # Pre-seed default enterprise accounts in database if table is empty
+            cur = conn.execute("SELECT COUNT(*) FROM users;")
+            if cur.fetchone()[0] == 0:
+                now_str = datetime.now(UTC).isoformat()
+                conn.execute(
+                    """
+                    INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    ("usr-admin-001", "admin@agentshield.ai", "Security Admin", "Password123!", "AgentShield Enterprise", "email,google,github", now_str, now_str)
+                )
+                conn.execute(
+                    """
+                    INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    ("usr-alex-002", "alex@company.com", "Alex Henderson", "Password123!", "Acme Cloud Infrastructure", "email,github", now_str, now_str)
+                )
             conn.commit()
 
     def _migrate_legacy_json(self) -> None:
@@ -216,6 +264,105 @@ class WorkspaceStore:
                 conn.execute("DELETE FROM workspaces")
                 conn.commit()
 
+    def get_user_by_email(self, email: str) -> dict[str, Any] | None:
+        """Retrieve a user by email address."""
+        with self._lock:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT user_id, email, name, password, org_name, providers, created_at, updated_at FROM users WHERE lower(email) = lower(?)",
+                    (email.strip(),),
+                )
+                row = cursor.fetchone()
+                if row is None:
+                    return None
+                return dict(row)
+
+    def update_user_password(self, email: str, new_password: str) -> bool:
+        """Update a user's password in the database."""
+        now_str = datetime.now(UTC).isoformat()
+        with self._lock:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "UPDATE users SET password = ?, updated_at = ? WHERE lower(email) = lower(?)",
+                    (new_password, now_str, email.strip()),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+
+    def save_user(
+        self, email: str, name: str, password: str, org_name: str = "", providers: str = "email"
+    ) -> dict[str, Any]:
+        """Save a new user or update an existing user."""
+        now_str = datetime.now(UTC).isoformat()
+        user_id = f"usr-{int(datetime.now(UTC).timestamp())}"
+        with self._lock:
+            with self._get_connection() as conn:
+                conn.execute(
+                    """
+                    INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(email) DO UPDATE SET
+                        name = excluded.name,
+                        password = excluded.password,
+                        org_name = excluded.org_name,
+                        providers = excluded.providers,
+                        updated_at = excluded.updated_at;
+                    """,
+                    (user_id, email.strip().lower(), name.strip(), password, org_name.strip(), providers, now_str, now_str),
+                )
+                conn.commit()
+        return self.get_user_by_email(email) or {}
+
+    def save_verification_code(self, email: str, code: str, ttl_seconds: int = 600) -> None:
+        """Store a verification code with an expiry timestamp (default 10 minutes)."""
+        now_ts = datetime.now(UTC).timestamp()
+        expires_at = now_ts + ttl_seconds
+        now_str = datetime.now(UTC).isoformat()
+        with self._lock:
+            with self._get_connection() as conn:
+                conn.execute(
+                    """
+                    INSERT INTO verification_codes (email, code, expires_at, created_at)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(email) DO UPDATE SET
+                        code = excluded.code,
+                        expires_at = excluded.expires_at,
+                        created_at = excluded.created_at;
+                    """,
+                    (email.strip().lower(), code.strip(), expires_at, now_str),
+                )
+                conn.commit()
+
+    def verify_code(self, email: str, code: str) -> bool:
+        """Verify if a code matches and has not expired."""
+        now_ts = datetime.now(UTC).timestamp()
+        with self._lock:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT code, expires_at FROM verification_codes WHERE lower(email) = lower(?)",
+                    (email.strip(),),
+                )
+                row = cursor.fetchone()
+                if not row:
+                    return False
+                if row["expires_at"] < now_ts:
+                    return False
+                return str(row["code"]).strip() == str(code).strip()
+
+    def clear_verification_code(self, email: str) -> None:
+        """Remove a verification code after successful password reset."""
+        with self._lock:
+            with self._get_connection() as conn:
+                conn.execute(
+                    "DELETE FROM verification_codes WHERE lower(email) = lower(?)",
+                    (email.strip(),),
+                )
+                conn.commit()
+
 
 # Singleton store instance shared across the API process
 workspace_store = WorkspaceStore()
+

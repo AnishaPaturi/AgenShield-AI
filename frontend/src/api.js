@@ -108,4 +108,42 @@ export async function getFeedbackStats() {
   return asJson(res)
 }
 
+export async function verifyEmailInDb(email) {
+  const res = await fetch(`${base()}/api/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  return asJson(res)
+}
+
+export async function sendVerificationCodeApi(email) {
+  const res = await fetch(`${base()}/api/auth/send-code`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  return asJson(res)
+}
+
+export async function verifyCodeApi(email, code) {
+  const res = await fetch(`${base()}/api/auth/verify-code`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, code }),
+  })
+  return asJson(res)
+}
+
+export async function updatePasswordInDb(email, newPassword, code = null) {
+  const res = await fetch(`${base()}/api/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, new_password: newPassword, code }),
+  })
+  return asJson(res)
+}
+
+
+
 
