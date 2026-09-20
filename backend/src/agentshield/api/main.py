@@ -8,6 +8,10 @@ interactive API docs at http://localhost:8000/docs
 
 from __future__ import annotations
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

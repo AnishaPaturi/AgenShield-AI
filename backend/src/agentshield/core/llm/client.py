@@ -28,6 +28,8 @@ class LLMProvider(StrEnum):
 
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    GEMINI = "gemini"
+    OPENROUTER = "openrouter"
     LITELLM = "litellm"
     MOCK = "mock"
 
@@ -88,6 +90,10 @@ class LLMClient:
                 api_key = os.getenv("OPENAI_API_KEY")
             elif self.config.provider == LLMProvider.ANTHROPIC:
                 api_key = os.getenv("ANTHROPIC_API_KEY")
+            elif self.config.provider == LLMProvider.GEMINI:
+                api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+            elif self.config.provider == LLMProvider.OPENROUTER:
+                api_key = os.getenv("OPENROUTER_API_KEY")
             else:
                 api_key = None
 
@@ -115,11 +121,15 @@ class LLMClient:
                 usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
             )
 
-        # Provider routing (OpenAI / Anthropic / LiteLLM)
+        # Provider routing (OpenAI / Anthropic / Gemini / OpenRouter / LiteLLM)
         if self.config.provider == LLMProvider.OPENAI:
             return self._call_openai(prompt, system_prompt)
         elif self.config.provider == LLMProvider.ANTHROPIC:
             return self._call_anthropic(prompt, system_prompt)
+        elif self.config.provider == LLMProvider.GEMINI:
+            return self._call_gemini(prompt, system_prompt)
+        elif self.config.provider == LLMProvider.OPENROUTER:
+            return self._call_openrouter(prompt, system_prompt)
         else:
             return self._call_litellm(prompt, system_prompt)
 
@@ -265,6 +275,118 @@ class LLMClient:
             )
         except Exception as e:
             logger.error("Anthropic API call failed: %s", e)
+            raise
+
+    def _call_gemini(self, prompt: str, system_prompt: str | None = None) -> LLMResponse:
+        """Call Google Gemini API via OpenAI-compatible endpoint."""
+        import requests
+
+        api_key = (
+            self.config.api_key.get_secret_value() if self.config.api_key else None
+        )
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY is not configured")
+
+        url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        messages: list[dict[str, str]] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        # Ensure valid Gemini model name; default to gemini-2.0-flash
+        model = self.config.model_name
+        if not model or model.startswith("gpt-") or model.startswith("claude-") or "mock" in model:
+            model = "gemini-2.0-flash"
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": self.config.temperature,
+            "max_tokens": self.config.max_tokens,
+        }
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=self.config.timeout)
+            if not resp.ok:
+                logger.error("Gemini API error %s: %s", resp.status_code, resp.text)
+            resp.raise_for_status()
+            data = resp.json()
+            choices = data.get("choices", [])
+            text = choices[0]["message"]["content"] if choices else ""
+            usage = data.get("usage", {})
+            return LLMResponse(
+                content=text or "",
+                model=model,
+                provider=LLMProvider.GEMINI,
+                usage={
+                    "prompt_tokens": usage.get("prompt_tokens", 0),
+                    "completion_tokens": usage.get("completion_tokens", 0),
+                    "total_tokens": usage.get("total_tokens", 0),
+                },
+            )
+        except Exception as e:
+            logger.error("Gemini API call failed: %s", e)
+            raise
+
+    def _call_openrouter(self, prompt: str, system_prompt: str | None = None) -> LLMResponse:
+        """Call OpenRouter API."""
+        import requests
+
+        api_key = (
+            self.config.api_key.get_secret_value() if self.config.api_key else None
+        )
+        if not api_key:
+            raise ValueError("OPENROUTER_API_KEY is not configured")
+
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "HTTP-Referer": "https://agentshield.ai",
+            "X-Title": "AgentShield AI",
+            "Content-Type": "application/json",
+        }
+        messages: list[dict[str, str]] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        # Ensure valid OpenRouter model name; default to high-performance free model
+        model = self.config.model_name
+        if not model or model.startswith("gpt-") or model.startswith("claude-") or "mock" in model:
+            model = "meta-llama/llama-3.3-70b-instruct:free"
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": self.config.temperature,
+            "max_tokens": self.config.max_tokens,
+        }
+
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=self.config.timeout)
+            if not resp.ok:
+                logger.error("OpenRouter API error %s: %s", resp.status_code, resp.text)
+            resp.raise_for_status()
+            data = resp.json()
+            choices = data.get("choices", [])
+            text = choices[0]["message"]["content"] if choices else ""
+            usage = data.get("usage", {})
+            return LLMResponse(
+                content=text or "",
+                model=model,
+                provider=LLMProvider.OPENROUTER,
+                usage={
+                    "prompt_tokens": usage.get("prompt_tokens", 0),
+                    "completion_tokens": usage.get("completion_tokens", 0),
+                    "total_tokens": usage.get("total_tokens", 0),
+                },
+            )
+        except Exception as e:
+            logger.error("OpenRouter API call failed: %s", e)
             raise
 
     def _call_litellm(self, prompt: str, system_prompt: str | None = None) -> LLMResponse:

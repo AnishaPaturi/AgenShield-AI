@@ -34,37 +34,128 @@ from agentshield.core.schemas import (
 from agentshield.parsers.normalizer import normalize_terraform_resources
 from agentshield.parsers.terraform import extract_terraform_resources, parse_terraform_file
 
+import os
+
 logger = logging.getLogger("agentshield.api.orchestrator")
 
-# Shared agent instances (LLMClient defaults to MOCK provider unless configured
-# via env vars — see agentshield.core.llm.LLMConfig — so `uv run` works offline
-# out of the box, and swaps to real providers with zero code changes once
-# OPENAI_API_KEY / ANTHROPIC_API_KEY are set).
 
-_openai_client = LLMClient(
-    LLMConfig(
-        provider=LLMProvider.OPENAI,
-        model_name="gpt-4o",
-    )
-)
+def get_configured_agents() -> tuple[SecurityAnalystAgent, RemediationAgent, ValidatorAgent]:
+    """Dynamically configure SecurityAnalystAgent, RemediationAgent, and ValidatorAgent
+    based on the available environment keys.
 
-_anthropic_client = LLMClient(
-    LLMConfig(
-        provider=LLMProvider.ANTHROPIC,
-        model_name="claude-3-5-sonnet-20241022",
-    )
-)
+    Priority:
+    - Google Gemini (GEMINI_API_KEY / GOOGLE_API_KEY) - Free
+    - OpenRouter (OPENROUTER_API_KEY) - Free
+    - OpenAI (OPENAI_API_KEY)
+    - Anthropic (ANTHROPIC_API_KEY)
+    - Mock fallback for offline demonstration
+    """
+    clients: list[LLMClient] = []
 
-_ensemble = MultiLLMEnsemble(
-    clients=[
-        _openai_client,
-        _anthropic_client,
-    ]
-)
+    gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
 
-_analyst = SecurityAnalystAgent(ensemble=_ensemble)
-_remediator = RemediationAgent()
-_validator = ValidatorAgent()
+    if gemini_key:
+        clients.append(
+            LLMClient(
+                LLMConfig(
+                    provider=LLMProvider.GEMINI,
+                    model_name=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+                )
+            )
+        )
+
+    if openrouter_key:
+        clients.append(
+            LLMClient(
+                LLMConfig(
+                    provider=LLMProvider.OPENROUTER,
+                    model_name=os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free"),
+                )
+            )
+        )
+
+    if openai_key:
+        clients.append(
+            LLMClient(
+                LLMConfig(
+                    provider=LLMProvider.OPENAI,
+                    model_name=os.getenv("OPENAI_MODEL", "gpt-4o"),
+                )
+            )
+        )
+
+    if anthropic_key:
+        clients.append(
+            LLMClient(
+                LLMConfig(
+                    provider=LLMProvider.ANTHROPIC,
+                    model_name=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+                )
+            )
+        )
+
+    # If only 1 client is configured, add a diverse second model to form a true multi-LLM ensemble
+    if len(clients) == 1:
+        primary = clients[0]
+        if primary.config.provider == LLMProvider.GEMINI:
+            secondary_model = (
+                "gemini-1.5-flash" if "2.0" in primary.config.model_name else "gemini-2.0-flash"
+            )
+            clients.append(
+                LLMClient(
+                    LLMConfig(
+                        provider=LLMProvider.GEMINI,
+                        model_name=secondary_model,
+                    )
+                )
+            )
+        elif primary.config.provider == LLMProvider.OPENROUTER:
+            clients.append(
+                LLMClient(
+                    LLMConfig(
+                        provider=LLMProvider.OPENROUTER,
+                        model_name="google/gemini-2.0-flash-exp:free",
+                    )
+                )
+            )
+        elif primary.config.provider == LLMProvider.OPENAI:
+            clients.append(
+                LLMClient(
+                    LLMConfig(
+                        provider=LLMProvider.OPENAI,
+                        model_name="gpt-4o-mini",
+                    )
+                )
+            )
+        elif primary.config.provider == LLMProvider.ANTHROPIC:
+            clients.append(
+                LLMClient(
+                    LLMConfig(
+                        provider=LLMProvider.ANTHROPIC,
+                        model_name="claude-3-haiku-20240307",
+                    )
+                )
+            )
+
+    # Fallback to Mock if no keys configured
+    if not clients:
+        clients = [
+            LLMClient(LLMConfig(provider=LLMProvider.MOCK, model_name="mock-analyst-1")),
+            LLMClient(LLMConfig(provider=LLMProvider.MOCK, model_name="mock-analyst-2")),
+        ]
+
+    ensemble = MultiLLMEnsemble(clients=clients)
+    analyst = SecurityAnalystAgent(ensemble=ensemble)
+    remediator = RemediationAgent(llm_client=clients[0])
+    validator = ValidatorAgent()
+
+    return analyst, remediator, validator
+
+
+_analyst, _remediator, _validator = get_configured_agents()
 
 
 
@@ -166,6 +257,7 @@ def _retrieve_rag_context(template: IaCTemplate) -> list[str]:
 
 def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
     """Execute the full scan -> analyze -> remediate pipeline for one uploaded file."""
+    analyst, remediator, validator = get_configured_agents()
     template = build_iac_template(filename, raw_bytes)
 
     workspace = AgentShieldWorkspace(template=template, status="PARSED")
@@ -175,7 +267,7 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
 
     context_docs = _retrieve_rag_context(template)
     workspace.active_agent = "SecurityAnalystAgent"
-    report = _analyst.analyze(template, context_docs=context_docs or None)
+    report = analyst.analyze(template, context_docs=context_docs or None)
     workspace.report = report
     workspace.status = "ANALYZED"
     workspace.execution_logs.append(
@@ -219,7 +311,7 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
 
     workspace.active_agent = "RemediationAgent"
     actionable = [f for f in report.findings if f.rule_id != "AS-INFO-000"]
-    patches = _remediator.generate_patches(template, report.model_copy(update={"findings": actionable}))
+    patches = remediator.generate_patches(template, report.model_copy(update={"findings": actionable}))
     workspace.patches = patches
     workspace.status = "REMEDIATED"
     workspace.execution_logs.append(
@@ -235,11 +327,11 @@ def run_scan(filename: str, raw_bytes: bytes) -> AgentShieldWorkspace:
     # Task 4.2: Code & Sandbox Validator Agent — Static Linters
     workspace.active_agent = "ValidatorAgent"
     try:
-        validated_patches = _validator.validate_patches(
+        validated_patches = validator.validate_patches(
             template=template,
             patches=patches,
             report=report,
-            remediator=_remediator,
+            remediator=remediator,
         )
         workspace.patches = validated_patches
         validated_count = sum(
