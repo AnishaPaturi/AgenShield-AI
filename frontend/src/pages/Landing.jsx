@@ -631,12 +631,11 @@ spec:
                   <div className="stream-line text-green">[2/8] SecretsScanner: 0 plaintext credentials found. SHA-256 masks active.</div>
                   <div className="stream-line">[3/8] ASTParser: Extracted 28 resource nodes. Built Dependency Graph.</div>
                   <div className="stream-line text-cyan">[4/8] RAGQuery: Attached top-3 CIS AWS & NIST SP 800-53 controls from Qdrant.</div>
-                  <div className="stream-line text-gold">[5/8] SecurityAnalyst: Parallel inference across Claude 3.5 Sonnet & GPT-4o.</div>
-                  <div className="stream-line text-green">      -> Consensus Agreement: C_ens = 0.96 (High Confidence)</div>
-                  <div className="stream-line">      -> Detected Vulnerability: aws_s3_bucket.public_records (Unencrypted Public S3)</div>
+                  <div className="stream-line text-green">      &rarr; Consensus Agreement: C_ens = 0.96 (High Confidence)</div>
+                  <div className="stream-line">      &rarr; Detected Vulnerability: aws_s3_bucket.public_records (Unencrypted Public S3)</div>
                   <div className="stream-line text-cyan">[6/8] RemediationAgent: Synthesized Unified Git Diff Patch (+ server_side_encryption).</div>
                   <div className="stream-line text-gold">[7/8] ValidatorAgent: Running terraform validate... PASSED.</div>
-                  <div className="stream-line text-green">      -> Deploying to LocalStack Sandbox (http://localhost:4566)... SUCCESS [HTTP 200].</div>
+                  <div className="stream-line text-green">      &rarr; Deploying to LocalStack Sandbox (http://localhost:4566)... SUCCESS [HTTP 200].</div>
                   <div className="stream-line text-cyan">[8/8] ReportAgent: Mapped to SOC 2 CC6.1 & HIPAA § 164.312. Patch ready to merge!</div>
                 </div>
 
