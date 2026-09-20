@@ -98,6 +98,35 @@ export default function Auth({ initialMode = 'login' }) {
       <div className="auth-glow-cyan"></div>
       <div className="auth-grid-pattern"></div>
 
+      {/* Top Navigation Bar with Back Button */}
+      <header className="auth-top-nav">
+        <Link to="/" className="auth-back-btn" id="back-to-landing-btn">
+          <svg
+            className="back-btn-icon"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back to Landing Page</span>
+        </Link>
+
+        {/* Mobile brand header shown when left showcase is hidden */}
+        <Link to="/" className="auth-mobile-brand">
+          <div className="brand-shield-icon">
+            <img src="/logo.png" alt="AgentShield AI Logo" className="brand-logo-img" />
+          </div>
+          <span className="brand-title">AgentShield<span className="brand-accent">AI</span></span>
+        </Link>
+      </header>
+
       <div className="auth-container">
         {/* Left Side: Brand Showcase & Trust Signals */}
         <div className="auth-showcase">
