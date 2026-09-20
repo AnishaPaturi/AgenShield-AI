@@ -8,6 +8,33 @@ export default function Landing() {
   const [activeDiffTab, setActiveDiffTab] = useState('terraform')
   const [diffViewMode, setDiffViewMode] = useState('diff') // 'diff' or 'original'
 
+  // Pricing toggle: 'monthly' or 'annual'
+  const [billingCycle, setBillingCycle] = useState('annual')
+
+  // FAQ accordion active item
+  const [activeFaq, setActiveFaq] = useState(0)
+
+  // Demo Video player state
+  const [isPlayingDemo, setIsPlayingDemo] = useState(false)
+
+  // Contact form state
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    inquiryType: 'Demo Request',
+    message: ''
+  })
+  const [contactSubmitted, setContactSubmitted] = useState(false)
+
+  const handleContactSubmit = (e) => {
+    e.preventDefault()
+    setContactSubmitted(true)
+    setTimeout(() => {
+      setContactSubmitted(false)
+      setContactForm({ name: '', email: '', inquiryType: 'Demo Request', message: '' })
+    }, 4000)
+  }
+
   const agentsList = [
     {
       id: 'manager',
@@ -215,6 +242,57 @@ spec:
     'HIPAA Security Rule'
   ]
 
+  const faqs = [
+    {
+      q: 'How does AgentShield AI differ from traditional static scanners like Checkov or tfsec?',
+      a: 'Traditional scanners rely on rigid regular expressions and static rule files that struggle with dynamic variables, count loops, and inter-resource dependencies, leading to high false-positive rates. AgentShield AI builds a full AST dependency graph, enriches it with semantic RAG policies, verifies findings using a multi-LLM ensemble (Claude 3.5 + GPT-4o), and generates executable code patches tested in a local LocalStack sandbox.'
+    },
+    {
+      q: 'Are our sensitive cloud credentials or API keys sent to external LLM providers?',
+      a: 'Never. AgentShield AI enforces a strict Zero-Secret Leakage guarantee. The integrated Secrets Scanner Agent runs Gitleaks and TruffleHog engines locally to detect API keys, tokens, and private certificates, replacing them with SHA-256 cryptographic placeholders before any prompt payload is constructed.'
+    },
+    {
+      q: 'How does the LocalStack Sandbox Validation prevent broken infrastructure deployments?',
+      a: 'Unlike tools that generate untested textual suggestions, AgentShield AI’s Validator Agent applies the synthesized code patch in an isolated buffer and runs native linters (terraform validate, cfn-lint) followed by a dry-run deployment against a local LocalStack AWS emulator. If errors occur, the compiler stderr is fed back to the Remediation Agent for up to 3 automated self-healing iterations.'
+    },
+    {
+      q: 'What happens when the two LLMs in the ensemble disagree on a vulnerability?',
+      a: 'The Consensus Engine calculates a calibrated agreement score (C_ens). If C_ens falls below the 0.85 threshold, the finding is marked as low confidence and routed to the Human Security Review Queue rather than generating a speculative patch, preventing alert fatigue and erroneous code modifications.'
+    },
+    {
+      q: 'Can AgentShield AI integrate into our existing CI/CD pipelines and IDEs?',
+      a: 'Yes. AgentShield AI is built for shift-left DevSecOps. It operates as a local CLI (agentshield scan), a VS Code extension with inline diffs, a Git pre-commit hook, and an automated GitHub Actions / GitLab CI runner that posts validated pull-request reviews.'
+    },
+    {
+      q: 'Can we run AgentShield AI in an air-gapped or self-hosted environment?',
+      a: 'Yes. The entire multi-agent orchestration is containerized via Docker. You can deploy LocalStack and Qdrant locally, and route the Security Analyst Agent to self-hosted LLM endpoints (such as Ollama or vLLM running Mistral or CodeLlama) without any internet connectivity.'
+    }
+  ]
+
+  const testimonials = [
+    {
+      quote: 'AgentShield AI caught 14 overprivileged IAM wildcard policies and unencrypted S3 buckets before our terraform apply ever ran. The automated LocalStack-tested diffs saved our platform team dozens of engineering hours every sprint.',
+      author: 'Sarah Jenkins',
+      role: 'Principal Cloud Security Architect',
+      company: 'FinTech Global',
+      avatar: 'SJ'
+    },
+    {
+      quote: 'The multi-LLM consensus voting completely eliminated the hallucination problem we faced with single-LLM security scripts. When AgentShield flags a high-confidence finding, our engineers trust the patch immediately.',
+      author: 'David Chen',
+      role: 'Head of DevSecOps',
+      company: 'CloudNative Systems',
+      avatar: 'DC'
+    },
+    {
+      quote: 'Integrating AgentShield into our pre-commit hooks and CI/CD pipelines gave us audit-ready SOC 2 and NIST compliance reports out of the box. It is the gold standard for shift-left IaC governance.',
+      author: 'Marcus Vance',
+      role: 'Staff Platform Engineer',
+      company: 'Enterprise SaaS Corp',
+      avatar: 'MV'
+    }
+  ]
+
   return (
     <div className="sentinel-landing">
       {/* Background ambient lighting and cyber grid */}
@@ -222,40 +300,34 @@ spec:
       <div className="bg-glow-cyan"></div>
       <div className="bg-cyber-grid"></div>
 
-      {/* Navigation Bar */}
+      {/* 14. BRAND LOGO & NAVIGATION */}
       <nav className="sentinel-nav">
         <div className="nav-brand">
           <div className="brand-shield-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#e5b869" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 6L7 9V12C7 15.5 9.5 18.5 12 19.5C14.5 18.5 17 15.5 17 12V9L12 6Z" fill="url(#goldGrad)" opacity="0.3"/>
-              <circle cx="12" cy="12.5" r="2" fill="#00e5ff"/>
-              <defs>
-                <linearGradient id="goldGrad" x1="7" y1="6" x2="17" y2="19.5" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#fae3b4"/>
-                  <stop offset="1" stopColor="#b3822a"/>
-                </linearGradient>
-              </defs>
-            </svg>
+            <img src="/logo.png" alt="AgentShield AI Logo" className="brand-logo-img" />
           </div>
           <span className="brand-title">AgentShield<span className="brand-accent">AI</span></span>
         </div>
 
         <div className="nav-links">
           <a href="#home" className="nav-link active">Home</a>
+          <a href="#benefits" className="nav-link">Benefits</a>
+          <a href="#demo" className="nav-link">Demo</a>
           <a href="#pipeline" className="nav-link">Agents</a>
-          <a href="#services" className="nav-link">Services</a>
-          <a href="#diff-studio" className="nav-link">Patch Studio</a>
-          <a href="#bento" className="nav-link">Platform</a>
+          <a href="#diff-studio" className="nav-link">Remediation</a>
+          <a href="#pricing" className="nav-link">Pricing</a>
+          <a href="#faq" className="nav-link">FAQ</a>
+          <a href="#contact" className="nav-link">Contact</a>
         </div>
 
+        {/* 1. CALL TO ACTION BUTTON (HEADER) */}
         <div className="nav-actions">
           <Link to="/login" className="nav-link-signin">Sign In</Link>
           <Link to="/signup" className="nav-btn-gold">Get Started</Link>
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* HERO SECTION */}
       <section id="home" className="sentinel-hero">
         <div className="hero-content">
           {/* 21st.dev Style Floating Announcement Pill */}
@@ -277,15 +349,16 @@ spec:
             automated code patching, and sandbox runtime verification across multi-cloud Infrastructure-as-Code.
           </p>
 
+          {/* 1. PRIMARY CALL TO ACTION BUTTON */}
           <div className="hero-cta-group">
-            <a href="#services" className="btn-shimmer-gold">
+            <Link to="/signup" className="btn-shimmer-gold">
               <span className="btn-shine"></span>
-              Discover More
-            </a>
-            <Link to="/console" className="btn-dark-outline">Launch Console →</Link>
+              Start Free Trial →
+            </Link>
+            <a href="#demo" className="btn-dark-outline">Watch Demo Video ▶</a>
           </div>
 
-          {/* Quick Metrics Ticker */}
+          {/* 3. SOCIAL PROOF (HERO METRICS TICKER) */}
           <div className="hero-metrics-ticker">
             <div className="ticker-item">
               <span className="ticker-val text-gold-gradient">8</span>
@@ -300,6 +373,11 @@ spec:
             <div className="ticker-item">
               <span className="ticker-val text-gold-gradient">0</span>
               <span className="ticker-lbl">Plaintext Secrets Sent</span>
+            </div>
+            <div className="ticker-sep"></div>
+            <div className="ticker-item">
+              <span className="ticker-val text-cyan">&lt; 5%</span>
+              <span className="ticker-lbl">False Positive Rate</span>
             </div>
           </div>
         </div>
@@ -333,38 +411,27 @@ spec:
                 </filter>
               </defs>
 
-              {/* Outer Golden Rim */}
               <path d="M160 16L34 68V172C34 264 88 338 160 366C232 338 286 264 286 172V68L160 16Z"
                 stroke="url(#outerBevel)" strokeWidth="9" strokeLinejoin="round" filter="url(#goldShine)"/>
-
-              {/* Inner Obsidian Shield Plate */}
               <path d="M160 26L44 74V172C44 256 94 326 160 352C226 326 276 256 276 172V74L160 26Z"
                 fill="url(#innerBodyGrad)"/>
-
-              {/* Ambient Cyber Grid Overlay within Shield */}
               <path d="M90 100H230M80 150H240M80 200H240M100 250H220M160 60V320"
                 stroke="#00e5ff" strokeWidth="0.8" opacity="0.12" strokeDasharray="4 4"/>
-
-              {/* Glowing Electric Cyan Shield Outline */}
               <path d="M160 68L86 102V176C86 230 118 282 160 300C202 282 234 230 234 176V102L160 68Z"
                 stroke="#00e5ff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" filter="url(#cyanGlow)" opacity="0.95"/>
-
-              {/* Inner Cyber Lock / Agent Core Emblem */}
               <circle cx="160" cy="180" r="32" stroke="#00e5ff" strokeWidth="2.5" opacity="0.85" filter="url(#cyanGlow)"/>
               <circle cx="160" cy="180" r="14" fill="#00e5ff" opacity="0.3"/>
               <path d="M160 158V172M160 188V202M138 180H152M168 180H182" stroke="#fae3b4" strokeWidth="2.5" strokeLinecap="round"/>
               <circle cx="160" cy="180" r="4" fill="#fae3b4"/>
-
-              {/* Dynamic Radar Sweeper Line */}
               <path d="M160 180L182 162" stroke="#00e5ff" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </div>
         </div>
       </section>
 
-      {/* Infinite Scrolling Tech & Standards Marquee (OriginKit Style) */}
+      {/* 3. SOCIAL PROOF: INFINITE PARTNER & CLOUD MARQUEE */}
       <section className="marquee-section">
-        <div className="marquee-label">SUPPORTED CLOUDS, ENGINES & COMPLIANCE FRAMEWORKS</div>
+        <div className="marquee-label">POWERING SECURITY FOR CLOUD-NATIVE ENVIRONMENTS</div>
         <div className="marquee-track">
           <div className="marquee-content">
             {marqueeItems.concat(marqueeItems).map((item, idx) => (
@@ -377,15 +444,283 @@ spec:
         </div>
       </section>
 
-      {/* Featured 3-Card Section with Border-Beam Effect */}
+      {/* 4. THE PROBLEM WE SOLVE & 13. UNIQUE VALUE */}
+      <section id="problem-solution" className="problem-solution-section">
+        <div className="section-title-wrap">
+          <span className="section-eyebrow">THE PARADIGM SHIFT</span>
+          <h2 className="section-title">The Problem With Existing IaC Security</h2>
+          <p className="section-desc">Why traditional static scanners and single-LLM bots fail modern cloud teams.</p>
+        </div>
+
+        <div className="comparison-grid">
+          {/* The Broken Traditional Way */}
+          <div className="comparison-card broken-way">
+            <div className="comp-header">
+              <span className="comp-badge bad">TRADITIONAL SCANNERS (CHECKOV / SNYK)</span>
+              <h3 className="comp-heading">High Noise, Zero Verification</h3>
+            </div>
+            <ul className="comp-list">
+              <li>
+                <span className="icon-cross">✕</span>
+                <div>
+                  <strong>Rigid Static Regex Rules:</strong> Misses multi-resource IAM escalation paths and complex parameter conditions.
+                </div>
+              </li>
+              <li>
+                <span className="icon-cross">✕</span>
+                <div>
+                  <strong>15%+ False Positive Rates:</strong> Overwhelms platform engineers with alert fatigue, causing teams to disable scanners.
+                </div>
+              </li>
+              <li>
+                <span className="icon-cross">✕</span>
+                <div>
+                  <strong>Abstract Text Suggestions:</strong> Gives vague documentation links rather than executable, syntax-tested code patches.
+                </div>
+              </li>
+              <li>
+                <span className="icon-cross">✕</span>
+                <div>
+                  <strong>Reactive Post-Deployment Scans:</strong> Catches security flaws only after vulnerable infrastructure is already live in production.
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* The AgentShield AI Solution */}
+          <div className="comparison-card modern-way">
+            <div className="comp-header">
+              <span className="comp-badge good">THE AGENTSHIELD AI SOLUTION</span>
+              <h3 className="comp-heading">Autonomous, Sandbox-Proven Security</h3>
+            </div>
+            <ul className="comp-list">
+              <li>
+                <span className="icon-check">✓</span>
+                <div>
+                  <strong>Hybrid AST & Dependency Parsing:</strong> Evaluates dynamic variables, count loops, and inter-resource links in memory.
+                </div>
+              </li>
+              <li>
+                <span className="icon-check">✓</span>
+                <div>
+                  <strong>Multi-LLM Consensus Voting:</strong> Claude 3.5 Sonnet + GPT-4o ensemble cuts false positives to under 5%.
+                </div>
+              </li>
+              <li>
+                <span className="icon-check">✓</span>
+                <div>
+                  <strong>LocalStack Sandbox Validation:</strong> Every patch is dry-run deployed locally to prove runtime viability before merging.
+                </div>
+              </li>
+              <li>
+                <span className="icon-check">✓</span>
+                <div>
+                  <strong>True Shift-Left DevSecOps:</strong> Seamlessly hooks into IDEs, pre-commit git checks, and PR reviews.
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. KEY BENEFITS SECTION */}
+      <section id="benefits" className="key-benefits-section">
+        <div className="section-title-wrap">
+          <span className="section-eyebrow">KEY BENEFITS</span>
+          <h2 className="section-title">Built for Speed, Accuracy, and Developer Trust</h2>
+          <p className="section-desc">Everything engineering teams need to eliminate cloud misconfigurations permanently.</p>
+        </div>
+
+        <div className="benefits-grid">
+          <div className="benefit-card">
+            <div className="benefit-icon-wrap gold-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <h3 className="benefit-title">Zero Secret Leakage</h3>
+            <p className="benefit-desc">
+              Integrated Gitleaks and TruffleHog engines intercept credentials locally, substituting cryptographic hashes before any cloud API payload is created.
+            </p>
+          </div>
+
+          <div className="benefit-card">
+            <div className="benefit-icon-wrap cyan-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <h3 className="benefit-title">Multi-LLM Consensus</h3>
+            <p className="benefit-desc">
+              Dual-model inference with calibrated consensus scoring eliminates hallucinations and ensures only verified vulnerabilities trigger auto-patching.
+            </p>
+          </div>
+
+          <div className="benefit-card">
+            <div className="benefit-icon-wrap gold-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <h3 className="benefit-title">Self-Healing Patches</h3>
+            <p className="benefit-desc">
+              Synthesizes unified git diff patches validated against terraform validate and LocalStack sandbox runtimes with up to 3 automatic healing iterations.
+            </p>
+          </div>
+
+          <div className="benefit-card">
+            <div className="benefit-icon-wrap cyan-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <h3 className="benefit-title">Shift-Left Integration</h3>
+            <p className="benefit-desc">
+              Runs as a fast developer CLI, a VS Code extension, a git pre-commit hook, or a CI/CD GitHub Action to stop flaws before code review.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 11. PRODUCT DEMO (INTERACTIVE VIDEO PLAYER SIMULATOR) */}
+      <section id="demo" className="demo-video-section">
+        <div className="section-title-wrap">
+          <span className="section-eyebrow">PRODUCT DEMO</span>
+          <h2 className="section-title">See AgentShield AI in Action</h2>
+          <p className="section-desc">Watch how AgentShield ingests vulnerable Terraform, parses AST, runs multi-LLM consensus, and validates the fix in LocalStack.</p>
+        </div>
+
+        <div className="video-player-container">
+          <div className="video-topbar">
+            <div className="video-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <div className="video-title">AgentShield AI — Automated Scan & Sandbox Remediation Demo</div>
+            <div className="video-pill">
+              <span className="live-dot"></span> SIMULATED RUNTIME
+            </div>
+          </div>
+
+          <div className="video-screen">
+            {!isPlayingDemo ? (
+              <div className="video-poster">
+                <div className="poster-shield-icon">
+                  <img src="/logo.png" alt="Play Demo" className="poster-logo" />
+                </div>
+                <h3 className="poster-headline">Autonomous Multi-Agent Scan & LocalStack Validation</h3>
+                <p className="poster-sub">Click below to start the interactive walkthrough</p>
+                <button
+                  type="button"
+                  className="btn-play-video"
+                  onClick={() => setIsPlayingDemo(true)}
+                >
+                  <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  <span>Play Interactive Demo</span>
+                </button>
+              </div>
+            ) : (
+              <div className="video-active-playback">
+                <div className="terminal-stream">
+                  <div className="stream-line text-cyan">$ agentshield scan ./infrastructure --sandbox=localstack --remediate</div>
+                  <div className="stream-line text-gold">[1/8] ManagerAgent: Ingested 3 files (Terraform HCL, CloudFormation YAML)</div>
+                  <div className="stream-line text-green">[2/8] SecretsScanner: 0 plaintext credentials found. SHA-256 masks active.</div>
+                  <div className="stream-line">[3/8] ASTParser: Extracted 28 resource nodes. Built Dependency Graph.</div>
+                  <div className="stream-line text-cyan">[4/8] RAGQuery: Attached top-3 CIS AWS & NIST SP 800-53 controls from Qdrant.</div>
+                  <div className="stream-line text-gold">[5/8] SecurityAnalyst: Parallel inference across Claude 3.5 Sonnet & GPT-4o.</div>
+                  <div className="stream-line text-green">      -> Consensus Agreement: C_ens = 0.96 (High Confidence)</div>
+                  <div className="stream-line">      -> Detected Vulnerability: aws_s3_bucket.public_records (Unencrypted Public S3)</div>
+                  <div className="stream-line text-cyan">[6/8] RemediationAgent: Synthesized Unified Git Diff Patch (+ server_side_encryption).</div>
+                  <div className="stream-line text-gold">[7/8] ValidatorAgent: Running terraform validate... PASSED.</div>
+                  <div className="stream-line text-green">      -> Deploying to LocalStack Sandbox (http://localhost:4566)... SUCCESS [HTTP 200].</div>
+                  <div className="stream-line text-cyan">[8/8] ReportAgent: Mapped to SOC 2 CC6.1 & HIPAA § 164.312. Patch ready to merge!</div>
+                </div>
+
+                <div className="video-controls-bar">
+                  <button
+                    type="button"
+                    className="control-btn"
+                    onClick={() => setIsPlayingDemo(false)}
+                  >
+                    ❚❚ Pause
+                  </button>
+                  <div className="video-scrubber">
+                    <div className="scrubber-fill" style={{ width: '68%' }}></div>
+                  </div>
+                  <span className="video-timer">01:42 / 02:30</span>
+                  <Link to="/console" className="btn-video-console">Try in Console →</Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. TRUST BADGES & REGULATORY COMPLIANCE */}
+      <section id="compliance" className="sentinel-compliance-section">
+        <div className="section-title-wrap">
+          <span className="section-eyebrow">ENTERPRISE ASSURANCE</span>
+          <h2 className="section-title">Verified Trust & Compliance Standards</h2>
+          <p className="section-desc">Automated control mapping against the world's most demanding cybersecurity frameworks.</p>
+        </div>
+
+        <div className="compliance-badges-grid">
+          <div className="comp-card">
+            <div className="comp-seal gold-seal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <span className="comp-tag">SOC 2 TYPE II</span>
+            <span className="comp-desc">CC6.1, CC6.6, CC6.7 Access & Cloud Baseline</span>
+          </div>
+
+          <div className="comp-card">
+            <div className="comp-seal cyan-seal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <span className="comp-tag">NIST SP 800-53</span>
+            <span className="comp-desc">AC-3, SC-7, SC-8 Access & Cryptography</span>
+          </div>
+
+          <div className="comp-card">
+            <div className="comp-seal gold-seal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="2" y1="10" x2="22" y2="10"/>
+              </svg>
+            </div>
+            <span className="comp-tag">PCI-DSS v4.0</span>
+            <span className="comp-desc">Req 1.2, 2.2, 3.4 Cardholder Data Defense</span>
+          </div>
+
+          <div className="comp-card">
+            <div className="comp-seal cyan-seal">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+            </div>
+            <span className="comp-tag">HIPAA SECURITY</span>
+            <span className="comp-desc">45 CFR § 164.312 Technical Safeguards</span>
+          </div>
+        </div>
+      </section>
+
+      {/* CORE 3-CARD ARCHITECTURE */}
       <section id="services" className="sentinel-cards-section">
         <div className="section-title-wrap">
-          <span className="section-eyebrow">CORE ARCHITECTURE</span>
+          <span className="section-eyebrow">CORE CAPABILITIES</span>
           <h2 className="section-title">Engineered for Uncompromising Defense</h2>
         </div>
 
         <div className="cards-grid">
-          {/* Card 1: AST & Secrets Shield */}
           <div className="sentinel-card">
             <div className="card-border-beam"></div>
             <div className="card-shield-badge gold-badge">
@@ -404,7 +739,6 @@ spec:
             </button>
           </div>
 
-          {/* Card 2: Multi-LLM Threat Defense (Elevated Centerpiece) */}
           <div className="sentinel-card featured-card">
             <div className="card-top-beam"></div>
             <div className="card-border-beam cyan-beam"></div>
@@ -424,7 +758,6 @@ spec:
             </button>
           </div>
 
-          {/* Card 3: Sandbox Validation */}
           <div className="sentinel-card">
             <div className="card-border-beam"></div>
             <div className="card-shield-badge gold-badge">
@@ -444,7 +777,7 @@ spec:
         </div>
       </section>
 
-      {/* NEW: Interactive 8-Agent Live Pipeline Beam (21st.dev Style) */}
+      {/* 8-AGENT LIVE PIPELINE BEAM */}
       <section id="pipeline" className="pipeline-interactive-section">
         <div className="section-title-wrap">
           <span className="section-eyebrow">LANGGRAPH ORCHESTRATION</span>
@@ -452,7 +785,6 @@ spec:
           <p className="section-desc">Click any agent node to inspect its live state machine role, inputs, and outputs.</p>
         </div>
 
-        {/* Horizontal Node Track with Animated Beam */}
         <div className="pipeline-nodes-container">
           <div className="pipeline-beam-track">
             <div className="pipeline-animated-beam"></div>
@@ -475,7 +807,6 @@ spec:
           </div>
         </div>
 
-        {/* Selected Agent Inspector Card */}
         <div className="agent-inspector-card">
           <div className="inspector-header">
             <div className="inspector-titles">
@@ -509,7 +840,7 @@ spec:
         </div>
       </section>
 
-      {/* NEW: Interactive Code Remediation Diff Studio (OriginKit Style) */}
+      {/* CODE REMEDIATION DIFF STUDIO */}
       <section id="diff-studio" className="diff-studio-section">
         <div className="section-title-wrap">
           <span className="section-eyebrow">ACTIONABLE REMEDIATION</span>
@@ -518,7 +849,6 @@ spec:
         </div>
 
         <div className="diff-studio-card">
-          {/* Top Bar with Template Selector and View Toggle */}
           <div className="studio-topbar">
             <div className="studio-tabs">
               <button
@@ -559,7 +889,6 @@ spec:
             </div>
           </div>
 
-          {/* Subheader info bar */}
           <div className="studio-subbar">
             <div className="file-pill">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -577,7 +906,6 @@ spec:
             </div>
           </div>
 
-          {/* Code Body */}
           <div className="studio-code-body">
             <pre>
               {diffViewMode === 'diff'
@@ -606,284 +934,310 @@ spec:
         </div>
       </section>
 
-      {/* NEW: Bento Grid Platform Showcase (OriginKit / 21st.dev Style) */}
-      <section id="bento" className="bento-grid-section">
+      {/* 5. TESTIMONIALS SECTION */}
+      <section id="testimonials" className="testimonials-section">
         <div className="section-title-wrap">
-          <span className="section-eyebrow">ENTERPRISE CAPABILITIES</span>
-          <h2 className="section-title">Built for Modern DevSecOps Teams</h2>
+          <span className="section-eyebrow">CUSTOMER SUCCESS</span>
+          <h2 className="section-title">Trusted by Engineering Leaders</h2>
+          <p className="section-desc">See what platform architects and security leads say about AgentShield AI.</p>
         </div>
 
-        <div className="bento-grid">
-          {/* Bento 1 (Span 2): Multi-Cloud AST */}
-          <div className="bento-card bento-span-2">
-            <div className="bento-glow-gold"></div>
-            <div className="bento-content">
-              <span className="bento-tag">SHIFT-LEFT INGESTION</span>
-              <h3 className="bento-title">Unified AST Across 4 IaC Languages</h3>
-              <p className="bento-p">
-                Whether your team writes Terraform HCL, AWS CloudFormation, Kubernetes Manifests, or Helm charts,
-                AgentShield resolves dynamic parameters and conditionals in memory.
-              </p>
-              <div className="bento-cloud-logos">
-                <span className="cloud-chip">AWS</span>
-                <span className="cloud-chip">Azure</span>
-                <span className="cloud-chip">GCP</span>
-                <span className="cloud-chip">Kubernetes</span>
+        <div className="testimonials-grid">
+          {testimonials.map((t, idx) => (
+            <div key={idx} className="testimonial-card">
+              <div className="testimonial-stars">★★★★★</div>
+              <p className="t-quote">"{t.quote}"</p>
+              <div className="t-profile">
+                <div className="t-avatar">{t.avatar}</div>
+                <div className="t-info">
+                  <span className="t-name">{t.author}</span>
+                  <span className="t-role">{t.role}</span>
+                  <span className="t-company">{t.company}</span>
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 10. CLEAR PRICING SECTION */}
+      <section id="pricing" className="pricing-section">
+        <div className="section-title-wrap">
+          <span className="section-eyebrow">TRANSPARENT PRICING</span>
+          <h2 className="section-title">Predictable Pricing for Teams of All Sizes</h2>
+          <p className="section-desc">Choose the plan that fits your cloud infrastructure and compliance scale.</p>
+
+          <div className="billing-toggle-wrap">
+            <button
+              type="button"
+              className={`billing-btn ${billingCycle === 'monthly' ? 'active' : ''}`}
+              onClick={() => setBillingCycle('monthly')}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              className={`billing-btn ${billingCycle === 'annual' ? 'active' : ''}`}
+              onClick={() => setBillingCycle('annual')}
+            >
+              Annual <span className="save-badge">SAVE 20%</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="pricing-grid">
+          {/* Tier 1: Community */}
+          <div className="pricing-card">
+            <div className="pricing-header">
+              <span className="plan-name">Community</span>
+              <p className="plan-desc">For individual developers and open-source contributors.</p>
+              <div className="plan-price">
+                <span className="currency">$</span>
+                <span className="amount">0</span>
+                <span className="period">/forever</span>
+              </div>
+            </div>
+            <ul className="plan-features">
+              <li>✓ Local CLI Scanner (`agentshield scan`)</li>
+              <li>✓ Terraform & CloudFormation AST Parsing</li>
+              <li>✓ Gitleaks Secret Detection</li>
+              <li>✓ LocalStack Sandbox Dry-Run (Local)</li>
+              <li>✓ Community Support</li>
+            </ul>
+            <Link to="/signup" className="btn-plan-outline">Get Started Free</Link>
           </div>
 
-          {/* Bento 2: Zero Secret Leakage */}
-          <div className="bento-card">
-            <div className="bento-glow-cyan"></div>
-            <div className="bento-content">
-              <span className="bento-tag text-cyan">DATA PRIVACY GUARANTEE</span>
-              <h3 className="bento-title">Zero Secret Leakage</h3>
-              <p className="bento-p">
-                Gitleaks and TruffleHog engines intercept credentials locally, replacing them with cryptographic SHA-256 hashes before prompt creation.
-              </p>
-              <div className="secret-redaction-preview">
-                <span className="redacted-tag">[REDACTED_AWS_KEY]</span>
+          {/* Tier 2: Pro (Featured) */}
+          <div className="pricing-card featured-pricing">
+            <div className="pricing-badge-popular">MOST POPULAR</div>
+            <div className="pricing-header">
+              <span className="plan-name text-gold-gradient">Pro DevSecOps</span>
+              <p className="plan-desc">For growing engineering teams requiring automated PR remediation.</p>
+              <div className="plan-price">
+                <span className="currency">$</span>
+                <span className="amount">{billingCycle === 'annual' ? '39' : '49'}</span>
+                <span className="period">/seat/mo</span>
               </div>
             </div>
+            <ul className="plan-features">
+              <li>✓ Everything in Community</li>
+              <li>✓ Multi-LLM Ensemble Voting (Claude 3.5 + GPT-4o)</li>
+              <li>✓ Automated Self-Healing Git Diff Patches</li>
+              <li>✓ GitHub Actions & GitLab CI Integrations</li>
+              <li>✓ Qdrant Vector DB Policy Enrichment</li>
+              <li>✓ SOC 2, HIPAA, PCI-DSS & NIST Reports</li>
+              <li>✓ Priority Support & Slack Channel</li>
+            </ul>
+            <Link to="/signup" className="btn-shimmer-gold w-full">
+              <span className="btn-shine"></span>
+              Start 14-Day Free Trial
+            </Link>
           </div>
 
-          {/* Bento 3: Multi-LLM Consensus */}
-          <div className="bento-card">
-            <div className="bento-glow-cyan"></div>
-            <div className="bento-content">
-              <span className="bento-tag text-gold">HALLUCINATION SUPPRESSION</span>
-              <h3 className="bento-title">Multi-LLM Consensus</h3>
-              <p className="bento-p">
-                Dual inference across Claude 3.5 and GPT-4o with calibrated consensus scoring drops false positive rates from 15% to under 5%.
-              </p>
-              <div className="consensus-meter">
-                <div className="meter-fill" style={{ width: '94%' }}></div>
-                <span className="meter-label">94% Inter-Model Agreement</span>
+          {/* Tier 3: Enterprise */}
+          <div className="pricing-card">
+            <div className="pricing-header">
+              <span className="plan-name">Enterprise</span>
+              <p className="plan-desc">For large cloud organizations with strict security & private VPC needs.</p>
+              <div className="plan-price">
+                <span className="amount">Custom</span>
               </div>
             </div>
-          </div>
-
-          {/* Bento 4 (Span 2): LocalStack Sandbox Validation */}
-          <div className="bento-card bento-span-2">
-            <div className="bento-glow-gold"></div>
-            <div className="bento-content">
-              <span className="bento-tag">PROVEN RELIABILITY</span>
-              <h3 className="bento-title">LocalStack Runtime Sandbox Verification</h3>
-              <p className="bento-p">
-                Patches undergo dry-run deployments in an offline, isolated LocalStack mock container.
-                If syntax or cloud API errors occur, the self-healing loop automatically iterates up to 3 times.
-              </p>
-              <div className="terminal-mini">
-                <span className="term-line text-cyan">$ terraform validate && localstack deploy --dry-run</span>
-                <span className="term-line text-green">✓ Syntax valid: 0 errors</span>
-                <span className="term-line text-green">✓ S3 bucket encryption provisioned in LocalStack [HTTP 200 OK]</span>
-              </div>
-            </div>
+            <ul className="plan-features">
+              <li>✓ Everything in Pro</li>
+              <li>✓ Self-Hosted / Air-Gapped Deployment</li>
+              <li>✓ Private VPC & On-Premises LocalStack</li>
+              <li>✓ Custom Internal Policy & CVE Ingestion</li>
+              <li>✓ Dedicated Security Engineer & 24/7 SLA</li>
+              <li>✓ Custom LLM (vLLM / Ollama) Integration</li>
+            </ul>
+            <a href="#contact" className="btn-plan-outline">Contact Enterprise Sales</a>
           </div>
         </div>
       </section>
 
-      {/* Bottom Showcase Section: Comprehensive Protection */}
-      <section id="about" className="sentinel-showcase-section">
-        <h2 className="showcase-headline">
-          Comprehensive Protection <span className="text-gold-gradient">Against Cyberthreats</span>
-        </h2>
+      {/* 12. FAQ SECTION (ACCORDION) */}
+      <section id="faq" className="faq-section">
+        <div className="section-title-wrap">
+          <span className="section-eyebrow">FREQUENTLY ASKED QUESTIONS</span>
+          <h2 className="section-title">Everything You Need to Know</h2>
+          <p className="section-desc">Got questions about our multi-agent architecture, privacy, or LocalStack validation? We've got answers.</p>
+        </div>
 
-        <div className="showcase-split">
-          {/* Left Column: Metrics and Checkpoints */}
-          <div className="showcase-left">
-            {/* Stat Box */}
-            <div className="stat-badge-row">
-              <div className="shield-stat-icon">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#00e5ff" strokeWidth="2" strokeLinecap="round"/>
-                  <path d="M12 7V17M7 12H17" stroke="#00e5ff" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
+        <div className="faq-accordion">
+          {faqs.map((faq, idx) => (
+            <div
+              key={idx}
+              className={`faq-item ${activeFaq === idx ? 'open' : ''}`}
+              onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
+            >
+              <div className="faq-question-row">
+                <h3 className="faq-question">{faq.q}</h3>
+                <span className="faq-toggle-icon">{activeFaq === idx ? '−' : '+'}</span>
               </div>
-              <div className="stat-info">
-                <div className="stat-number">8+</div>
-                <div className="stat-sub">Autonomous Agents</div>
-              </div>
-              <div className="stat-divider"></div>
-              <div className="stat-label-box">
-                <span className="stat-lead">Maximum Security</span>
-                <span className="stat-tail">for All Cloud Resources</span>
-              </div>
+              {activeFaq === idx && (
+                <div className="faq-answer">
+                  <p>{faq.a}</p>
+                </div>
+              )}
             </div>
-
-            {/* Feature List with Cyan Shield Icons */}
-            <div className="feature-bullets">
-              <div className="bullet-item">
-                <div className="bullet-shield-icon">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#00e5ff" strokeWidth="1.8"/>
-                    <circle cx="12" cy="12" r="2.5" fill="#00e5ff"/>
-                  </svg>
-                </div>
-                <div className="bullet-text">
-                  Shift-Left Ingestion: Full coverage across IDE extension, pre-commit hooks, and CI/CD pipelines
-                </div>
-              </div>
-
-              <div className="bullet-item">
-                <div className="bullet-shield-icon">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#00e5ff" strokeWidth="1.8"/>
-                    <path d="M9 12L11 14L15 10" stroke="#00e5ff" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <div className="bullet-text">
-                  Multi-Cloud Governance: AWS, Azure, and GCP across Terraform, CloudFormation, K8s, and Helm
-                </div>
-              </div>
-
-              <div className="bullet-item">
-                <div className="bullet-shield-icon">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#00e5ff" strokeWidth="1.8"/>
-                    <rect x="9" y="10" width="6" height="5" rx="1" stroke="#00e5ff" strokeWidth="1.5"/>
-                  </svg>
-                </div>
-                <div className="bullet-text">
-                  Protect your business data and transactions with enterprise-level compliance (SOC 2, HIPAA, PCI-DSS, NIST)
-                </div>
-              </div>
-
-              <div className="bullet-item">
-                <div className="bullet-shield-icon">
-                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#00e5ff" strokeWidth="1.8"/>
-                    <path d="M12 7V13L15 15" stroke="#00e5ff" strokeWidth="1.8" strokeLinecap="round"/>
-                  </svg>
-                </div>
-                <div className="bullet-text">
-                  Access secure automated self-healing diff patches verified against LocalStack runtime sandboxes
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: High-Tech Laptop & Mobile Showcase */}
-          <div className="showcase-right">
-            <div className="devices-stage">
-              {/* Laptop Frame */}
-              <div className="laptop-device">
-                <div className="laptop-screen">
-                  {/* Laptop Screen Header */}
-                  <div className="laptop-topbar">
-                    <div className="screen-dots">
-                      <span></span><span></span><span></span>
-                    </div>
-                    <div className="screen-title">AgentShield AI Security Console — LIVE</div>
-                    <div className="screen-status-pill">
-                      <span className="status-dot-pulse"></span> SYSTEM PROTECTED
-                    </div>
-                  </div>
-
-                  {/* Laptop Screen Body */}
-                  <div className="laptop-dashboard">
-                    {/* Top Gauge Row */}
-                    <div className="dash-row">
-                      <div className="dash-gauge-card">
-                        <div className="gauge-circle gold-gauge">
-                          <span className="gauge-val">98%</span>
-                          <span className="gauge-lbl">COMPLIANCE</span>
-                        </div>
-                      </div>
-                      <div className="dash-stat-card">
-                        <div className="dash-stat-num cyan-text">0</div>
-                        <div className="dash-stat-label">CRITICAL VULNS</div>
-                      </div>
-                      <div className="dash-stat-card">
-                        <div className="dash-stat-num gold-text">100%</div>
-                        <div className="dash-stat-label">PATCH PASS RATE</div>
-                      </div>
-                    </div>
-
-                    {/* Agent Status Indicators */}
-                    <div className="agent-chips">
-                      <span className="chip active">Manager</span>
-                      <span className="chip active">AST Parser</span>
-                      <span className="chip active">Secrets</span>
-                      <span className="chip active">RAG</span>
-                      <span className="chip active">Analyst</span>
-                      <span className="chip active">Remediator</span>
-                      <span className="chip active">Validator</span>
-                      <span className="chip active">Reporter</span>
-                    </div>
-
-                    {/* Code Diff Preview */}
-                    <div className="mini-diff-box">
-                      <div className="diff-line diff-rem">- resource "aws_s3_bucket" "data" &#123; acl = "public-read" &#125;</div>
-                      <div className="diff-line diff-add">+ resource "aws_s3_bucket" "data" &#123; acl = "private" &#125;</div>
-                      <div className="diff-line diff-add">+ server_side_encryption_configuration &#123; sse_algorithm = "AES256" &#125;</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="laptop-base">
-                  <div className="laptop-notch"></div>
-                </div>
-                <div className="laptop-reflection"></div>
-              </div>
-
-              {/* Smartphone Frame */}
-              <div className="phone-device">
-                <div className="phone-speaker"></div>
-                <div className="phone-screen">
-                  <div className="phone-header">
-                    <span className="phone-time">20:14</span>
-                    <span className="phone-signal">5G 100%</span>
-                  </div>
-                  <div className="phone-shield-badge">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#fae3b4" strokeWidth="2"/>
-                      <rect x="9" y="11" width="6" height="5" rx="1" stroke="#fae3b4" strokeWidth="1.5"/>
-                      <path d="M10 11V9C10 7.9 10.9 7 12 7C13.1 7 14 7.9 14 9V11" stroke="#fae3b4" strokeWidth="1.5"/>
-                    </svg>
-                  </div>
-                  <div className="phone-alert-title">Cloud Secured</div>
-                  <div className="phone-alert-sub">0 Leaks Detected</div>
-                  <div className="phone-btn">Verified</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Compliance Frameworks Section */}
-      <section id="compliance" className="sentinel-compliance-section">
-        <h3 className="compliance-heading">Automated Regulatory Mapping</h3>
-        <div className="compliance-badges-grid">
-          <div className="comp-card">
-            <span className="comp-tag">SOC 2 TYPE II</span>
-            <span className="comp-desc">CC6.1, CC6.6, CC6.7 Cloud Baseline</span>
+      {/* 15. CONTACT OPTION SECTION */}
+      <section id="contact" className="contact-section">
+        <div className="contact-card">
+          <div className="contact-info">
+            <span className="section-eyebrow">GET IN TOUCH</span>
+            <h2 className="contact-title">Speak with our Security Engineering Team</h2>
+            <p className="contact-sub">
+              Have questions about integrating AgentShield AI into your cloud pipeline or evaluating our research architecture? Send us a message.
+            </p>
+
+            <div className="contact-meta-list">
+              <div className="meta-row">
+                <span className="meta-label">PROJECT:</span>
+                <span className="meta-val">AgentShield AI — Team 13 (College Capstone 2026)</span>
+              </div>
+              <div className="meta-row">
+                <span className="meta-label">DOMAIN:</span>
+                <span className="meta-val">Cyber Security + Artificial Intelligence</span>
+              </div>
+              <div className="meta-row">
+                <span className="meta-label">STATUS:</span>
+                <span className="meta-val text-green">Production Ready & Evaluated</span>
+              </div>
+            </div>
           </div>
-          <div className="comp-card">
-            <span className="comp-tag">NIST SP 800-53</span>
-            <span className="comp-desc">AC-3, SC-7, SC-8 Access & Cryptography</span>
-          </div>
-          <div className="comp-card">
-            <span className="comp-tag">PCI-DSS v4.0</span>
-            <span className="comp-desc">Req 1.2, 2.2, 3.4 Cardholder Data Defense</span>
-          </div>
-          <div className="comp-card">
-            <span className="comp-tag">HIPAA SECURITY</span>
-            <span className="comp-desc">45 CFR § 164.312 Technical Safeguards</span>
-          </div>
+
+          <form className="contact-form" onSubmit={handleContactSubmit}>
+            {contactSubmitted ? (
+              <div className="contact-success-msg">
+                <span className="msg-icon">✓</span>
+                <h4>Message Received!</h4>
+                <p>Thank you for reaching out. Our team will get back to you shortly.</p>
+              </div>
+            ) : (
+              <>
+                <div className="c-form-group">
+                  <label className="c-label">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Elena Rostova"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                    className="c-input"
+                  />
+                </div>
+
+                <div className="c-form-group">
+                  <label className="c-label">Work Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="elena@company.com"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    className="c-input"
+                  />
+                </div>
+
+                <div className="c-form-group">
+                  <label className="c-label">Inquiry Type</label>
+                  <select
+                    value={contactForm.inquiryType}
+                    onChange={(e) => setContactForm({ ...contactForm, inquiryType: e.target.value })}
+                    className="c-input"
+                  >
+                    <option value="Demo Request">Live Product Demo Request</option>
+                    <option value="Enterprise Sales">Enterprise Cloud Pricing</option>
+                    <option value="Academic Review">Capstone / Academic Project Review</option>
+                    <option value="Technical Question">Technical Architecture Question</option>
+                  </select>
+                </div>
+
+                <div className="c-form-group">
+                  <label className="c-label">Message</label>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Tell us about your infrastructure or questions..."
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                    className="c-input"
+                  ></textarea>
+                </div>
+
+                <button type="submit" className="btn-shimmer-gold w-full">
+                  <span className="btn-shine"></span>
+                  Send Message →
+                </button>
+              </>
+            )}
+          </form>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* 6. 2ND CALL TO ACTION (ENDING) */}
+      <section className="final-cta-section">
+        <div className="final-cta-card">
+          <div className="final-cta-glow"></div>
+          <span className="section-eyebrow">START SECURING YOUR CLOUD</span>
+          <h2 className="final-cta-title">
+            Ship the Infrastructure You Don't Have to Double-Check.
+          </h2>
+          <p className="final-cta-sub">
+            Join forward-thinking cloud teams using 8 autonomous agents to detect, prove,
+            and patch IaC misconfigurations before a single resource is provisioned.
+          </p>
+          <div className="final-cta-buttons">
+            <Link to="/signup" className="btn-shimmer-gold">
+              <span className="btn-shine"></span>
+              Get Started for Free →
+            </Link>
+            <Link to="/console" className="btn-dark-outline">
+              Launch Live Console
+            </Link>
+          </div>
+          <span className="final-cta-reassurance">
+            Free forever tier • No credit card required • 2-minute setup with LocalStack
+          </span>
+        </div>
+      </section>
+
+      {/* 14. FOOTER WITH BRAND LOGO */}
       <footer className="sentinel-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <span className="brand-title">AgentShield<span className="brand-accent">AI</span></span>
+            <div className="footer-brand-header">
+              <img src="/logo.png" alt="AgentShield AI Logo" className="footer-logo-img" />
+              <span className="brand-title">AgentShield<span className="brand-accent">AI</span></span>
+            </div>
             <p className="footer-tagline">Autonomous Multi-Agent Framework for Multi-Cloud IaC Security</p>
           </div>
-          <div className="footer-actions">
-            <Link to="/console" className="btn-shimmer-gold">Launch Security Console →</Link>
+          <div className="footer-links-group">
+            <div className="footer-col">
+              <span className="footer-col-title">Product</span>
+              <a href="#pipeline">8 Agents</a>
+              <a href="#demo">Live Demo</a>
+              <a href="#diff-studio">Patch Studio</a>
+              <a href="#pricing">Pricing</a>
+            </div>
+            <div className="footer-col">
+              <span className="footer-col-title">Compliance</span>
+              <a href="#compliance">SOC 2 Type II</a>
+              <a href="#compliance">NIST SP 800-53</a>
+              <a href="#compliance">PCI-DSS v4.0</a>
+              <a href="#compliance">HIPAA Security</a>
+            </div>
+            <div className="footer-col">
+              <span className="footer-col-title">Account</span>
+              <Link to="/login">Sign In</Link>
+              <Link to="/signup">Create Account</Link>
+              <Link to="/console">Console</Link>
+            </div>
           </div>
         </div>
         <div className="footer-bottom">

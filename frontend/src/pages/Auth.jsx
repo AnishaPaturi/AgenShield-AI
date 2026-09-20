@@ -103,10 +103,7 @@ export default function Auth({ initialMode = 'login' }) {
         <div className="auth-showcase">
           <Link to="/" className="auth-brand">
             <div className="brand-shield-icon">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L4 6V11C4 16.55 7.84 21.74 12 23C16.16 21.74 20 16.55 20 11V6L12 2Z" stroke="#e5b869" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="12" cy="12.5" r="2" fill="#00e5ff"/>
-              </svg>
+              <img src="/logo.png" alt="AgentShield AI Logo" className="brand-logo-img" />
             </div>
             <span className="brand-title">AgentShield<span className="brand-accent">AI</span></span>
           </Link>
