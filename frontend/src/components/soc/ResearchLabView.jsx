@@ -1,93 +1,84 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
-export default function ResearchLabView() {
-  const metrics = [
-    { label: 'Precision', val: '94%', sub: 'Empirical True Positives', color: '#22C55E' },
-    { label: 'Recall', val: '93%', sub: 'CVE / Misconfig Coverage', color: '#38BDF8' },
-    { label: 'F1 Score', val: '93%', sub: 'Harmonic Mean', color: '#D6A84F' },
-    { label: 'Patch Pass Rate', val: '95%', sub: 'LocalStack Verified', color: '#22C55E' },
-    { label: 'Execution Latency', val: '1.4s', sub: 'End-to-End Pipeline', color: '#CBD5E1' },
-    { label: 'Hallucination Rate', val: '0.6%', sub: 'Dual-LLM Consensus', color: '#EF4444' },
-  ]
+export default function ResearchLabView({ workspaces = [] }) {
+  const empiricalMetrics = useMemo(() => {
+    let totalFindings = 0
+    let totalPatches = 0
+    let validatedPatches = 0
+    let consensusSum = 0
+    let consensusCount = 0
+    let humanReviewCount = 0
 
-  const benchmarks = [
-    { metric: 'Detection Precision', checkov: '82%', basePaper: '88%', agentShield: '94%' },
-    { metric: 'Vulnerability Recall', checkov: '71%', basePaper: '84%', agentShield: '93%' },
-    { metric: 'F1 Harmonic Score', checkov: '76%', basePaper: '86%', agentShield: '93%' },
-    { metric: 'Executable Patch Pass Rate', checkov: '—', basePaper: '—', agentShield: '95%' },
-    { metric: 'Runtime Sandbox Verification', checkov: 'None', basePaper: 'Static Only', agentShield: 'LocalStack (100%)' },
-    { metric: 'Consensus Calibration', checkov: 'Single Model', basePaper: 'Single Model', agentShield: 'Multi-LLM (C >= 0.85)' },
-    { metric: 'False Positive Reduction', checkov: 'Baseline (0%)', basePaper: '24%', agentShield: '68% Reduction' },
-  ]
+    workspaces.forEach((ws) => {
+      const findings = ws.report?.findings || []
+      totalFindings += findings.length
+      humanReviewCount += ws.report?.summary?.human_review_count || 0
+
+      findings.forEach((f) => {
+        if (typeof f.consensus_score === 'number') {
+          consensusSum += f.consensus_score
+          consensusCount += 1
+        }
+      })
+
+      const patches = ws.patches || []
+      totalPatches += patches.length
+      patches.forEach((p) => {
+        if (p.validation_results && p.validation_results.every((v) => v.passed)) {
+          validatedPatches += 1
+        }
+      })
+    })
+
+    const avgConsensus = consensusCount > 0 ? Math.round((consensusSum / consensusCount) * 100) : 0
+    const passRate = totalPatches > 0 ? Math.round((validatedPatches / totalPatches) * 100) : 100
+    const autoPatchRate = totalFindings > 0 ? Math.round(((totalFindings - humanReviewCount) / totalFindings) * 100) : 100
+
+    return [
+      { label: 'Workspaces Evaluated', val: `${workspaces.length}`, sub: 'Active Scan Sessions', color: '#38BDF8' },
+      { label: 'Total Findings Identified', val: `${totalFindings}`, sub: 'Vulnerabilities Triaged', color: '#F97316' },
+      { label: 'Ensemble Consensus', val: `${avgConsensus}%`, sub: 'Multi-LLM Calibration', color: '#D6A84F' },
+      { label: 'Patch Validation Rate', val: `${passRate}%`, sub: 'Passed Static Linters', color: '#22C55E' },
+      { label: 'Auto-Remediation Rate', val: `${autoPatchRate}%`, sub: 'C_ens >= 0.85 Threshold', color: '#22C55E' },
+      { label: 'Human Reviews Required', val: `${humanReviewCount}`, sub: 'Escalated to Audit Queue', color: '#EF4444' },
+    ]
+  }, [workspaces])
 
   return (
     <div className="research-lab-view">
       <div className="scc-header-row">
         <div>
-          <h2 className="scc-title">AgentShield AI Research Lab &amp; Academic Benchmarks</h2>
+          <h2 className="scc-title">AgentShield AI Empirical Performance &amp; Evaluation</h2>
           <p className="scc-subtitle">
-            Experimental evaluation metrics, comparative baselines, and empirical performance data.
+            Empirical runtime performance data and accuracy statistics calculated across active workspace scans.
           </p>
         </div>
       </div>
 
-      {/* 6 Research Performance Gauges */}
-      <div className="research-gauges-grid">
-        {metrics.map((m) => (
-          <div key={m.label} className="research-gauge-card">
-            <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-              {m.label}
-            </div>
-            <div style={{ fontSize: '28px', fontWeight: 700, color: m.color, fontFamily: 'JetBrains Mono', margin: '6px 0 2px' }}>
-              {m.val}
-            </div>
-            <div style={{ fontSize: '11px', color: '#94A3B8' }}>{m.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Comparative Benchmark Table */}
-      <div className="scc-panel-card">
-        <div className="scc-panel-head">
-          <div className="scc-panel-title">
-            <span>Comparative Evaluation Baseline (Checkov vs Base Paper vs AgentShield AI)</span>
-          </div>
-          <span style={{ fontSize: '11px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
-            N=1,200 BENCHMARK TEMPLATES
-          </span>
+      {workspaces.length === 0 ? (
+        <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
+          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+            No Empirical Scan Data Available
+          </p>
+          <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
+            No workspace scans have been executed in this session yet. Run security scans on IaC templates to populate real-time empirical performance metrics.
+          </p>
         </div>
-
-        <table className="benchmark-table">
-          <thead>
-            <tr>
-              <th>EVALUATION METRIC</th>
-              <th>CHECKOV (STATIC)</th>
-              <th>BASE RESEARCH PAPER</th>
-              <th style={{ color: '#D6A84F' }}>AGENTSHIELD AI (OURS)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {benchmarks.map((b) => (
-              <tr key={b.metric} className={b.agentShield === '94%' || b.agentShield === '95%' ? 'highlight-row' : ''}>
-                <td style={{ fontWeight: 600, color: '#FFFFFF' }}>{b.metric}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{b.checkov}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{b.basePaper}</td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#D6A84F' }}>
-                  {b.agentShield}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Research Methodology Note */}
-      <div style={{ background: 'rgba(18, 24, 33, 0.6)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '18px 22px', fontSize: '12.5px', color: '#94A3B8', lineHeight: '1.6' }}>
-        <b style={{ color: '#FFFFFF' }}>Methodology Note:</b> All metrics evaluated across 1,200 curated Terraform,
-        CloudFormation, and Kubernetes manifests containing verified CIS Benchmark violations and zero-day misconfigurations.
-        Patches were tested in isolated LocalStack sandboxes with native <code style={{ color: '#D6A84F' }}>terraform validate</code> and{' '}
-        <code style={{ color: '#D6A84F' }}>cfn-lint</code> compiler verification.
-      </div>
+      ) : (
+        <div className="research-gauges-grid">
+          {empiricalMetrics.map((m) => (
+            <div key={m.label} className="research-gauge-card">
+              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
+                {m.label}
+              </div>
+              <div style={{ fontSize: '28px', fontWeight: 700, color: m.color, fontFamily: 'JetBrains Mono', margin: '6px 0 2px' }}>
+                {m.val}
+              </div>
+              <div style={{ fontSize: '11px', color: '#94A3B8' }}>{m.sub}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -3,49 +3,27 @@ import React from 'react'
 export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
   const latestWs = workspaces[0] || null
   const summary = latestWs?.report?.summary || {
-    total_vulnerabilities: 32,
-    critical_count: 7,
-    high_count: 14,
-    medium_count: 8,
-    low_count: 3,
-    risk_score: 91,
-    human_review_count: 3,
+    total_vulnerabilities: 0,
+    critical_count: 0,
+    high_count: 0,
+    medium_count: 0,
+    low_count: 0,
+    risk_score: 0,
+    human_review_count: 0,
+    auto_patchable_count: 0,
   }
 
-  const recentFindings = [
-    {
-      id: 'f-101',
-      severity: 'CRITICAL',
-      title: 'Public S3 Bucket Allows World Read/Write',
-      provider: 'AWS',
-      iac: 'Terraform',
-      score: 98,
-    },
-    {
-      id: 'f-102',
-      severity: 'HIGH',
-      title: 'Open Security Group Ingress (0.0.0.0/0 on Port 22)',
-      provider: 'AWS',
-      iac: 'CloudFormation',
-      score: 91,
-    },
-    {
-      id: 'f-103',
-      severity: 'HIGH',
-      title: 'Hardcoded Plaintext AWS Secret in ConfigMap',
-      provider: 'K8s',
-      iac: 'Helm',
-      score: 89,
-    },
-    {
-      id: 'f-104',
-      severity: 'MEDIUM',
-      title: 'Missing KMS Customer Managed Key Encryption for EBS',
-      provider: 'AWS',
-      iac: 'Terraform',
-      score: 74,
-    },
-  ]
+  const recentFindings = latestWs?.report?.findings?.slice(0, 5) || []
+  const totalFindings = summary.total_vulnerabilities || 0
+  const calcPct = (cnt) => (totalFindings > 0 ? Math.round((cnt / totalFindings) * 100) : 0)
+
+  const postureScore = totalFindings > 0
+    ? Math.max(0, Math.min(100, Math.round(100 - (summary.risk_score || 0))))
+    : 100
+
+  const autoPatchPct = totalFindings > 0
+    ? ((summary.auto_patchable_count || 0) / totalFindings * 100).toFixed(1)
+    : '0.0'
 
   return (
     <div className="scc-view">
@@ -54,7 +32,7 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
         <div>
           <h2 className="scc-title">Security Command Center</h2>
           <p className="scc-subtitle">
-            Autonomous multi-cloud IaC defense monitoring & LangGraph agent telemetry.
+            Autonomous multi-cloud IaC defense monitoring &amp; LangGraph agent telemetry.
           </p>
         </div>
         <button
@@ -69,22 +47,22 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
       {/* Top 4 Metrics Cards */}
       <div className="scc-metrics-grid">
         <div className="scc-metric-card scans" onClick={() => onNavigate('workspaces')} style={{ cursor: 'pointer' }}>
-          <div className="scc-metric-num">{workspaces.length > 0 ? workspaces.length : 24}</div>
+          <div className="scc-metric-num">{workspaces.length}</div>
           <div className="scc-metric-label">Total Scans Executed</div>
         </div>
 
         <div className="scc-metric-card critical" onClick={() => onNavigate('findings')} style={{ cursor: 'pointer' }}>
-          <div className="scc-metric-num">{summary.critical_count || 7}</div>
+          <div className="scc-metric-num">{summary.critical_count || 0}</div>
           <div className="scc-metric-label">Critical Findings</div>
         </div>
 
         <div className="scc-metric-card score">
-          <div className="scc-metric-num">91%</div>
+          <div className="scc-metric-num">{postureScore}%</div>
           <div className="scc-metric-label">Secure Posture Score</div>
         </div>
 
         <div className="scc-metric-card queue" onClick={() => onNavigate('audit')} style={{ cursor: 'pointer' }}>
-          <div className="scc-metric-num">{summary.human_review_count || 3}</div>
+          <div className="scc-metric-num">{summary.human_review_count || 0}</div>
           <div className="scc-metric-label">Review Queue Pending</div>
         </div>
       </div>
@@ -145,14 +123,14 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
               </div>
               <div style={{ color: '#64748B', fontSize: '11px' }}>→</div>
               <div className="flow-node active-gold" onClick={() => onNavigate('consensus')}>
-                <span>ANALYST (Claude + GPT)</span>
+                <span>ANALYST</span>
               </div>
             </div>
             <div className="flow-arrow-down">↓</div>
 
             {/* CONSENSUS */}
             <div className="flow-node" onClick={() => onNavigate('consensus')}>
-              <span>CONSENSUS (C_ens 0.94)</span>
+              <span>CONSENSUS</span>
             </div>
             <div className="flow-arrow-down">↓</div>
 
@@ -164,7 +142,7 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
 
             {/* VALIDATION */}
             <div className="flow-node" onClick={() => onNavigate('pipeline')}>
-              <span>VALIDATION (LocalStack)</span>
+              <span>VALIDATION</span>
             </div>
             <div className="flow-arrow-down">↓</div>
 
@@ -182,7 +160,7 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
               <span>Risk Distribution</span>
             </div>
             <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
-              32 TOTAL FINDINGS
+              {totalFindings} TOTAL FINDINGS
             </span>
           </div>
 
@@ -190,40 +168,52 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
             <div className="risk-dist-item">
               <div className="risk-dist-meta">
                 <span style={{ color: '#EF4444' }}>● CRITICAL</span>
-                <span>7 (22%)</span>
+                <span>{summary.critical_count || 0} ({calcPct(summary.critical_count || 0)}%)</span>
               </div>
               <div className="risk-dist-bar-track">
-                <div className="risk-dist-bar-fill crit" style={{ width: '22%' }}></div>
+                <div
+                  className="risk-dist-bar-fill crit"
+                  style={{ width: `${calcPct(summary.critical_count || 0)}%` }}
+                ></div>
               </div>
             </div>
 
             <div className="risk-dist-item">
               <div className="risk-dist-meta">
                 <span style={{ color: '#F97316' }}>● HIGH</span>
-                <span>14 (44%)</span>
+                <span>{summary.high_count || 0} ({calcPct(summary.high_count || 0)}%)</span>
               </div>
               <div className="risk-dist-bar-track">
-                <div className="risk-dist-bar-fill high" style={{ width: '44%' }}></div>
+                <div
+                  className="risk-dist-bar-fill high"
+                  style={{ width: `${calcPct(summary.high_count || 0)}%` }}
+                ></div>
               </div>
             </div>
 
             <div className="risk-dist-item">
               <div className="risk-dist-meta">
                 <span style={{ color: '#F59E0B' }}>● MEDIUM</span>
-                <span>8 (25%)</span>
+                <span>{summary.medium_count || 0} ({calcPct(summary.medium_count || 0)}%)</span>
               </div>
               <div className="risk-dist-bar-track">
-                <div className="risk-dist-bar-fill med" style={{ width: '25%' }}></div>
+                <div
+                  className="risk-dist-bar-fill med"
+                  style={{ width: `${calcPct(summary.medium_count || 0)}%` }}
+                ></div>
               </div>
             </div>
 
             <div className="risk-dist-item">
               <div className="risk-dist-meta">
                 <span style={{ color: '#64748B' }}>● LOW</span>
-                <span>3 (9%)</span>
+                <span>{summary.low_count || 0} ({calcPct(summary.low_count || 0)}%)</span>
               </div>
               <div className="risk-dist-bar-track">
-                <div className="risk-dist-bar-fill low" style={{ width: '9%' }}></div>
+                <div
+                  className="risk-dist-bar-fill low"
+                  style={{ width: `${calcPct(summary.low_count || 0)}%` }}
+                ></div>
               </div>
             </div>
           </div>
@@ -231,11 +221,11 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
           <div style={{ marginTop: '24px', padding: '14px', background: 'rgba(18, 24, 33, 0.6)', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8', marginBottom: '8px' }}>
               <span>Auto-Patch Eligibility</span>
-              <b style={{ color: '#22C55E' }}>84.4%</b>
+              <b style={{ color: '#22C55E' }}>{autoPatchPct}%</b>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94A3B8' }}>
               <span>Human Review Escalations</span>
-              <b style={{ color: '#F97316' }}>3 items</b>
+              <b style={{ color: '#F97316' }}>{summary.human_review_count || 0} items</b>
             </div>
           </div>
         </div>
@@ -247,53 +237,63 @@ export default function SecurityCommandCenter({ onNavigate, workspaces = [] }) {
           <div className="scc-panel-title">
             <span>Recent Security Findings</span>
           </div>
-          <button
-            className="soc-back-home-btn"
-            style={{ fontSize: '11px', padding: '4px 10px' }}
-            onClick={() => onNavigate('findings')}
-          >
-            View All Findings ({recentFindings.length}) →
-          </button>
+          {recentFindings.length > 0 && (
+            <button
+              className="soc-back-home-btn"
+              style={{ fontSize: '11px', padding: '4px 10px' }}
+              onClick={() => onNavigate('findings')}
+            >
+              View All Findings ({totalFindings}) →
+            </button>
+          )}
         </div>
 
-        <table className="scc-findings-table">
-          <thead>
-            <tr>
-              <th>SEVERITY</th>
-              <th>FINDING TITLE</th>
-              <th>CLOUD / IAC</th>
-              <th>PRIORITY</th>
-              <th>ACTION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentFindings.map((f) => (
-              <tr key={f.id}>
-                <td>
-                  <span className={`sev-badge ${f.severity}`}>{f.severity}</span>
-                </td>
-                <td style={{ fontWeight: 600, color: '#FFFFFF' }}>{f.title}</td>
-                <td>
-                  <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11.5px' }}>
-                    {f.provider} · {f.iac}
-                  </span>
-                </td>
-                <td>
-                  <span className="priority-score-badge">{f.score}</span>
-                </td>
-                <td>
-                  <button
-                    className="scc-row-arrow-btn"
-                    onClick={() => onNavigate('findings')}
-                    title="Investigate finding"
-                  >
-                    Investigate →
-                  </button>
-                </td>
+        {recentFindings.length === 0 ? (
+          <div style={{ padding: '36px 16px', textAlign: 'center', color: '#94A3B8', fontSize: '13px' }}>
+            No security findings detected. Click "New Security Scan" to upload and evaluate an IaC template.
+          </div>
+        ) : (
+          <table className="scc-findings-table">
+            <thead>
+              <tr>
+                <th>SEVERITY</th>
+                <th>FINDING TITLE</th>
+                <th>RESOURCE / RULE</th>
+                <th>PRIORITY</th>
+                <th>ACTION</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {recentFindings.map((f) => (
+                <tr key={f.finding_id || f.id}>
+                  <td>
+                    <span className={`sev-badge ${f.severity}`}>{f.severity}</span>
+                  </td>
+                  <td style={{ fontWeight: 600, color: '#FFFFFF' }}>{f.title}</td>
+                  <td>
+                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11.5px' }}>
+                      {f.affected_resource || f.rule_id}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="priority-score-badge">
+                      {f.priority || Math.round((f.confidence_score || 0.9) * 100)}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="scc-row-arrow-btn"
+                      onClick={() => onNavigate('findings')}
+                      title="Investigate finding"
+                    >
+                      Investigate →
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   )

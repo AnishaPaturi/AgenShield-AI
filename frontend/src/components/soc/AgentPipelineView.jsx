@@ -1,359 +1,231 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
-export default function AgentPipelineView({ scanning = false, onNavigate }) {
-  const [activeStep, setActiveStep] = useState(scanning ? 1 : 8)
+export default function AgentPipelineView({ workspace, scanning = false, onNavigate }) {
   const [selectedAgent, setSelectedAgent] = useState('manager')
-  const [isSimulating, setIsSimulating] = useState(false)
+  const logs = workspace?.execution_logs || []
 
-  // Simulation runner
-  const startSimulation = () => {
-    setIsSimulating(true)
-    setActiveStep(0)
-    let current = 0
-    const interval = setInterval(() => {
-      current += 1
-      setActiveStep(current)
-      if (current >= 8) {
-        clearInterval(interval)
-        setIsSimulating(false)
-      }
-    }, 700)
-  }
+  // Check which agents have actually completed based on execution logs
+  const executedAgents = new Set(logs.map((l) => l.agent))
 
-  useEffect(() => {
-    if (scanning) {
-      startSimulation()
-    }
-  }, [scanning])
-
-  const agentDetails = {
-    manager: {
+  const agentNodes = [
+    {
+      id: 'manager',
       name: 'Manager / Router Agent',
-      engine: 'LangGraph StateGraph Engine',
-      latency: '12ms',
-      status: activeStep >= 1 ? '✓ Completed' : 'Waiting',
+      engine: 'LangGraph Orchestrator',
+      executed: executedAgents.has('Orchestrator') || scanning,
       input: 'Raw IaC Template (.tf, .yaml, .json)',
-      output: 'Validated Session State & Parallel Execution Dispatch',
-      desc: 'Orchestrates non-linear execution across parallel scanner nodes, tracks state checkpoints, and handles fault-tolerant fallbacks.',
+      output: 'Validated Session State & Dispatch',
+      desc: 'Orchestrates non-linear execution across scanner nodes, tracks state checkpoints, and handles execution routing.',
     },
-    ast: {
+    {
+      id: 'ast',
       name: 'Hybrid AST Parser Agent',
       engine: 'HCL2 / YAML / JSON Tree-Sitter',
-      latency: '180ms',
-      status: activeStep >= 2 ? '✓ Completed' : 'Waiting',
+      executed: executedAgents.has('Orchestrator') || executedAgents.has('ASTParser'),
       input: 'Raw template code strings',
-      output: 'Normalized AST & Resource Dependency Graph (RDG)',
-      desc: 'Parses code into structured AST nodes, pre-evaluates variables/locals, and unfolds loops (for_each/count) to eliminate ambiguity.',
+      output: 'Normalized AST & Resource Graph',
+      desc: 'Parses code into structured AST nodes, pre-evaluates variables, and unfolds loops.',
     },
-    secrets: {
+    {
+      id: 'secrets',
       name: 'Secrets Scanner Agent',
-      engine: 'Gitleaks + TruffleHog + Entropy Scanner',
-      latency: '95ms',
-      status: activeStep >= 2 ? '✓ Completed (0 Leaks)' : 'Waiting',
+      engine: 'Gitleaks + TruffleHog Scanner',
+      executed: executedAgents.has('Orchestrator') || executedAgents.has('SecretsScanner'),
       input: 'IaC content strings & environment definitions',
-      output: 'Zero-Leakage Cryptographically Masked Tokens',
-      desc: 'Intercepts AWS access keys, RSA private keys, and API tokens, redacting them locally before any data leaves for LLM evaluation.',
+      output: 'Masked Cryptographic Tokens',
+      desc: 'Intercepts AWS keys and tokens, redacting them locally before prompt evaluation.',
     },
-    rag: {
-      name: 'RAG Query Agent',
-      engine: 'Qdrant Vector DB + MiniLM Embeddings',
-      latency: '210ms',
-      status: activeStep >= 3 ? '✓ Completed' : 'Waiting',
+    {
+      id: 'rag',
+      name: 'RAG Knowledge Agent',
+      engine: 'Qdrant Vector DB',
+      executed: executedAgents.has('SecurityAnalystAgent') || executedAgents.has('RAGAgent'),
       input: 'AST resource types & properties',
-      output: 'Top-3 CIS Benchmarks, NIST & SOC 2 Policy Controls',
-      desc: 'Executes hybrid vector similarity and BM25 search against 50,000+ cloud security policies to ground LLM reasoning in verified rules.',
+      output: 'CIS Benchmarks, NIST & SOC 2 Policy Controls',
+      desc: 'Executes similarity search against cloud security policies to ground LLM reasoning in verified rules.',
     },
-    analyst: {
+    {
+      id: 'analyst',
       name: 'Security Analyst Agent',
-      engine: 'Claude 3.5 Sonnet + OpenAI GPT-4o Ensemble',
-      latency: '1.4s',
-      status: activeStep >= 4 ? '✓ Completed' : 'Waiting',
+      engine: 'Multi-LLM Ensemble',
+      executed: executedAgents.has('SecurityAnalystAgent'),
       input: 'Enriched AST nodes & regulatory context',
       output: 'Calibrated vulnerability findings with blast radius scores',
-      desc: 'Executes cross-model verification to eradicate hallucinations. Findings with C_ens >= 0.85 proceed to auto-patching; others route to human triage.',
+      desc: 'Executes cross-model verification to identify vulnerabilities and assess risk.',
     },
-    consensus: {
-      name: 'Consensus Agent',
-      engine: 'Ensemble Consensus Validator',
-      latency: '45ms',
-      status: activeStep >= 5 ? '✓ 94.7% Agreement' : 'Waiting',
-      input: 'Dual LLM vulnerability classifications',
-      output: 'Ensemble score C_ens = 0.947 · Auto-patch approved',
-      desc: 'Calculates agreement index between Claude and GPT-4o. If models agree on severity and attack path, consensus is confirmed.',
+    {
+      id: 'attack',
+      name: 'Attack-Path Prioritizer',
+      engine: 'Graph Dependency Traversal',
+      executed: executedAgents.has('FindingPrioritizer'),
+      input: 'Vulnerability findings and resource graph',
+      output: 'Prioritized attack paths and choke points',
+      desc: 'Ranks findings based on graph-theoretical exploitability and blast radius.',
     },
-    remediation: {
+    {
+      id: 'remediation',
       name: 'Remediation Agent',
       engine: 'Deterministic Diff Generator',
-      latency: '820ms',
-      status: activeStep >= 6 ? '✓ Patch Synthesized' : 'Waiting',
-      input: 'Vulnerability AST node & target security posture',
-      output: 'Unified Git Diff patch with zero syntax regressions',
-      desc: 'Writes an executable patch targeting the exact resource block without modifying untouched configurations.',
+      executed: executedAgents.has('RemediationAgent'),
+      input: 'Vulnerability findings & target security posture',
+      output: 'Unified Git Diff patch',
+      desc: 'Synthesizes surgical patches targeting exact resource blocks without regressions.',
     },
-    validation: {
+    {
+      id: 'validation',
       name: 'Validation Agent',
-      engine: 'LocalStack Runtime Sandbox + Native Linters',
-      latency: '1.1s',
-      status: activeStep >= 7 ? '✓ PASSED (0 Errors)' : 'Waiting',
+      engine: 'Static Linters & Runtime Sandbox',
+      executed: executedAgents.has('ValidatorAgent'),
       input: 'Synthesized patch diff buffer',
-      output: 'Dry-run verified deployment in isolated LocalStack environment',
-      desc: 'Tests patches against native syntax linters (terraform validate, cfn-lint) and executes dry-run infrastructure deployments.',
+      output: 'Compiler and linter validation results',
+      desc: 'Tests patches against native syntax linters (terraform validate, cfn-lint) and verification checks.',
     },
-    report: {
-      name: 'Report Generator Agent',
-      engine: 'SARIF / JSON / PDF Multi-Format Engine',
-      latency: '85ms',
-      status: activeStep >= 8 ? '✓ Generated' : 'Waiting',
-      input: 'Validated findings, patches & compliance metrics',
-      output: 'SARIF v2.1.0, JSON, Markdown & Executive PDF',
-      desc: 'Exports compliance-ready reports mapped to SOC 2, HIPAA, PCI-DSS, and NIST controls.',
-    },
-  }
+  ]
 
-  const current = agentDetails[selectedAgent] || agentDetails.manager
+  const activeNode = agentNodes.find((n) => n.id === selectedAgent) || agentNodes[0]
 
   return (
     <div className="pipeline-view">
       <div className="pipeline-hero">
-        <h2>Autonomous 8-Agent LangGraph Workflow</h2>
+        <h2>Autonomous Agent Execution Pipeline</h2>
         <p>
-          Real-time visualization of coordinated AI agents analyzing, auditing, synthesizing, and
-          sandbox-validating infrastructure code.
+          Real-time telemetry and state transitions across the AgentShield AI LangGraph workflow.
         </p>
         <div style={{ marginTop: '14px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button
             className="btn-start-analysis"
             style={{ padding: '8px 18px', fontSize: '12.5px' }}
-            onClick={startSimulation}
-            disabled={isSimulating}
+            onClick={() => onNavigate('new-scan')}
           >
-            {isSimulating ? '⚡ Simulation Running...' : '▶ Run Live Pipeline Demo'}
+            ⚡ Start New Scan
           </button>
+          {workspace && (
+            <button
+              className="soc-back-home-btn"
+              onClick={() => onNavigate('findings')}
+            >
+              View Findings ({workspace?.report?.findings?.length || 0}) →
+            </button>
+          )}
+        </div>
+      </div>
+
+      {!workspace && !scanning ? (
+        <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8', maxWidth: '1080px', width: '100%' }}>
+          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+            No Active Pipeline Execution
+          </p>
+          <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
+            Upload or paste an IaC template to trigger the autonomous multi-agent pipeline and observe live execution telemetry.
+          </p>
           <button
-            className="soc-back-home-btn"
-            onClick={() => onNavigate('remediation')}
+            className="btn-start-analysis"
+            style={{ marginTop: '20px', padding: '8px 20px', fontSize: '13px' }}
+            onClick={() => onNavigate('new-scan')}
           >
-            Inspect Remediated Code →
+            ⚡ Run New Scan
           </button>
         </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '28px', width: '100%', maxWidth: '1080px' }}>
-        {/* Center: Interactive Workflow Graph */}
-        <div className="pipeline-graph-container">
-          {/* 1. MANAGER AGENT */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 1 ? 'completed' : isSimulating ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('manager')}
-          >
-            <div>
-              <div className="pipeline-agent-title">MANAGER AGENT</div>
-              <div className="pipeline-agent-sub">LangGraph Orchestrator · 12ms</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 1 ? '✓' : '●'}
-            </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '28px', width: '100%', maxWidth: '1080px' }}>
+          {/* Left: Workflow Node Graph */}
+          <div className="pipeline-graph-container">
+            {agentNodes.map((agent, idx) => (
+              <React.Fragment key={agent.id}>
+                <div
+                  className={`pipeline-agent-box ${agent.executed ? 'completed' : scanning ? 'running' : ''} ${selectedAgent === agent.id ? 'active' : ''}`}
+                  onClick={() => setSelectedAgent(agent.id)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div>
+                    <div className="pipeline-agent-title">{agent.name.toUpperCase()}</div>
+                    <div className="pipeline-agent-sub">{agent.engine}</div>
+                  </div>
+                  <div className="pipeline-status-icon">
+                    {agent.executed ? '✓' : scanning ? '⟳' : '○'}
+                  </div>
+                </div>
+                {idx < agentNodes.length - 1 && <div className="pipeline-connector-line"></div>}
+              </React.Fragment>
+            ))}
           </div>
 
-          <div className="pipeline-connector-line"></div>
-
-          {/* 2. PARALLEL: AST PARSER + SECRETS SCANNER */}
-          <div className="pipeline-parallel-row">
-            <div
-              className={`pipeline-agent-box ${activeStep >= 2 ? 'completed' : activeStep === 1 ? 'running' : ''}`}
-              style={{ width: '230px' }}
-              onClick={() => setSelectedAgent('ast')}
-            >
-              <div>
-                <div className="pipeline-agent-title">AST PARSER</div>
-                <div className="pipeline-agent-sub">HCL2 / Tree-Sitter</div>
-              </div>
-              <div className="pipeline-status-icon">
-                {activeStep >= 2 ? '✓' : '●'}
-              </div>
-            </div>
-
-            <div
-              className={`pipeline-agent-box ${activeStep >= 2 ? 'completed' : activeStep === 1 ? 'running' : ''}`}
-              style={{ width: '230px' }}
-              onClick={() => setSelectedAgent('secrets')}
-            >
-              <div>
-                <div className="pipeline-agent-title">SECRETS AGENT</div>
-                <div className="pipeline-agent-sub">Gitleaks Interceptor</div>
-              </div>
-              <div className="pipeline-status-icon">
-                {activeStep >= 2 ? '✓' : '●'}
-              </div>
-            </div>
-          </div>
-
-          <div className="pipeline-connector-line"></div>
-
-          {/* 3. RAG ENGINE */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 3 ? 'completed' : activeStep === 2 ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('rag')}
-          >
-            <div>
-              <div className="pipeline-agent-title">RAG ENGINE</div>
-              <div className="pipeline-agent-sub">Qdrant Vector DB · 50k Rules</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 3 ? '✓' : '●'}
-            </div>
-          </div>
-
-          <div className="pipeline-connector-line"></div>
-
-          {/* 4. SECURITY ANALYST */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 4 ? 'completed' : activeStep === 3 ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('analyst')}
-          >
-            <div>
-              <div className="pipeline-agent-title">SECURITY ANALYST</div>
-              <div className="pipeline-agent-sub">Claude 3.5 + GPT-4o Ensemble</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 4 ? '✓' : '●'}
-            </div>
-          </div>
-
-          <div className="pipeline-connector-line"></div>
-
-          {/* 5. CONSENSUS */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 5 ? 'completed' : activeStep === 4 ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('consensus')}
-          >
-            <div>
-              <div className="pipeline-agent-title">CONSENSUS AGENT</div>
-              <div className="pipeline-agent-sub">Agreement: 94.7% ✓</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 5 ? '✓' : '●'}
-            </div>
-          </div>
-
-          <div className="pipeline-connector-line"></div>
-
-          {/* 6. REMEDIATION */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 6 ? 'completed' : activeStep === 5 ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('remediation')}
-          >
-            <div>
-              <div className="pipeline-agent-title">REMEDIATION AGENT</div>
-              <div className="pipeline-agent-sub">Unified Git Diff Synthesizer</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 6 ? '✓' : '●'}
-            </div>
-          </div>
-
-          <div className="pipeline-connector-line"></div>
-
-          {/* 7. VALIDATION */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 7 ? 'completed' : activeStep === 6 ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('validation')}
-          >
-            <div>
-              <div className="pipeline-agent-title">VALIDATION AGENT</div>
-              <div className="pipeline-agent-sub">LocalStack Sandbox ✓ PASSED</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 7 ? '✓' : '●'}
-            </div>
-          </div>
-
-          <div className="pipeline-connector-line"></div>
-
-          {/* 8. REPORT */}
-          <div
-            className={`pipeline-agent-box ${activeStep >= 8 ? 'completed' : activeStep === 7 ? 'running' : ''}`}
-            onClick={() => setSelectedAgent('report')}
-          >
-            <div>
-              <div className="pipeline-agent-title">REPORT GENERATOR</div>
-              <div className="pipeline-agent-sub">SARIF / JSON / PDF Multi-Format</div>
-            </div>
-            <div className="pipeline-status-icon">
-              {activeStep >= 8 ? '✓' : '●'}
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Selected Agent Telemetry Inspector */}
-        <div className="scc-panel-card" style={{ height: 'fit-content' }}>
-          <div className="scc-panel-head">
-            <div className="scc-panel-title">
-              <span className="flow-node-dot"></span>
-              Agent Telemetry Inspector
-            </div>
-            <span style={{ fontSize: '11px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
-              LIVE NODE
-            </span>
-          </div>
-
+          {/* Right: Selected Node Details + Execution Trace Logs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-                ACTIVE NODE
+            <div className="pipeline-inspector-card">
+              <div className="scc-panel-head">
+                <div className="scc-panel-title">
+                  <span className="flow-node-dot"></span>
+                  Agent Node Telemetry
+                </div>
+                <span style={{ fontSize: '11px', color: activeNode.executed ? '#22C55E' : '#94A3B8', fontFamily: 'JetBrains Mono' }}>
+                  {activeNode.executed ? '✓ EXECUTED' : scanning ? 'IN PROGRESS' : 'IDLE'}
+                </span>
               </div>
-              <div style={{ fontSize: '18px', fontWeight: 700, color: '#FFFFFF', marginTop: '2px', fontFamily: 'Outfit' }}>
-                {current.name}
+
+              <div>
+                <div className="inspector-section-label">AGENT NAME</div>
+                <div className="inspector-section-val" style={{ color: '#FFFFFF', fontWeight: 600 }}>
+                  {activeNode.name}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">CORE ENGINE</div>
+                <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#D6A84F' }}>
+                  {activeNode.engine}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">INPUT CONTRACT</div>
+                <div className="inspector-section-val" style={{ color: '#CBD5E1' }}>
+                  {activeNode.input}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">OUTPUT ARTIFACT</div>
+                <div className="inspector-section-val" style={{ color: '#CBD5E1' }}>
+                  {activeNode.output}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '12px' }}>
+                <div className="inspector-section-label">RESPONSIBILITY &amp; ARCHITECTURE</div>
+                <div className="inspector-section-val" style={{ color: '#94A3B8', lineHeight: '1.5' }}>
+                  {activeNode.desc}
+                </div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '10px 12px', borderRadius: '6px' }}>
-                <div style={{ fontSize: '10.5px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>LATENCY</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', marginTop: '2px' }}>{current.latency}</div>
+            {/* Live Execution Logs */}
+            {logs.length > 0 && (
+              <div className="scc-panel-card" style={{ padding: '16px' }}>
+                <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>
+                  AUDIT TRACE LOGS ({logs.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
+                  {logs.map((l, i) => (
+                    <div key={i} style={{ background: '#040609', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '6px', padding: '8px 10px', fontSize: '11.5px', fontFamily: 'JetBrains Mono' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#D6A84F' }}>
+                        <span>{l.agent}</span>
+                        <span style={{ color: '#64748B' }}>{l.action}</span>
+                      </div>
+                      <div style={{ color: '#94A3B8', marginTop: '3px' }}>
+                        {Object.entries(l)
+                          .filter(([k]) => k !== 'agent' && k !== 'action')
+                          .map(([k, v]) => `${k}: ${v}`)
+                          .join(' · ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '10px 12px', borderRadius: '6px' }}>
-                <div style={{ fontSize: '10.5px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>STATUS</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#22C55E', marginTop: '2px' }}>{current.status}</div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-                CORE ENGINE
-              </div>
-              <div style={{ fontSize: '13px', color: '#CBD5E1', marginTop: '2px' }}>{current.engine}</div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-                ROLE &amp; FUNCTION
-              </div>
-              <div style={{ fontSize: '13px', color: '#94A3B8', marginTop: '4px', lineHeight: '1.55' }}>
-                {current.desc}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
-              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-                INPUT PAYLOAD
-              </div>
-              <div style={{ fontSize: '12px', color: '#CBD5E1', fontFamily: 'JetBrains Mono', marginTop: '2px', background: '#040609', padding: '8px', borderRadius: '4px' }}>
-                {current.input}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-                OUTPUT PAYLOAD
-              </div>
-              <div style={{ fontSize: '12px', color: '#86EFAC', fontFamily: 'JetBrains Mono', marginTop: '2px', background: '#040609', padding: '8px', borderRadius: '4px' }}>
-                {current.output}
-              </div>
-            </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

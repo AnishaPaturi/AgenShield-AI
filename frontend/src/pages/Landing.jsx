@@ -1124,7 +1124,6 @@ spec:
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Elena Rostova"
                     value={contactForm.name}
                     onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                     className="c-input"
@@ -1136,7 +1135,6 @@ spec:
                   <input
                     type="email"
                     required
-                    placeholder="elena@company.com"
                     value={contactForm.email}
                     onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                     className="c-input"
@@ -1162,7 +1160,6 @@ spec:
                   <textarea
                     rows={4}
                     required
-                    placeholder="Tell us about your infrastructure or questions..."
                     value={contactForm.message}
                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                     className="c-input"

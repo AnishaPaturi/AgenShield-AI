@@ -1,21 +1,66 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
-export default function ComplianceView({ onNavigate }) {
-  const frameworks = [
-    { name: 'SOC 2 Type II', pct: 86, color: '#22C55E', controls: '43/50' },
-    { name: 'HIPAA Security Rule', pct: 72, color: '#F59E0B', controls: '36/50' },
-    { name: 'PCI-DSS v4.0', pct: 81, color: '#22C55E', controls: '48/59' },
-    { name: 'NIST SP 800-53 Rev. 5', pct: 91, color: '#D6A84F', controls: '91/100' },
-  ]
+export default function ComplianceView({ workspace, onNavigate }) {
+  const findings = workspace?.report?.findings || []
 
-  const controls = [
-    { id: 'NIST-AC-6', framework: 'NIST 800-53', title: 'Least Privilege Enforcement', status: 'PASSED', findings: 0 },
-    { id: 'NIST-IA-2', framework: 'NIST 800-53', title: 'Identification and Authentication', status: 'WARNING', findings: 3 },
-    { id: 'PCI-DSS-1.3', framework: 'PCI-DSS', title: 'Cardholder Perimeter Network Filtering', status: 'FAILED', findings: 5 },
-    { id: 'SOC2-CC6.1', framework: 'SOC 2', title: 'Logical Access & Firewall Rules', status: 'WARNING', findings: 2 },
-    { id: 'CIS-AWS-1.16', framework: 'CIS Benchmarks', title: 'IAM Policies Grant Least Privilege', status: 'PASSED', findings: 0 },
-    { id: 'HIPAA-164.312', framework: 'HIPAA', title: 'Technical Safeguards / Data Encryption at Rest', status: 'PASSED', findings: 0 },
-  ]
+  const { frameworks, controls } = useMemo(() => {
+    const fwMap = {
+      'SOC 2': { name: 'SOC 2 Type II', violations: 0, total: 50 },
+      'HIPAA': { name: 'HIPAA Security Rule', violations: 0, total: 50 },
+      'PCI-DSS': { name: 'PCI-DSS v4.0', violations: 0, total: 50 },
+      'NIST': { name: 'NIST SP 800-53', violations: 0, total: 50 },
+      'CIS': { name: 'CIS Benchmarks', violations: 0, total: 50 },
+    }
+
+    const ctrlMap = {}
+
+    findings.forEach((f) => {
+      const list = Array.isArray(f.compliance_mappings)
+        ? f.compliance_mappings
+        : Array.isArray(f.compliance)
+        ? f.compliance
+        : []
+
+      list.forEach((entry) => {
+        const str = typeof entry === 'string' ? entry : `${entry.framework || ''} ${entry.control_id || ''}`
+        const upper = str.toUpperCase()
+
+        for (const [key, obj] of Object.entries(fwMap)) {
+          if (upper.includes(key)) {
+            obj.violations += 1
+          }
+        }
+
+        if (!ctrlMap[str]) {
+          ctrlMap[str] = {
+            id: str,
+            framework: str.split(' ')[0] || 'SECURITY',
+            title: f.title || 'Security Control Enforcement',
+            status: f.severity === 'CRITICAL' ? 'FAILED' : 'WARNING',
+            findings: 0,
+          }
+        }
+        ctrlMap[str].findings += 1
+      })
+    })
+
+    const fwList = Object.entries(fwMap).map(([k, v]) => {
+      const satisfied = Math.max(0, v.total - v.violations)
+      const pct = Math.round((satisfied / v.total) * 100)
+      const color = pct >= 85 ? '#22C55E' : pct >= 70 ? '#F59E0B' : '#EF4444'
+      return {
+        name: v.name,
+        pct,
+        color,
+        controls: `${satisfied}/${v.total}`,
+      }
+    })
+
+    return {
+      frameworks: fwList,
+      controls: Object.values(ctrlMap),
+    }
+  }, [findings])
 
   return (
     <div className="compliance-view">
@@ -23,111 +68,133 @@ export default function ComplianceView({ onNavigate }) {
         <div>
           <h2 className="scc-title">Regulatory Compliance &amp; Governance Center</h2>
           <p className="scc-subtitle">
-            Automated policy alignment against SOC 2, HIPAA, PCI-DSS, and NIST SP 800-53 security controls.
+            Automated policy alignment against SOC 2, HIPAA, PCI-DSS, CIS, and NIST SP 800-53 security controls.
           </p>
         </div>
-        <button
-          className="btn-start-analysis"
-          style={{ padding: '8px 18px', fontSize: '12.5px' }}
-          onClick={() => onNavigate('findings')}
-        >
-          View Non-Compliant Findings →
-        </button>
+        {findings.length > 0 && (
+          <button
+            className="btn-start-analysis"
+            style={{ padding: '8px 18px', fontSize: '12.5px' }}
+            onClick={() => onNavigate('findings')}
+          >
+            View Non-Compliant Findings →
+          </button>
+        )}
       </div>
 
-      {/* Compliance Posture Meters */}
-      <div className="compliance-meters-grid">
-        {frameworks.map((f) => (
-          <div key={f.name} className="compliance-meter-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'Outfit', fontSize: '14.5px', fontWeight: 700, color: '#FFFFFF' }}>
-                {f.name}
-              </span>
-              <span style={{ fontFamily: 'JetBrains Mono', fontSize: '15px', fontWeight: 700, color: f.color }}>
-                {f.pct}%
-              </span>
-            </div>
-
-            <div className="risk-dist-bar-track" style={{ height: '8px', margin: '8px 0' }}>
-              <div
-                className="risk-dist-bar-fill"
-                style={{ width: `${f.pct}%`, background: f.color, boxShadow: `0 0 8px ${f.color}` }}
-              ></div>
-            </div>
-
-            <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
-              {f.controls} Controls Satisfied
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Controls Audit Table */}
-      <div className="scc-panel-card">
-        <div className="scc-panel-head">
-          <div className="scc-panel-title">
-            <span>Regulatory Control Verification Matrix</span>
-          </div>
-          <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
-            UPDATED REAL-TIME PER SCAN
-          </span>
+      {!workspace || findings.length === 0 ? (
+        <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
+          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+            No Compliance Data Available
+          </p>
+          <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
+            {workspace
+              ? 'No compliance violations were detected in the current workspace.'
+              : 'No workspace is currently selected. Run a scan on an IaC template to evaluate regulatory compliance.'}
+          </p>
+          <button
+            className="btn-start-analysis"
+            style={{ marginTop: '20px', padding: '8px 20px', fontSize: '13px' }}
+            onClick={() => onNavigate('new-scan')}
+          >
+            ⚡ Run New Scan
+          </button>
         </div>
-
-        <table className="scc-findings-table">
-          <thead>
-            <tr>
-              <th>CONTROL ID</th>
-              <th>FRAMEWORK</th>
-              <th>SECURITY CONTROL TITLE</th>
-              <th>STATUS</th>
-              <th>FINDINGS</th>
-            </tr>
-          </thead>
-          <tbody>
-            {controls.map((c) => (
-              <tr key={c.id}>
-                <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#D6A84F' }}>{c.id}</td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: '12px' }}>{c.framework}</td>
-                <td style={{ color: '#FFFFFF', fontWeight: 500 }}>{c.title}</td>
-                <td>
-                  <span
-                    style={{
-                      fontFamily: 'JetBrains Mono',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      background:
-                        c.status === 'PASSED'
-                          ? 'rgba(34, 197, 94, 0.15)'
-                          : c.status === 'WARNING'
-                          ? 'rgba(249, 115, 22, 0.15)'
-                          : 'rgba(239, 68, 68, 0.15)',
-                      color:
-                        c.status === 'PASSED'
-                          ? '#22C55E'
-                          : c.status === 'WARNING'
-                          ? '#F97316'
-                          : '#EF4444',
-                    }}
-                  >
-                    {c.status === 'PASSED' ? '✓ PASSED' : c.status === 'WARNING' ? '⚠ WARNING' : '✕ FAILED'}
+      ) : (
+        <>
+          {/* Compliance Posture Meters */}
+          <div className="compliance-meters-grid">
+            {frameworks.map((f) => (
+              <div key={f.name} className="compliance-meter-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'Outfit', fontSize: '14.5px', fontWeight: 700, color: '#FFFFFF' }}>
+                    {f.name}
                   </span>
-                </td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
-                  {c.findings > 0 ? (
-                    <span style={{ color: c.status === 'FAILED' ? '#EF4444' : '#F97316' }}>
-                      {c.findings} finding(s)
-                    </span>
-                  ) : (
-                    <span style={{ color: '#64748B' }}>0</span>
-                  )}
-                </td>
-              </tr>
+                  <span style={{ fontFamily: 'JetBrains Mono', fontSize: '15px', fontWeight: 700, color: f.color }}>
+                    {f.pct}%
+                  </span>
+                </div>
+
+                <div className="risk-dist-bar-track" style={{ height: '8px', margin: '8px 0' }}>
+                  <div
+                    className="risk-dist-bar-fill"
+                    style={{ width: `${f.pct}%`, background: f.color, boxShadow: `0 0 8px ${f.color}` }}
+                  ></div>
+                </div>
+
+                <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
+                  {f.controls} Controls Satisfied
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          {/* Controls Audit Table */}
+          {controls.length > 0 && (
+            <div className="scc-panel-card">
+              <div className="scc-panel-head">
+                <div className="scc-panel-title">
+                  <span>Regulatory Control Verification Matrix</span>
+                </div>
+                <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
+                  EVALUATED FROM WORKSPACE FINDINGS
+                </span>
+              </div>
+
+              <table className="scc-findings-table">
+                <thead>
+                  <tr>
+                    <th>CONTROL ID</th>
+                    <th>FRAMEWORK</th>
+                    <th>SECURITY CONTROL TITLE</th>
+                    <th>STATUS</th>
+                    <th>FINDINGS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {controls.map((c) => (
+                    <tr key={c.id}>
+                      <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#D6A84F' }}>{c.id}</td>
+                      <td style={{ fontFamily: 'JetBrains Mono', fontSize: '12px' }}>{c.framework}</td>
+                      <td style={{ color: '#FFFFFF', fontWeight: 500 }}>{c.title}</td>
+                      <td>
+                        <span
+                          style={{
+                            fontFamily: 'JetBrains Mono',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            background:
+                              c.status === 'PASSED'
+                                ? 'rgba(34, 197, 94, 0.15)'
+                                : c.status === 'WARNING'
+                                ? 'rgba(249, 115, 22, 0.15)'
+                                : 'rgba(239, 68, 68, 0.15)',
+                            color:
+                              c.status === 'PASSED'
+                                ? '#22C55E'
+                                : c.status === 'WARNING'
+                                ? '#F97316'
+                                : '#EF4444',
+                          }}
+                        >
+                          {c.status === 'PASSED' ? '✓ PASSED' : c.status === 'WARNING' ? '⚠ WARNING' : '✕ FAILED'}
+                        </span>
+                      </td>
+                      <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
+                        <span style={{ color: c.status === 'FAILED' ? '#EF4444' : '#F97316' }}>
+                          {c.findings} finding(s)
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

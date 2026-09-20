@@ -1,41 +1,71 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
-export default function MultiCloudView({ onNavigate }) {
-  const clouds = [
-    {
-      name: 'Amazon Web Services',
-      tag: 'AWS',
-      icon: '☁️',
-      scans: 18,
-      crit: 3,
-      high: 7,
-      med: 8,
-      color: '#F97316',
-      services: ['S3 Buckets', 'IAM Roles', 'VPC & Security Groups', 'RDS PostgreSQL', 'EKS Clusters'],
-    },
-    {
-      name: 'Microsoft Azure',
-      tag: 'AZURE',
-      icon: '☁️',
-      scans: 11,
-      crit: 1,
-      high: 4,
-      med: 6,
-      color: '#38BDF8',
-      services: ['Storage Accounts (Blob)', 'Network Security Groups', 'Azure RBAC', 'Key Vault', 'AKS'],
-    },
-    {
-      name: 'Google Cloud Platform',
-      tag: 'GCP',
-      icon: '☁️',
-      scans: 9,
-      crit: 2,
-      high: 3,
-      med: 4,
-      color: '#22C55E',
-      services: ['Cloud Storage (GCS)', 'VPC Firewall Rules', 'IAM Service Accounts', 'Cloud SQL', 'GKE'],
-    },
-  ]
+export default function MultiCloudView({ workspaces = [], onNavigate }) {
+  const clouds = useMemo(() => {
+    const cloudConfigs = [
+      {
+        name: 'Amazon Web Services',
+        tag: 'AWS',
+        icon: '☁️',
+        color: '#F97316',
+        services: ['S3 Buckets', 'IAM Roles', 'VPC & Security Groups', 'RDS PostgreSQL', 'EKS Clusters'],
+      },
+      {
+        name: 'Microsoft Azure',
+        tag: 'AZURE',
+        icon: '☁️',
+        color: '#38BDF8',
+        services: ['Storage Accounts (Blob)', 'Network Security Groups', 'Azure RBAC', 'Key Vault', 'AKS'],
+      },
+      {
+        name: 'Google Cloud Platform',
+        tag: 'GCP',
+        icon: '☁️',
+        color: '#22C55E',
+        services: ['Cloud Storage (GCS)', 'VPC Firewall Rules', 'IAM Service Accounts', 'Cloud SQL', 'GKE'],
+      },
+      {
+        name: 'Kubernetes Cloud-Native',
+        tag: 'K8S',
+        icon: '☸️',
+        color: '#818CF8',
+        services: ['ConfigMaps & Secrets', 'RBAC Bindings', 'PodSecurityPolicies', 'NetworkPolicies', 'Ingress'],
+      },
+    ]
+
+    return cloudConfigs.map((c) => {
+      let scans = 0
+      let crit = 0
+      let high = 0
+      let med = 0
+
+      workspaces.forEach((ws) => {
+        const provider = (ws.template?.cloud_provider || '').toUpperCase()
+        const iac = (ws.template?.iac_type || '').toUpperCase()
+        const isMatch =
+          provider === c.tag ||
+          (c.tag === 'K8S' && (iac === 'KUBERNETES' || iac === 'HELM'))
+
+        if (isMatch) {
+          scans += 1
+          const findings = ws.report?.findings || []
+          findings.forEach((f) => {
+            if (f.severity === 'CRITICAL') crit += 1
+            else if (f.severity === 'HIGH') high += 1
+            else if (f.severity === 'MEDIUM') med += 1
+          })
+        }
+      })
+
+      return {
+        ...c,
+        scans,
+        crit,
+        high,
+        med,
+      }
+    })
+  }, [workspaces])
 
   return (
     <div className="multicloud-view">
@@ -55,7 +85,7 @@ export default function MultiCloudView({ onNavigate }) {
         </button>
       </div>
 
-      {/* 3 Giant Cloud Zones */}
+      {/* 4 Cloud Zones */}
       <div className="cloud-zones-grid">
         {clouds.map((c) => (
           <div key={c.tag} className="cloud-zone-card">

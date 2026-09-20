@@ -210,7 +210,6 @@ export default function TriageDashboard({ onToast }) {
                   <input
                     type="text"
                     className="comment-input"
-                    placeholder="Engineer rationale / notes (optional)..."
                     value={comments[item.item_id] || ''}
                     onChange={(e) =>
                       setComments({ ...comments, [item.item_id]: e.target.value })

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { getCurrentUser, logout } from '../auth.js'
 import {
   checkHealth,
   listWorkspaces,
@@ -27,12 +28,14 @@ import DriftView from '../components/soc/DriftView.jsx'
 import ResearchLabView from '../components/soc/ResearchLabView.jsx'
 
 export default function Console() {
+  const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState(getCurrentUser())
   const [activeTab, setActiveTab] = useState('dashboard') // 12 views
   const [healthy, setHealthy] = useState(null)
   const [workspaces, setWorkspaces] = useState([])
   const [currentWorkspace, setCurrentWorkspace] = useState(null)
   const [scanning, setScanning] = useState(false)
-  const [pendingCount, setPendingCount] = useState(3)
+  const [pendingCount, setPendingCount] = useState(0)
   const [toast, setToast] = useState({ message: '', isError: false })
   const [apiBaseVal, setApiBaseVal] = useState(getApiBase())
 
@@ -65,15 +68,21 @@ export default function Console() {
         setPendingCount(stats.pending_count)
       }
     } catch {
-      setPendingCount(3)
+      setPendingCount(0)
     }
   }, [])
 
   useEffect(() => {
+    const user = getCurrentUser()
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    setCurrentUser(user)
     refreshHealth()
     refreshWorkspaces()
     refreshAuditStats()
-  }, [refreshHealth, refreshWorkspaces, refreshAuditStats])
+  }, [navigate, refreshHealth, refreshWorkspaces, refreshAuditStats])
 
   async function handleScan(file, options = {}) {
     setScanning(true)
@@ -163,6 +172,23 @@ export default function Console() {
               style={{ width: '180px', padding: '5px 10px', fontSize: '11px' }}
             />
           </div>
+
+          {currentUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '6px', fontSize: '11.5px' }}>
+              <span style={{ color: '#D6A84F', fontWeight: 600 }}>● {currentUser.name}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  logout()
+                  navigate('/login')
+                }}
+                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '11px', textDecoration: 'underline' }}
+                title="Sign out of console"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
 
           <Link to="/" className="soc-back-home-btn" title="Back to Landing Page">
             ← Landing Page
@@ -351,6 +377,7 @@ export default function Console() {
 
           {activeTab === 'pipeline' && (
             <AgentPipelineView
+              workspace={currentWorkspace}
               scanning={scanning}
               onNavigate={(tab) => setActiveTab(tab)}
             />
@@ -365,12 +392,14 @@ export default function Console() {
 
           {activeTab === 'attack-map' && (
             <AttackPathView
+              workspace={currentWorkspace}
               onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 
           {activeTab === 'remediation' && (
             <RemediationView
+              workspace={currentWorkspace}
               onDecide={handleDecide}
               onToast={showToast}
             />
@@ -378,6 +407,7 @@ export default function Console() {
 
           {activeTab === 'consensus' && (
             <ConsensusView
+              workspace={currentWorkspace}
               onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
@@ -391,25 +421,28 @@ export default function Console() {
 
           {activeTab === 'multicloud' && (
             <MultiCloudView
+              workspaces={workspaces}
               onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 
           {activeTab === 'compliance' && (
             <ComplianceView
+              workspace={currentWorkspace}
               onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 
           {activeTab === 'drift' && (
             <DriftView
+              workspace={currentWorkspace}
               onToast={showToast}
               onNavigate={(tab) => setActiveTab(tab)}
             />
           )}
 
           {activeTab === 'research' && (
-            <ResearchLabView />
+            <ResearchLabView workspaces={workspaces} />
           )}
 
           {activeTab === 'workspaces' && (

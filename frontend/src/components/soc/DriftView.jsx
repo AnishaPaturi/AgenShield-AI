@@ -1,17 +1,47 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { scanDrift, getDrift } from '../../api.js'
 
-export default function DriftView({ onToast, onNavigate }) {
-  const [isReconciling, setIsReconciling] = useState(false)
-  const [driftResolved, setDriftResolved] = useState(false)
+export default function DriftView({ workspace, onToast, onNavigate }) {
+  const [isScanning, setIsScanning] = useState(false)
+  const [driftReport, setDriftReport] = useState(null)
+  const [error, setError] = useState(null)
 
-  const handleReconcile = () => {
-    setIsReconciling(true)
-    setTimeout(() => {
-      setIsReconciling(false)
-      setDriftResolved(true)
-      if (onToast) onToast('Drift auto-reconciled! Live cloud state aligned with Git IaC configuration. ✓')
-    }, 1200)
+  useEffect(() => {
+    if (!workspace?.workspace_id) {
+      setDriftReport(null)
+      return
+    }
+
+    async function load() {
+      try {
+        const report = await getDrift(workspace.workspace_id)
+        if (report) setDriftReport(report)
+      } catch (err) {
+        // No cached drift report yet
+      }
+    }
+    load()
+  }, [workspace?.workspace_id])
+
+  const handleScanDrift = async () => {
+    if (!workspace?.workspace_id) return
+    setIsScanning(true)
+    setError(null)
+    try {
+      const report = await scanDrift(workspace.workspace_id)
+      setDriftReport(report)
+      if (onToast) {
+        onToast(`Drift scan complete — ${report.total_drifts || 0} drift(s) detected.`)
+      }
+    } catch (err) {
+      setError(err.message || 'Drift scan failed')
+      if (onToast) onToast(err.message || 'Drift scan failed', true)
+    } finally {
+      setIsScanning(false)
+    }
   }
+
+  const drifts = driftReport?.drifts || []
 
   return (
     <div className="drift-view">
@@ -22,118 +52,92 @@ export default function DriftView({ onToast, onNavigate }) {
             Continuous reconciliation between Git-defined IaC templates and runtime AWS/Azure/GCP cloud API state.
           </p>
         </div>
-      </div>
-
-      {/* Desired vs Actual Visualizer */}
-      <div className="drift-state-comparison">
-        {/* Left: IaC State (Git / Terraform) */}
-        <div>
-          <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-            DESIRED (GIT IAC STATE)
-          </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'Outfit', marginTop: '6px' }}>
-            S3 BUCKET PRIVATE
-          </div>
-          <div style={{ fontSize: '12px', color: '#22C55E', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
-            ✓ public_access_block = true
-          </div>
-          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>
-            Source: <code style={{ color: '#D6A84F' }}>git://terraform/storage.tf</code>
-          </div>
-        </div>
-
-        {/* Center: Drift Alert Indicator */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <div className="drift-badge-alert">
-            {driftResolved ? '✓ DRIFT RECONCILED' : '⚠ DRIFT DETECTED'}
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
-            {driftResolved ? 'State synchronized' : 'Detected 14m ago by Agent 07'}
-          </div>
-        </div>
-
-        {/* Right: Live Cloud (Runtime API) */}
-        <div>
-          <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', textTransform: 'uppercase' }}>
-            ACTUAL (LIVE CLOUD API)
-          </div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: driftResolved ? '#22C55E' : '#EF4444', fontFamily: 'Outfit', marginTop: '6px' }}>
-            {driftResolved ? 'S3 BUCKET PRIVATE' : 'S3 BUCKET PUBLIC'}
-          </div>
-          <div style={{ fontSize: '12px', color: driftResolved ? '#22C55E' : '#EF4444', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
-            {driftResolved ? '✓ public_access_block = true' : '✕ public_access_block = false'}
-          </div>
-          <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '6px' }}>
-            Provider: <code style={{ color: '#D6A84F' }}>AWS us-east-1 · arn:aws:s3:::prod-customer-data</code>
-          </div>
-        </div>
-      </div>
-
-      {/* Detailed Diff Comparison Card */}
-      <div className="scc-panel-card">
-        <div className="scc-panel-head">
-          <div className="scc-panel-title">
-            <span>Drift Analysis: aws_s3_bucket.prod_customer_data</span>
-          </div>
-          <span style={{ fontSize: '11px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
-            OUT-OF-BAND MODIFICATION DETECTED
-          </span>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div style={{ background: '#040609', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '14px' }}>
-            <div style={{ fontSize: '11px', color: '#22C55E', fontFamily: 'JetBrains Mono', marginBottom: '8px' }}>
-              EXPECTED CONFIGURATION (IAC)
-            </div>
-            <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#86EFAC', lineHeight: '1.5' }}>
-{`resource "aws_s3_bucket" "prod_customer_data" {
-  bucket = "prod-customer-data"
-  acl    = "private"
-
-  public_access_block {
-    block_public_acls       = true
-    block_public_policy     = true
-    ignore_public_acls      = true
-    restrict_public_buckets = true
-  }
-}`}
-            </pre>
-          </div>
-
-          <div style={{ background: '#040609', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '14px' }}>
-            <div style={{ fontSize: '11px', color: '#EF4444', fontFamily: 'JetBrains Mono', marginBottom: '8px' }}>
-              ACTUAL LIVE STATE (AWS API)
-            </div>
-            <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#FCA5A5', lineHeight: '1.5' }}>
-{`resource "aws_s3_bucket" "prod_customer_data" {
-  bucket = "prod-customer-data"
-  acl    = "public-read"  # ⚠️ Out-of-band edit via AWS Console!
-
-  # Missing public_access_block configuration
-  # Modified by IAM user 'dev-ops-admin'
-}`}
-            </pre>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '18px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '16px' }}>
-          <button
-            className="soc-back-home-btn"
-            onClick={() => onNavigate('remediation')}
-          >
-            🔍 View Remediated Diff
-          </button>
+        {workspace && (
           <button
             className="btn-start-analysis"
             style={{ padding: '9px 20px', fontSize: '13px' }}
-            onClick={handleReconcile}
-            disabled={isReconciling || driftResolved}
+            onClick={handleScanDrift}
+            disabled={isScanning}
           >
-            {isReconciling ? 'Reconciling State...' : driftResolved ? '✓ State Reconciled' : '⚡ Auto-Reconcile to Git IaC →'}
+            {isScanning ? 'Scanning Cloud State...' : '⚡ Check Cloud Drift'}
+          </button>
+        )}
+      </div>
+
+      {!workspace ? (
+        <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
+          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+            No Workspace Selected
+          </p>
+          <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
+            Select an active workspace scan or run a new scan to check for cloud configuration drift against live runtime state.
+          </p>
+          <button
+            className="btn-start-analysis"
+            style={{ marginTop: '20px', padding: '8px 20px', fontSize: '13px' }}
+            onClick={() => onNavigate('new-scan')}
+          >
+            ⚡ Run New Scan
           </button>
         </div>
-      </div>
+      ) : drifts.length === 0 ? (
+        <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
+          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+            {driftReport ? '✓ No Infrastructure Drift Detected' : 'Drift Scan Not Yet Executed'}
+          </p>
+          <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
+            {driftReport
+              ? 'All live cloud resources match the configurations declared in this workspace IaC template.'
+              : 'Click "Check Cloud Drift" above to compare declared template state with live AWS/LocalStack resources.'}
+          </p>
+          {!driftReport && (
+            <button
+              className="btn-start-analysis"
+              style={{ marginTop: '20px', padding: '8px 20px', fontSize: '13px' }}
+              onClick={handleScanDrift}
+              disabled={isScanning}
+            >
+              {isScanning ? 'Scanning Cloud State...' : '⚡ Check Cloud Drift'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {drifts.map((d, idx) => (
+            <div key={d.drift_id || idx} className="scc-panel-card">
+              <div className="scc-panel-head">
+                <div className="scc-panel-title">
+                  <span className="flow-node-dot" style={{ background: '#EF4444' }}></span>
+                  <span>Drift: {d.resource_id}</span>
+                </div>
+                <span style={{ fontSize: '11px', color: '#EF4444', fontFamily: 'JetBrains Mono' }}>
+                  {d.severity || 'HIGH'}
+                </span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '12px' }}>
+                <div style={{ background: '#040609', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ fontSize: '11px', color: '#22C55E', fontFamily: 'JetBrains Mono', marginBottom: '8px' }}>
+                    EXPECTED CONFIGURATION (IAC)
+                  </div>
+                  <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#86EFAC', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                    {typeof d.expected_state === 'object' ? JSON.stringify(d.expected_state, null, 2) : String(d.expected_state || 'N/A')}
+                  </pre>
+                </div>
+
+                <div style={{ background: '#040609', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '8px', padding: '14px' }}>
+                  <div style={{ fontSize: '11px', color: '#EF4444', fontFamily: 'JetBrains Mono', marginBottom: '8px' }}>
+                    ACTUAL LIVE STATE (CLOUD API)
+                  </div>
+                  <pre style={{ margin: 0, fontFamily: 'JetBrains Mono', fontSize: '12px', color: '#FCA5A5', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                    {typeof d.actual_state === 'object' ? JSON.stringify(d.actual_state, null, 2) : String(d.actual_state || 'N/A')}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

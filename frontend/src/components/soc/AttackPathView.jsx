@@ -1,78 +1,58 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 
-export default function AttackPathView({ onNavigate }) {
-  const [selectedNode, setSelectedNode] = useState('database')
+export default function AttackPathView({ workspace, onNavigate }) {
+  const findings = workspace?.report?.findings || []
+  const attackGraph = workspace?.attack_graph || null
 
-  const nodeData = {
-    internet: {
-      id: 'internet',
-      label: 'PUBLIC INTERNET',
-      type: 'Threat Origin',
-      resource: '0.0.0.0/0 (Untrusted Inbound)',
-      exposure: 'External Public Network',
-      dependencies: 'All Internet-facing ingresses',
-      blastRadius: 'Global reach',
-      chokePoint: 'Perimeter WAF / Security Group',
-      recommendedAction: 'Enforce Cloudflare / AWS WAF with rate limiting & geo-blocking.',
-    },
-    alb: {
-      id: 'alb',
-      label: 'Application Load Balancer',
-      type: 'Ingress Proxy',
-      resource: 'aws_lb.public_alb',
-      exposure: 'Public IP: 54.182.90.12 (Port 80/443)',
-      dependencies: 'Target Group -> Web EC2 cluster',
-      blastRadius: '3 EC2 instances, 1 RDS subnet',
-      chokePoint: 'ALB Security Group listener rules',
-      recommendedAction: 'Drop plaintext HTTP port 80 listener; enforce HTTPS TLS 1.3 only.',
-    },
-    sg: {
-      id: 'sg',
-      label: 'Security Group (Overprivileged)',
-      type: 'Choke Point ⚠',
-      resource: 'aws_security_group.ingress_open',
-      exposure: 'Port 5432 and 22 open to 0.0.0.0/0',
-      dependencies: 'EC2 App Nodes, S3 VPC Endpoint, RDS Database',
-      blastRadius: '7 resources',
-      chokePoint: '★ PRIMARY CHOKE POINT ★',
-      recommendedAction: 'Restrict inbound CIDR to VPC CIDR (10.0.0.0/16) and revoke public SSH.',
-    },
-    ec2: {
-      id: 'ec2',
-      label: 'App Workload EC2',
-      type: 'Compute Node',
-      resource: 'aws_instance.app_server',
-      exposure: 'Contains attached IAM Role with S3 Full Access',
-      dependencies: 'EBS Volume, IAM Instance Profile, CloudWatch Agent',
-      blastRadius: '4 resources',
-      chokePoint: 'IAM Role Policy',
-      recommendedAction: 'Demote instance profile to least-privilege read-only S3 role.',
-    },
-    s3: {
-      id: 's3',
-      label: 'S3 Data Lake',
-      type: 'Storage Bucket',
-      resource: 'aws_s3_bucket.prod_customer_data',
-      exposure: 'Public read ACL enabled; unencrypted at rest',
-      dependencies: 'RDS Database dumps, Customer invoices, Analytics logs',
-      blastRadius: '5,000,000+ customer records',
-      chokePoint: 'S3 Public Access Block',
-      recommendedAction: 'Apply aws_s3_bucket_public_access_block with block_public_acls = true.',
-    },
-    database: {
-      id: 'database',
-      label: 'PostgreSQL RDS (High Target)',
-      type: 'Crown Jewel Database 🔴',
-      resource: 'aws_db_instance.production',
-      exposure: 'Directly reachable via overprivileged SG-0a81f',
-      dependencies: '4 downstream resources (RDS Subnet, App EC2, KMS Key, IAM Role)',
-      blastRadius: '7 resources (Full Data Exfiltration)',
-      chokePoint: 'Security Group SG-0a81f',
-      recommendedAction: 'Restrict inbound CIDR to internal backend subnet; enable IAM DB Auth.',
-    },
-  }
+  // Build dynamic nodes from workspace attack graph or findings
+  const nodeData = useMemo(() => {
+    const nodes = {}
 
-  const active = nodeData[selectedNode] || nodeData.database
+    // 1. From findings with attack_path
+    findings.forEach((f) => {
+      const resName = f.affected_resource || f.finding_id
+      const paths = Array.isArray(f.attack_path) ? f.attack_path : []
+      nodes[resName] = {
+        id: resName,
+        label: resName,
+        type: f.severity === 'CRITICAL' ? 'Crown Jewel / Critical Risk' : 'Vulnerable Asset',
+        resource: resName,
+        exposure: paths.length > 0 ? paths.join(' → ') : 'Direct Misconfiguration',
+        dependencies: `Associated with ${f.rule_id}`,
+        blastRadius: f.blast_radius ? `${f.blast_radius} downstream assets` : 'Localized',
+        chokePoint: f.requires_human_review ? 'Human Triage Required' : 'Auto-Patchable Choke Point',
+        recommendedAction: f.remediation || f.remediation_hint || 'Apply recommended IaC configuration patch.',
+        severity: f.severity,
+      }
+    })
+
+    // 2. From attackGraph if available
+    if (attackGraph && attackGraph.nodes) {
+      Object.entries(attackGraph.nodes).forEach(([id, n]) => {
+        if (!nodes[id]) {
+          nodes[id] = {
+            id,
+            label: id,
+            type: n.type || 'Infrastructure Node',
+            resource: id,
+            exposure: n.exposure || 'Internal Dependency',
+            dependencies: (n.edges || []).join(', ') || 'No outbound dependencies',
+            blastRadius: n.blast_radius ? `${n.blast_radius} assets` : 'Unknown',
+            chokePoint: (attackGraph.choke_points || []).includes(id) ? '★ CHOKE POINT ★' : 'Standard Node',
+            recommendedAction: 'Verify least-privilege resource boundaries.',
+            severity: (attackGraph.choke_points || []).includes(id) ? 'HIGH' : 'MEDIUM',
+          }
+        }
+      })
+    }
+
+    return nodes
+  }, [findings, attackGraph])
+
+  const nodeKeys = Object.keys(nodeData)
+  const [selectedNode, setSelectedNode] = useState(nodeKeys[0] || null)
+
+  const active = (selectedNode && nodeData[selectedNode]) || (nodeKeys.length > 0 ? nodeData[nodeKeys[0]] : null)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
@@ -83,154 +63,139 @@ export default function AttackPathView({ onNavigate }) {
             Graph-theoretical resource dependency traversal identifying choke points and privilege escalation paths.
           </p>
         </div>
-        <button
-          className="btn-start-analysis"
-          style={{ padding: '8px 18px', fontSize: '12.5px' }}
-          onClick={() => onNavigate('remediation')}
-        >
-          ⚡ Remediate Primary Choke Point →
-        </button>
-      </div>
-
-      <div className="attack-map-view">
-        {/* Left: Visual Miniature Cyber Attack Graph */}
-        <div className="attack-canvas-card">
-          <div style={{ position: 'absolute', top: '16px', left: '20px', fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
-            CLICK ANY NODE TO INSPECT
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px', marginTop: '20px', width: '100%' }}>
-            {/* INTERNET */}
-            <div
-              className={`attack-node ${selectedNode === 'internet' ? 'selected' : ''}`}
-              onClick={() => setSelectedNode('internet')}
-            >
-              <div style={{ fontSize: '10px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>THREAT ORIGIN</div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#F8FAFC' }}>PUBLIC INTERNET</div>
-            </div>
-            <div style={{ color: '#EF4444', fontSize: '14px' }}>▼</div>
-
-            {/* LOAD BALANCER */}
-            <div
-              className={`attack-node ${selectedNode === 'alb' ? 'selected' : ''}`}
-              onClick={() => setSelectedNode('alb')}
-            >
-              <div style={{ fontSize: '10px', color: '#38BDF8', fontFamily: 'JetBrains Mono' }}>INGRESS PROXY</div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#F8FAFC' }}>Load Balancer (ALB)</div>
-            </div>
-            <div style={{ color: '#EF4444', fontSize: '14px' }}>▼</div>
-
-            {/* SECURITY GROUP (CHOKE POINT) */}
-            <div
-              className={`attack-node warning ${selectedNode === 'sg' ? 'selected' : ''}`}
-              onClick={() => setSelectedNode('sg')}
-              style={{ background: 'rgba(249, 115, 22, 0.12)' }}
-            >
-              <div style={{ fontSize: '10px', color: '#F97316', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
-                ⚠ CHOKE POINT
-              </div>
-              <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#FFFFFF' }}>Security Group (SG-0a81f)</div>
-            </div>
-            <div style={{ color: '#F97316', fontSize: '14px' }}>▼</div>
-
-            {/* FORK: EC2 & S3 */}
-            <div style={{ display: 'flex', gap: '32px', width: '100%', justifyContent: 'center' }}>
-              <div
-                className={`attack-node ${selectedNode === 'ec2' ? 'selected' : ''}`}
-                onClick={() => setSelectedNode('ec2')}
-              >
-                <div style={{ fontSize: '10px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>COMPUTE</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>EC2 App Instance</div>
-              </div>
-
-              <div
-                className={`attack-node ${selectedNode === 's3' ? 'selected' : ''}`}
-                onClick={() => setSelectedNode('s3')}
-              >
-                <div style={{ fontSize: '10px', color: '#F59E0B', fontFamily: 'JetBrains Mono' }}>DATA STORE</div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>S3 Customer Bucket</div>
-              </div>
-            </div>
-
-            <div style={{ color: '#EF4444', fontSize: '14px', marginLeft: '160px' }}>▼</div>
-
-            {/* DATABASE (CROWN JEWEL) */}
-            <div
-              className={`attack-node critical ${selectedNode === 'database' ? 'selected' : ''}`}
-              onClick={() => setSelectedNode('database')}
-              style={{ marginLeft: '160px' }}
-            >
-              <div style={{ fontSize: '10px', color: '#EF4444', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
-                🔴 TARGET CROWN JEWEL
-              </div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF' }}>PostgreSQL RDS DB</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: Node Telemetry & Remediation Details */}
-        <div className="attack-inspector-card">
-          <div className="scc-panel-head">
-            <div className="scc-panel-title">
-              <span className="flow-node-dot"></span>
-              Node Exposure Inspector
-            </div>
-            <span style={{ fontSize: '11px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
-              {active.type}
-            </span>
-          </div>
-
-          <div>
-            <div className="inspector-section-label">TARGET RESOURCE</div>
-            <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#D6A84F' }}>
-              {active.resource}
-            </div>
-          </div>
-
-          <div>
-            <div className="inspector-section-label">NETWORK EXPOSURE</div>
-            <div className="inspector-section-val" style={{ color: '#FCA5A5' }}>
-              {active.exposure}
-            </div>
-          </div>
-
-          <div>
-            <div className="inspector-section-label">DEPENDENCY GRAPH</div>
-            <div className="inspector-section-val">
-              {active.dependencies}
-            </div>
-          </div>
-
-          <div>
-            <div className="inspector-section-label">BLAST RADIUS IMPACT</div>
-            <div className="inspector-section-val" style={{ color: '#EF4444', fontWeight: 700 }}>
-              {active.blastRadius}
-            </div>
-          </div>
-
-          <div>
-            <div className="inspector-section-label">CHOKE POINT STATUS</div>
-            <div className="inspector-section-val" style={{ color: '#F97316', fontWeight: 600 }}>
-              {active.chokePoint}
-            </div>
-          </div>
-
-          <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
-            <div className="inspector-section-label">RECOMMENDED REMEDIATION ACTION</div>
-            <div className="inspector-section-val" style={{ color: '#86EFAC', lineHeight: '1.55' }}>
-              {active.recommendedAction}
-            </div>
-          </div>
-
+        {nodeKeys.length > 0 && (
           <button
             className="btn-start-analysis"
-            style={{ width: '100%', marginTop: '10px', fontSize: '13px' }}
+            style={{ padding: '8px 18px', fontSize: '12.5px' }}
             onClick={() => onNavigate('remediation')}
           >
-            Deploy AI Auto-Patch →
+            ⚡ Remediate Primary Choke Point →
+          </button>
+        )}
+      </div>
+
+      {nodeKeys.length === 0 ? (
+        <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
+          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+            No Attack Path Data Available
+          </p>
+          <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
+            {workspace
+              ? 'No exploitable attack paths were identified in the current workspace template.'
+              : 'No workspace is currently selected. Run a scan on an IaC template to generate dynamic attack path and blast radius analysis.'}
+          </p>
+          <button
+            className="btn-start-analysis"
+            style={{ marginTop: '20px', padding: '8px 20px', fontSize: '13px' }}
+            onClick={() => onNavigate('new-scan')}
+          >
+            ⚡ Run New Scan
           </button>
         </div>
-      </div>
+      ) : (
+        <div className="attack-map-view">
+          {/* Left: Dynamic Cyber Attack Nodes */}
+          <div className="attack-canvas-card">
+            <div style={{ position: 'absolute', top: '16px', left: '20px', fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
+              CLICK ANY RESOURCE NODE TO INSPECT ({nodeKeys.length} NODES)
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', marginTop: '36px', width: '100%' }}>
+              {nodeKeys.map((k, idx) => {
+                const node = nodeData[k]
+                const isSelected = (selectedNode || nodeKeys[0]) === k
+                const isCritical = node.severity === 'CRITICAL'
+                const isWarning = node.severity === 'HIGH'
+
+                return (
+                  <React.Fragment key={k}>
+                    <div
+                      className={`attack-node ${isCritical ? 'critical' : isWarning ? 'warning' : ''} ${isSelected ? 'selected' : ''}`}
+                      onClick={() => setSelectedNode(k)}
+                      style={{ cursor: 'pointer', maxWidth: '340px', width: '90%' }}
+                    >
+                      <div style={{ fontSize: '10px', color: isCritical ? '#EF4444' : isWarning ? '#F97316' : '#38BDF8', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
+                        {node.type.toUpperCase()}
+                      </div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#F8FAFC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {node.label}
+                      </div>
+                    </div>
+                    {idx < nodeKeys.length - 1 && (
+                      <div style={{ color: isCritical ? '#EF4444' : '#F97316', fontSize: '14px' }}>▼</div>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Right: Node Telemetry & Remediation Details */}
+          {active && (
+            <div className="attack-inspector-card">
+              <div className="scc-panel-head">
+                <div className="scc-panel-title">
+                  <span className="flow-node-dot"></span>
+                  Node Exposure Inspector
+                </div>
+                <span style={{ fontSize: '11px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
+                  {active.type}
+                </span>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">TARGET RESOURCE</div>
+                <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#D6A84F' }}>
+                  {active.resource}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">NETWORK EXPOSURE / ATTACK ROUTE</div>
+                <div className="inspector-section-val" style={{ color: '#FCA5A5' }}>
+                  {active.exposure}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">DEPENDENCY GRAPH</div>
+                <div className="inspector-section-val">
+                  {active.dependencies}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">BLAST RADIUS IMPACT</div>
+                <div className="inspector-section-val" style={{ color: '#EF4444', fontWeight: 700 }}>
+                  {active.blastRadius}
+                </div>
+              </div>
+
+              <div>
+                <div className="inspector-section-label">CHOKE POINT STATUS</div>
+                <div className="inspector-section-val" style={{ color: '#F97316', fontWeight: 600 }}>
+                  {active.chokePoint}
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
+                <div className="inspector-section-label">RECOMMENDED REMEDIATION ACTION</div>
+                <div className="inspector-section-val" style={{ color: '#86EFAC', lineHeight: '1.55' }}>
+                  {active.recommendedAction}
+                </div>
+              </div>
+
+              <button
+                className="btn-start-analysis"
+                style={{ width: '100%', marginTop: '10px', fontSize: '13px' }}
+                onClick={() => onNavigate('remediation')}
+              >
+                Deploy AI Auto-Patch →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
