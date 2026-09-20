@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const SEV_COLOR = { CRITICAL: '#FF5C6C', HIGH: '#FF9955', MEDIUM: '#F0C94A', LOW: '#5B8DEF' }
+const SEV_COLOR = { CRITICAL: '#EF4444', HIGH: '#F97316', MEDIUM: '#F59E0B', LOW: '#64748B' }
 
 function colorFor(score) {
   if (score >= 70) return SEV_COLOR.CRITICAL
