@@ -35,7 +35,6 @@ class SendCodeResponse(BaseModel):
     success: bool
     message: str
     email_sent: bool
-    dev_code: str | None = None
 
 
 class VerifyCodeRequest(BaseModel):
@@ -110,26 +109,20 @@ def send_code(req: SendCodeRequest) -> SendCodeResponse:
     # Attempt to send via SMTP from agentsheildai@gmail.com
     email_sent, mail_msg = send_verification_email(to_email=clean_email, code=code)
 
-    if email_sent:
-        logger.info("Verification code emailed to %s from agentsheildai@gmail.com", clean_email)
-        return SendCodeResponse(
-            success=True,
-            email_sent=True,
-            message=f"Verification code sent from agentsheildai@gmail.com to {clean_email}.",
-            dev_code=None,
+    if not email_sent:
+        logger.error("Failed to send verification email to %s: %s", clean_email, mail_msg)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Unable to dispatch verification email: {mail_msg}. Please check email configuration.",
         )
-    else:
-        logger.warning(
-            "Verification email could not be sent to %s: %s", clean_email, mail_msg
-        )
-        return SendCodeResponse(
-            success=True,
-            email_sent=False,
-            message=(
-                f"Verification code generated. (Live delivery requires SMTP_PASSWORD in backend/.env: {mail_msg})"
-            ),
-            dev_code=code,
-        )
+
+    logger.info("Verification code emailed to %s from agentsheildai@gmail.com", clean_email)
+    return SendCodeResponse(
+        success=True,
+        email_sent=True,
+        message=f"Verification code sent from agentsheildai@gmail.com to {clean_email}.",
+    )
+
 
 
 @router.post("/verify-code", response_model=AuthResponse)

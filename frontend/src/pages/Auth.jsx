@@ -212,13 +212,10 @@ export default function Auth({ initialMode = 'login' }) {
       step: 'email',
       email: formData.email || '',
       code: '',
-      sentCode: '',
       newPassword: '',
       confirmPassword: '',
       error: '',
       status: 'idle', // 'idle' | 'ok' | 'bad'
-      emailSent: false,
-      devCode: null,
       loading: false,
     })
   }
@@ -239,12 +236,9 @@ export default function Auth({ initialMode = 'login' }) {
     setForgotModal((prev) => ({ ...prev, loading: true, error: '' }))
 
     try {
-      const res = await sendVerificationCodeApi(cleanEmail)
+      await sendVerificationCodeApi(cleanEmail)
       setForgotModal((prev) => ({
         ...prev,
-        sentCode: res.dev_code || '',
-        devCode: res.dev_code || null,
-        emailSent: Boolean(res.email_sent),
         code: '',
         step: 'code',
         loading: false,
@@ -864,16 +858,9 @@ export default function Auth({ initialMode = 'login' }) {
                   <p style={{ fontSize: '13px', color: '#94A3B8', margin: 0 }}>
                     A verification code has been dispatched to <b style={{ color: '#FFFFFF' }}>{forgotModal.email}</b> from <b style={{ color: '#38BDF8' }}>agentsheildai@gmail.com</b>.
                   </p>
-                  {forgotModal.emailSent ? (
-                    <p style={{ fontSize: '12px', color: '#2EE6A8', marginTop: '6px', marginBottom: 0 }}>
-                      ✓ Verification email delivered to your inbox.
-                    </p>
-                  ) : forgotModal.devCode ? (
-                    <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(214, 168, 79, 0.1)', border: '1px solid rgba(214, 168, 79, 0.3)', borderRadius: '6px', fontSize: '12px', color: '#D6A84F', textAlign: 'center', fontFamily: 'JetBrains Mono' }}>
-                      <span>(SMTP_PASSWORD needed in backend/.env for live delivery) Dev Code: </span>
-                      <b style={{ color: '#FFFFFF', letterSpacing: '2px' }}>{forgotModal.devCode}</b>
-                    </div>
-                  ) : null}
+                  <p style={{ fontSize: '12px', color: '#2EE6A8', marginTop: '6px', marginBottom: 0 }}>
+                    ✓ Verification email delivered to your inbox. Check your email (and spam folder) for the 6-digit code.
+                  </p>
                 </div>
 
                 {/* Orbital Ring & Center Hub */}

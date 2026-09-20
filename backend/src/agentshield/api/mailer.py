@@ -34,12 +34,12 @@ def send_verification_email(to_email: str, code: str) -> tuple[bool, str]:
         tuple[bool, str]: (success, message_or_error)
     """
     cfg = get_smtp_config()
-    host = str(cfg["host"])
+    host = str(cfg["host"]).strip()
     port = int(cfg["port"])
-    user = str(cfg["user"])
-    password = str(cfg["password"]).strip()
-    from_email = str(cfg["from_email"])
-    from_name = str(cfg["from_name"])
+    user = str(cfg["user"]).strip()
+    password = str(cfg["password"]).replace(" ", "").strip()
+    from_email = str(cfg["from_email"]).strip()
+    from_name = str(cfg["from_name"]).strip()
 
     subject = f"AgenShield AI — Password Reset Verification Code: {code}"
 
