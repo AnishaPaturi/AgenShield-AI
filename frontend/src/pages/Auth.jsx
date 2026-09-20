@@ -67,7 +67,7 @@ export default function Auth({ initialMode = 'login' }) {
 
   const passwordStrength = calculatePasswordStrength(formData.password)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setFeedback(null)
 
@@ -87,7 +87,7 @@ export default function Auth({ initialMode = 'login' }) {
 
       setIsLoading(true)
       try {
-        registerWithCredentials({
+        await registerWithCredentials({
           name: formData.name,
           email: formData.email,
           password: formData.password,
@@ -136,7 +136,7 @@ export default function Auth({ initialMode = 'login' }) {
     })
   }
 
-  const handleSSOSubmit = (e) => {
+  const handleSSOSubmit = async (e) => {
     e.preventDefault()
     if (!ssoModal) return
 
@@ -159,7 +159,7 @@ export default function Auth({ initialMode = 'login' }) {
       }
     } else {
       try {
-        signupWithSSO(ssoModal.provider, ssoModal.email, ssoModal.name)
+        await signupWithSSO(ssoModal.provider, ssoModal.email, ssoModal.name)
         const providerName = ssoModal.provider === 'github' ? 'GitHub' : 'Google'
         setFeedback({
           type: 'success',

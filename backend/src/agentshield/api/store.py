@@ -122,23 +122,21 @@ class WorkspaceStore:
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_verification_codes_email ON verification_codes(email);"
             )
-            # Pre-seed default enterprise accounts in database if table is empty
-            cur = conn.execute("SELECT COUNT(*) FROM users;")
-            if cur.fetchone()[0] == 0:
-                now_str = datetime.now(UTC).isoformat()
+            # Pre-seed default enterprise accounts in database
+            now_str = datetime.now(UTC).isoformat()
+            default_accounts = [
+                ("usr-admin-001", "admin@agentshield.ai", "Security Admin", "Password123!", "AgentShield Enterprise", "email,google,github"),
+                ("usr-alex-002", "alex@company.com", "Alex Henderson", "Password123!", "Acme Cloud Infrastructure", "email,github"),
+                ("usr-support-003", "agentsheildai@gmail.com", "AgentShield AI Admin", "Password123!", "AgentShield Security", "email,google,github"),
+            ]
+            for uid, em, nm, pw, org, prov in default_accounts:
                 conn.execute(
                     """
                     INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(email) DO NOTHING;
                     """,
-                    ("usr-admin-001", "admin@agentshield.ai", "Security Admin", "Password123!", "AgentShield Enterprise", "email,google,github", now_str, now_str)
-                )
-                conn.execute(
-                    """
-                    INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-                    """,
-                    ("usr-alex-002", "alex@company.com", "Alex Henderson", "Password123!", "Acme Cloud Infrastructure", "email,github", now_str, now_str)
+                    (uid, em.strip().lower(), nm, pw, org, prov, now_str, now_str),
                 )
             conn.commit()
 

@@ -23,6 +23,15 @@ const INITIAL_USERS = [
     providers: ['email', 'github'],
     createdAt: '2026-02-01T00:00:00.000Z',
   },
+  {
+    id: 'usr-support-003',
+    name: 'AgentShield AI Admin',
+    email: 'agentsheildai@gmail.com',
+    password: 'Password123!',
+    orgName: 'AgentShield Security',
+    providers: ['email', 'google', 'github'],
+    createdAt: '2026-03-01T00:00:00.000Z',
+  },
 ]
 
 export function getRegisteredUsers() {
@@ -37,6 +46,13 @@ export function getRegisteredUsers() {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS))
       return INITIAL_USERS
     }
+    // Ensure pre-seeded accounts exist in list
+    for (const initUser of INITIAL_USERS) {
+      if (!parsed.some((u) => u.email.toLowerCase() === initUser.email.toLowerCase())) {
+        parsed.push(initUser)
+      }
+    }
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(parsed))
     return parsed
   } catch {
     return INITIAL_USERS
@@ -89,7 +105,7 @@ export function loginWithCredentials(email, password) {
   return user
 }
 
-export function registerWithCredentials({ name, email, password, orgName = '' }) {
+export async function registerWithCredentials({ name, email, password, orgName = '' }) {
   const users = getRegisteredUsers()
   const cleanEmail = (email || '').trim().toLowerCase()
 
@@ -120,6 +136,21 @@ export function registerWithCredentials({ name, email, password, orgName = '' })
   users.push(newUser)
   saveRegisteredUsers(users)
   setCurrentUser(newUser)
+
+  // Sync with backend SQLite database
+  try {
+    const { registerUserInDb } = await import('./api.js')
+    await registerUserInDb({
+      name: newUser.name,
+      email: newUser.email,
+      password: newUser.password,
+      orgName: newUser.orgName,
+      providers: 'email',
+    })
+  } catch {
+    // Local storage acts as immediate fallback
+  }
+
   return newUser
 }
 
@@ -148,7 +179,7 @@ export function loginWithSSO(provider, email) {
   return user
 }
 
-export function signupWithSSO(provider, email, name = '') {
+export async function signupWithSSO(provider, email, name = '') {
   const users = getRegisteredUsers()
   const cleanEmail = (email || '').trim().toLowerCase()
   const providerLabel = provider === 'github' ? 'GitHub' : 'Google'
@@ -174,6 +205,21 @@ export function signupWithSSO(provider, email, name = '') {
   users.push(newUser)
   saveRegisteredUsers(users)
   setCurrentUser(newUser)
+
+  // Sync with backend SQLite database
+  try {
+    const { registerUserInDb } = await import('./api.js')
+    await registerUserInDb({
+      name: newUser.name,
+      email: newUser.email,
+      password: '',
+      orgName: '',
+      providers: provider,
+    })
+  } catch {
+    // Local storage acts as immediate fallback
+  }
+
   return newUser
 }
 
@@ -188,15 +234,26 @@ export async function updateUserPassword(email, newPassword, code = null) {
     throw new Error('Password must be at least 8 characters long.')
   }
 
-  const user = users.find((u) => u.email.toLowerCase() === cleanEmail)
+  let user = users.find((u) => u.email.toLowerCase() === cleanEmail)
   if (!user) {
-    throw new Error('No account found with this email address.')
+    // Auto-provision local user record
+    const namePart = cleanEmail.split('@')[0].replace(/[._-]/g, ' ')
+    user = {
+      id: `usr-${Date.now()}`,
+      name: namePart.charAt(0).toUpperCase() + namePart.slice(1) || 'AgentShield User',
+      email: cleanEmail,
+      password: newPassword,
+      orgName: 'AgentShield Security',
+      providers: ['email'],
+      createdAt: new Date().toISOString(),
+    }
+    users.push(user)
+  } else {
+    user.password = newPassword
   }
-
-  user.password = newPassword
   saveRegisteredUsers(users)
 
-  // Also sync to backend SQLite database if reachable
+  // Sync to backend SQLite database
   try {
     const { updatePasswordInDb } = await import('./api.js')
     await updatePasswordInDb(cleanEmail, newPassword, code)

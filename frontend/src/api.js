@@ -135,6 +135,21 @@ export async function verifyCodeApi(email, code) {
   return asJson(res)
 }
 
+export async function registerUserInDb({ name, email, password = '', orgName = '', providers = 'email' }) {
+  const res = await fetch(`${base()}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name,
+      email,
+      password,
+      org_name: orgName,
+      providers,
+    }),
+  })
+  return asJson(res)
+}
+
 export async function updatePasswordInDb(email, newPassword, code = null) {
   const res = await fetch(`${base()}/api/auth/reset-password`, {
     method: 'POST',
@@ -143,6 +158,7 @@ export async function updatePasswordInDb(email, newPassword, code = null) {
   })
   return asJson(res)
 }
+
 
 
 
