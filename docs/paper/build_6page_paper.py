@@ -164,7 +164,8 @@ def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0,
         ]
         col_cells.append(paras)
 
-    auth_table = Table([col_cells], colWidths=[135.0, 135.0, 135.0, 135.0])
+    auth_col_w = 540.0 / len(pdata.AUTHORS)
+    auth_table = Table([col_cells], colWidths=[auth_col_w] * len(pdata.AUTHORS))
     auth_table.setStyle(TableStyle([
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
         ('LEFTPADDING', (0,0), (-1,-1), 1),
@@ -434,7 +435,7 @@ def build_docx_6p(docx_path):
         name = auth["name"]
         email = auth["email"]
         cell = tbl_auth.cell(0, c_idx)
-        cell.width = DocxInches(1.85)
+        cell.width = DocxInches(7.5 / len(pdata.AUTHORS))
         
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER

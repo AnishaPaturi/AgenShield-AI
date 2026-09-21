@@ -104,7 +104,7 @@ def create_ieee_conference_paper(output_path):
     p_auth.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_auth.paragraph_format.space_after = Pt(12)
     
-    r_a1 = p_auth.add_run("Anisha Paturi (23BD1A050E), Parinamika Bhanu (23BD1A0518), Vahini Venkata (23BD1A051D), Sravani Janak (23BD1A051Y)\n")
+    r_a1 = p_auth.add_run("K. Vishal Reddy, Anisha Paturi (23BD1A050E), Parinamika Bhanu (23BD1A0518), Vahini Venkata (23BD1A051D), Sravani Janak (23BD1A051Y)\n")
     r_a1.bold = True
     r_a1.font.name = "Times New Roman"
     r_a1.font.size = Pt(10)

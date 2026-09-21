@@ -97,6 +97,7 @@ def create_paper_document(output_path):
         p.paragraph_format.space_after = Pt(18)
         
         authors = [
+            "K. Vishal Reddy (kasarlavishalreddy@gmail.com)",
             "Anisha Paturi (Roll No: 23BD1A050E)",
             "Parinamika Bhanu (Roll No: 23BD1A0518)",
             "Vahini Venkata (Roll No: 23BD1A051D)",

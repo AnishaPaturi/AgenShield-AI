@@ -5,6 +5,7 @@
 **Conference Dates:** 23–24 October 2026 | Perdana University, Kuala Lumpur, Malaysia  
 
 **Authors:**  
+- **K. Vishal Reddy** — `kasarlavishalreddy@gmail.com`  
 - **Anisha Paturi** (23BD1A050E) — `paturi.anisha@gmail.com`  
 - **Parinamika Bhanu Ch** (23BD1A051D) — `chparinamikabhanu@gmail.com`  
 - **Venkata Vahini Ch** (23BD1A0518) — `vahini.venkata02@gmail.com`  

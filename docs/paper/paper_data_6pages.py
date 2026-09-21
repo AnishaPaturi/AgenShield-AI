@@ -9,6 +9,7 @@ definitions, empirical benchmark statistics, controlled ablation studies, and va
 TITLE = "AgentShield AI: An Autonomous Multi-Agent Framework for Syntactic Verification, Secret Interception, and Sandbox-Validated Remediation in Multi-Cloud Infrastructure-as-Code"
 
 AUTHORS = [
+    {"name": "K. Vishal Reddy", "id": "", "email": "kasarlavishalreddy@gmail.com"},
     {"name": "Anisha Paturi", "id": "23BD1A050E", "email": "paturi.anisha@gmail.com"},
     {"name": "Parinamika Bhanu Ch", "id": "23BD1A051D", "email": "chparinamikabhanu@gmail.com"},
     {"name": "Venkata Vahini Ch", "id": "23BD1A0518", "email": "vahini.venkata02@gmail.com"},
