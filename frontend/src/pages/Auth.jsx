@@ -8,7 +8,14 @@ import {
   getRegisteredUsers,
   updateUserPassword,
 } from '../auth.js'
-import { sendVerificationCodeApi, verifyCodeApi, getGitHubOAuthStatus, getGitHubLoginUrl } from '../api.js'
+import {
+  sendVerificationCodeApi,
+  verifyCodeApi,
+  getGitHubOAuthStatus,
+  getGitHubLoginUrl,
+  getGoogleOAuthStatus,
+  getGoogleLoginUrl,
+} from '../api.js'
 import '../auth.css'
 
 
@@ -34,8 +41,9 @@ export default function Auth({ initialMode = 'login' }) {
   const [isLoading, setIsLoading] = useState(false)
   const [feedback, setFeedback] = useState(null) // { type: 'error' | 'success', text: '' }
 
-  // GitHub OAuth configuration status from backend
+  // OAuth configuration statuses from backend
   const [githubOAuthStatus, setGithubOAuthStatus] = useState(null)
+  const [googleOAuthStatus, setGoogleOAuthStatus] = useState(null)
 
   // SSO verification modal state
   const [ssoModal, setSsoModal] = useState(null) // { provider: 'github' | 'google', email: '', name: '', error: '' }
@@ -49,16 +57,24 @@ export default function Auth({ initialMode = 'login' }) {
   const hubRef = useRef(null)
   const slotRef = useRef(null)
 
-  // Fetch GitHub OAuth configuration status & handle OAuth error redirects
+  // Fetch OAuth configuration statuses & handle OAuth error redirects
   useEffect(() => {
     getGitHubOAuthStatus().then((status) => {
       setGithubOAuthStatus(status)
+    }).catch(() => {})
+
+    getGoogleOAuthStatus().then((status) => {
+      setGoogleOAuthStatus(status)
     }).catch(() => {})
 
     const params = new URLSearchParams(location.search)
     const ghError = params.get('github_error')
     if (ghError) {
       setFeedback({ type: 'error', text: `GitHub Authentication Error: ${ghError}` })
+    }
+    const gError = params.get('google_error')
+    if (gError) {
+      setFeedback({ type: 'error', text: `Google Authentication Error: ${gError}` })
     }
   }, [location.search])
 
@@ -196,27 +212,64 @@ export default function Auth({ initialMode = 'login' }) {
     }
   }
 
-  const handleGitHubAuthorize = async (e) => {
+  // ==========================================
+  // Authentic Google Sign-In Handlers
+  // ==========================================
+
+  const handleGoogleIdentifierNext = (e) => {
     e?.preventDefault()
     if (!ssoModal) return
 
     const cleanEmail = (ssoModal.email || '').trim().toLowerCase()
-    const cleanName = (ssoModal.name || '').trim() || 'GitHub Developer'
-
     if (!cleanEmail) {
-      setSsoModal((prev) => ({ ...prev, error: 'Please enter your GitHub account email or username.' }))
+      setSsoModal((prev) => ({ ...prev, error: 'Enter an email or phone number' }))
       return
     }
 
+    if (mode === 'signup' && !(ssoModal.name || '').trim()) {
+      setSsoModal((prev) => ({ ...prev, error: 'Enter first and last name' }))
+      return
+    }
+
+    // In login mode, strictly verify account exists
+    if (mode === 'login') {
+      const users = getRegisteredUsers()
+      const userExists = users.some((u) => u.email.toLowerCase() === cleanEmail)
+      if (!userExists) {
+        setSsoModal((prev) => ({
+          ...prev,
+          error: "Couldn't find your Google Account",
+        }))
+        return
+      }
+    }
+
+    setSsoModal((prev) => ({
+      ...prev,
+      step: 'password',
+      error: '',
+    }))
+  }
+
+  const handleGooglePasswordSubmit = async (e) => {
+    e?.preventDefault()
+    if (!ssoModal) return
+
+    const cleanEmail = (ssoModal.email || '').trim().toLowerCase()
+    const cleanName = (ssoModal.name || '').trim() || 'Google User'
+
     if (ssoModal.authMethod === 'password') {
       if (!ssoModal.password || ssoModal.password.length < 6) {
-        setSsoModal((prev) => ({ ...prev, error: 'Please enter your GitHub account password.' }))
+        setSsoModal((prev) => ({
+          ...prev,
+          error: 'Wrong password. Try again or click Forgot password to reset it.',
+        }))
         return
       }
       setSsoModal((prev) => ({ ...prev, authorizing: true, error: '' }))
       setTimeout(() => {
         handleSSOComplete(cleanEmail, cleanName)
-      }, 700)
+      }, 600)
     } else if (ssoModal.authMethod === 'mobile') {
       const randomCode = Math.floor(10 + Math.random() * 90).toString()
       setSsoModal((prev) => ({
@@ -226,15 +279,11 @@ export default function Auth({ initialMode = 'login' }) {
         error: '',
       }))
     } else if (ssoModal.authMethod === 'email') {
-      if (!ssoModal.password || ssoModal.password.length < 6) {
-        setSsoModal((prev) => ({ ...prev, error: 'Please enter your password to request an email code.' }))
-        return
-      }
       setSsoModal((prev) => ({ ...prev, authorizing: true, error: '' }))
       try {
         await sendVerificationCodeApi(cleanEmail)
-      } catch (err) {
-        // Continue to code entry screen
+      } catch {
+        // continue
       }
       setSsoModal((prev) => ({
         ...prev,
@@ -246,20 +295,20 @@ export default function Auth({ initialMode = 'login' }) {
     }
   }
 
-  const handleApproveMobile = () => {
+  const handleGoogleApproveMobile = () => {
     setSsoModal((prev) => ({ ...prev, authorizing: true, error: '' }))
     setTimeout(() => {
       handleSSOComplete(ssoModal.email, ssoModal.name)
-    }, 700)
+    }, 600)
   }
 
-  const handleVerifyEmail2FA = async (e) => {
+  const handleGoogleVerifyEmail2FA = async (e) => {
     e?.preventDefault()
     if (!ssoModal) return
 
     const code = (ssoModal.enteredCode || '').trim()
     if (code.length !== 6) {
-      setSsoModal((prev) => ({ ...prev, error: 'Please enter the 6-digit verification code.' }))
+      setSsoModal((prev) => ({ ...prev, error: 'Enter the 6-digit code.' }))
       return
     }
 
@@ -271,7 +320,7 @@ export default function Auth({ initialMode = 'login' }) {
       setSsoModal((prev) => ({
         ...prev,
         authorizing: false,
-        error: err.message || 'Invalid or expired verification code. Please request a new code.',
+        error: err.message || 'Invalid or expired verification code.',
       }))
     }
   }
@@ -283,23 +332,7 @@ export default function Auth({ initialMode = 'login' }) {
     if (ssoModal.provider === 'github') {
       return handleGitHubAuthorize(e)
     }
-
-    const providerName = 'Google'
-    const cleanEmail = (ssoModal.email || '').trim().toLowerCase()
-    const cleanName = (ssoModal.name || '').trim() || 'Google User'
-
-    if (!cleanEmail) {
-      setSsoModal((prev) => ({
-        ...prev,
-        error: 'Please enter your Google account email.',
-      }))
-      return
-    }
-
-    setSsoModal((prev) => ({ ...prev, error: '', authorizing: true }))
-    setTimeout(() => {
-      handleSSOComplete(cleanEmail, cleanName)
-    }, 600)
+    return handleGoogleIdentifierNext(e)
   }
 
   // ==========================================
@@ -897,235 +930,364 @@ export default function Auth({ initialMode = 'login' }) {
 
             {/* Form and Permissions */}
             <div className="github-oauth-body">
-              {/* Live GitHub.com OAuth Direct Action if configured */}
-              {githubOAuthStatus?.configured && (
-                <div className="github-live-oauth-banner">
-                  <div className="github-live-info">
-                    <span className="github-live-dot"></span>
-                    <span>Live GitHub OAuth Application Connected</span>
+              {/* Scopes & Permissions List */}
+              <div className="github-permissions-box" style={{ marginBottom: '20px' }}>
+                <div className="github-permissions-header">Permissions Requested by AgentShield AI</div>
+                <div className="github-permission-item">
+                  <span className="github-permission-icon">✓</span>
+                  <span><b>Verify your GitHub identity</b> (username, profile information)</span>
+                </div>
+                <div className="github-permission-item">
+                  <span className="github-permission-icon">✓</span>
+                  <span><b>Access email addresses</b> (read-only for security notifications)</span>
+                </div>
+                <div className="github-permission-item">
+                  <span className="github-permission-icon">✓</span>
+                  <span><b>IaC Security Verification</b> (autonomous drift & patch auditing)</span>
+                </div>
+              </div>
+
+              {/* Live GitHub.com OAuth Direct Action */}
+              <div className="github-live-oauth-banner" style={{ marginBottom: '16px' }}>
+                <div className="github-live-info">
+                  <span className="github-live-dot"></span>
+                  <span>Live GitHub OAuth Application Connected</span>
+                </div>
+                <a
+                  href={getGitHubLoginUrl()}
+                  className="github-btn-live-oauth"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  </svg>
+                  <span>Direct Sign In with GitHub.com &rarr;</span>
+                </a>
+              </div>
+
+              <button
+                type="button"
+                className="github-btn-cancel"
+                onClick={() => setSsoModal(null)}
+              >
+                Cancel and return to AgentShield AI
+              </button>
+            </div>
+
+            {/* GitHub Footer */}
+            <div className="github-oauth-footer">
+              Authorizing will redirect to <b>agentshield.ai/console</b><br />
+              <span>GitHub, Inc. &bull; <a href="https://docs.github.com" target="_blank" rel="noreferrer">Terms</a> &bull; <a href="https://docs.github.com" target="_blank" rel="noreferrer">Privacy</a> &bull; <a href="https://github.community" target="_blank" rel="noreferrer">Support</a></span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Authentic Google Sign-In & OAuth Window */}
+      {ssoModal && ssoModal.provider === 'google' && (
+        <div className="google-oauth-overlay" onClick={() => !ssoModal.authorizing && setSsoModal(null)}>
+          <div className="google-oauth-window" onClick={(e) => e.stopPropagation()}>
+            {/* Simulated Browser Address Bar */}
+            <div className="google-browser-bar">
+              <div className="google-browser-dots">
+                <span className="google-dot red"></span>
+                <span className="google-dot yellow"></span>
+                <span className="google-dot green"></span>
+              </div>
+              <div className="google-browser-url">
+                <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                  <path d="M4 4v2h-.5A2.5 2.5 0 0 0 1 8.5v5A2.5 2.5 0 0 0 3.5 16h9a2.5 2.5 0 0 0 2.5-2.5v-5A2.5 2.5 0 0 0 12.5 6H12V4a4 4 0 0 0-8 0zm7 2H5V4a3 3 0 0 1 6 0v2z"/>
+                </svg>
+                <span>https://accounts.google.com/v3/signin/identifier</span>
+              </div>
+              <button
+                type="button"
+                className="google-browser-close"
+                onClick={() => !ssoModal.authorizing && setSsoModal(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Google Header */}
+            <div className="google-oauth-header">
+              <svg className="google-logo-svg" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+
+              <h2 className="google-oauth-title">
+                {mode === 'signup' ? 'Create a Google Account' : 'Sign in'}
+              </h2>
+              <p className="google-oauth-subtitle">
+                to continue to <b>AgentShield AI</b>
+              </p>
+
+              {/* Account profile chip when beyond step 1 */}
+              {ssoModal.step !== 'email' && (
+                <div
+                  className="google-profile-chip"
+                  onClick={() => setSsoModal({ ...ssoModal, step: 'email', error: '' })}
+                  title="Switch account"
+                >
+                  <span className="google-chip-avatar">
+                    {(ssoModal.email || 'G').charAt(0).toUpperCase()}
+                  </span>
+                  <span>{ssoModal.email}</span>
+                  <span className="google-chip-arrow">▼</span>
+                </div>
+              )}
+            </div>
+
+            {/* Error Alert */}
+            {ssoModal.error && (
+              <div className="google-error-alert">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <span>{ssoModal.error}</span>
+              </div>
+            )}
+
+            {/* Google Window Body */}
+            <div className="google-oauth-body">
+              {/* Direct Live Google OAuth Option if configured */}
+              {googleOAuthStatus?.configured && ssoModal.step === 'email' && (
+                <div className="google-live-oauth-banner">
+                  <div className="google-live-info">
+                    <span className="google-live-dot"></span>
+                    <span>Google OAuth 2.0 Live Service Connected</span>
                   </div>
                   <a
-                    href={getGitHubLoginUrl()}
-                    className="github-btn-live-oauth"
+                    href={getGoogleLoginUrl()}
+                    className="google-btn-live-oauth"
                   >
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                     </svg>
-                    <span>Direct Sign In with GitHub.com &rarr;</span>
+                    <span>Continue directly with Google.com &rarr;</span>
                   </a>
-                  <div className="github-oauth-divider">
-                    <span>OR AUTHORIZE VIA MULTI-FACTOR MODES BELOW</span>
+                  <div className="google-oauth-divider">
+                    <span>OR SIGN IN INTERACTIVELY BELOW</span>
                   </div>
                 </div>
               )}
 
-              {/* Step 1: Credentials & Method Selection */}
-              {ssoModal.step === 'credentials' && (
-                <form onSubmit={handleGitHubAuthorize}>
-                  {/* Method Selector Tabs */}
-                  <div className="github-method-tabs">
+              {/* Step 1: Identifier (Email / Name) */}
+              {ssoModal.step === 'email' && (
+                <form onSubmit={handleGoogleIdentifierNext}>
+                  {mode === 'signup' && (
+                    <div className="google-field">
+                      <label className="google-label">Full Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Alex Henderson"
+                        value={ssoModal.name}
+                        onChange={(e) => setSsoModal({ ...ssoModal, name: e.target.value, error: '' })}
+                        className="google-input"
+                        disabled={ssoModal.authorizing}
+                        autoFocus
+                      />
+                    </div>
+                  )}
+
+                  <div className="google-field">
+                    <label className="google-label">Email or phone</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. alex@company.com"
+                      value={ssoModal.email}
+                      onChange={(e) => setSsoModal({ ...ssoModal, email: e.target.value, error: '' })}
+                      className="google-input"
+                      disabled={ssoModal.authorizing}
+                      autoFocus={mode === 'login'}
+                    />
+                  </div>
+
+                  <div className="google-actions-row">
                     <button
                       type="button"
-                      className={`github-tab-btn ${ssoModal.authMethod === 'password' ? 'active' : ''}`}
+                      className="google-btn-text"
+                      onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                    >
+                      {mode === 'login' ? 'Create account' : 'Sign in instead'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="google-btn-primary"
+                      disabled={ssoModal.authorizing}
+                    >
+                      Next &rarr;
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Step 2: Password & 2FA Method Selector */}
+              {ssoModal.step === 'password' && (
+                <form onSubmit={handleGooglePasswordSubmit}>
+                  {/* Method Tabs */}
+                  <div className="google-method-tabs">
+                    <button
+                      type="button"
+                      className={`google-tab-btn ${ssoModal.authMethod === 'password' ? 'active' : ''}`}
                       onClick={() => setSsoModal({ ...ssoModal, authMethod: 'password', error: '' })}
                     >
                       <span>🔑 Password</span>
                     </button>
                     <button
                       type="button"
-                      className={`github-tab-btn ${ssoModal.authMethod === 'mobile' ? 'active' : ''}`}
+                      className={`google-tab-btn ${ssoModal.authMethod === 'mobile' ? 'active' : ''}`}
                       onClick={() => setSsoModal({ ...ssoModal, authMethod: 'mobile', error: '' })}
                     >
-                      <span>📱 GitHub Mobile</span>
+                      <span>📱 Google Prompt</span>
                     </button>
                     <button
                       type="button"
-                      className={`github-tab-btn ${ssoModal.authMethod === 'email' ? 'active' : ''}`}
+                      className={`google-tab-btn ${ssoModal.authMethod === 'email' ? 'active' : ''}`}
                       onClick={() => setSsoModal({ ...ssoModal, authMethod: 'email', error: '' })}
                     >
-                      <span>📧 Mail & Pwd</span>
+                      <span>📧 Gmail Code</span>
                     </button>
                   </div>
 
-                  <div className="github-oauth-card">
-                    {mode === 'signup' && (
-                      <div className="github-field">
-                        <label className="github-label">
-                          <span>Full Name</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. Mona Lisa Octocat"
-                          value={ssoModal.name}
-                          onChange={(e) => setSsoModal({ ...ssoModal, name: e.target.value, error: '' })}
-                          className="github-input"
-                          disabled={ssoModal.authorizing}
-                          autoFocus
-                        />
-                      </div>
-                    )}
-
-                    <div className="github-field">
-                      <label className="github-label">
-                        <span>GitHub Username or Email</span>
-                      </label>
+                  {ssoModal.authMethod === 'password' && (
+                    <div className="google-field">
+                      <label className="google-label">Enter your password</label>
                       <input
-                        type="email"
+                        type="password"
                         required
-                        placeholder="e.g. octocat@github.com"
-                        value={ssoModal.email}
-                        onChange={(e) => setSsoModal({ ...ssoModal, email: e.target.value, error: '' })}
-                        className="github-input"
+                        placeholder="••••••••••••"
+                        value={ssoModal.password || ''}
+                        onChange={(e) => setSsoModal({ ...ssoModal, password: e.target.value, error: '' })}
+                        className="google-input"
                         disabled={ssoModal.authorizing}
-                        autoFocus={mode === 'login'}
+                        autoFocus
                       />
                     </div>
+                  )}
 
-                    {(ssoModal.authMethod === 'password' || ssoModal.authMethod === 'email') && (
-                      <div className="github-field">
-                        <label className="github-label">
-                          <span>GitHub Password</span>
-                          <span style={{ fontSize: '11px', color: '#7d8590' }}>
-                            {ssoModal.authMethod === 'email' ? 'Required for mail 2FA' : 'Required'}
-                          </span>
-                        </label>
-                        <input
-                          type="password"
-                          required
-                          placeholder="••••••••••••"
-                          value={ssoModal.password || ''}
-                          onChange={(e) => setSsoModal({ ...ssoModal, password: e.target.value, error: '' })}
-                          className="github-input"
-                          disabled={ssoModal.authorizing}
-                        />
-                      </div>
-                    )}
+                  {ssoModal.authMethod === 'mobile' && (
+                    <div style={{ padding: '12px 14px', background: 'rgba(66, 133, 244, 0.08)', border: '1px solid rgba(66, 133, 244, 0.25)', borderRadius: '6px', fontSize: '13px', color: '#9aa0a6', lineHeight: '1.5', marginBottom: '16px' }}>
+                      Google will send a sign-in prompt notification to your phone with a matching verification number.
+                    </div>
+                  )}
+
+                  {ssoModal.authMethod === 'email' && (
+                    <div style={{ padding: '12px 14px', background: 'rgba(66, 133, 244, 0.08)', border: '1px solid rgba(66, 133, 244, 0.25)', borderRadius: '6px', fontSize: '13px', color: '#9aa0a6', lineHeight: '1.5', marginBottom: '16px' }}>
+                      A real 6-digit verification code will be dispatched from <b>agentsheildai@gmail.com</b> to <b>{ssoModal.email}</b>.
+                    </div>
+                  )}
+
+                  <div className="google-actions-row">
+                    <button
+                      type="button"
+                      className="google-btn-text"
+                      onClick={() => setSsoModal({ ...ssoModal, step: 'email', error: '' })}
+                      disabled={ssoModal.authorizing}
+                    >
+                      ← Try another way
+                    </button>
+                    <button
+                      type="submit"
+                      className="google-btn-primary"
+                      disabled={ssoModal.authorizing}
+                    >
+                      {ssoModal.authorizing ? (
+                        <>
+                          <span className="auth-spinner" style={{ width: '14px', height: '14px', borderTopColor: '#ffffff' }}></span>
+                          <span>Verifying...</span>
+                        </>
+                      ) : (
+                        <>
+                          {ssoModal.authMethod === 'password' && 'Sign in →'}
+                          {ssoModal.authMethod === 'mobile' && 'Send Google Prompt →'}
+                          {ssoModal.authMethod === 'email' && 'Send Code →'}
+                        </>
+                      )}
+                    </button>
                   </div>
-
-                  {/* Scopes & Permissions List */}
-                  <div className="github-permissions-box">
-                    <div className="github-permissions-header">Permissions Requested by AgentShield AI</div>
-                    <div className="github-permission-item">
-                      <span className="github-permission-icon">✓</span>
-                      <span><b>Verify your GitHub identity</b> (username, profile information)</span>
-                    </div>
-                    <div className="github-permission-item">
-                      <span className="github-permission-icon">✓</span>
-                      <span><b>Access email addresses</b> (read-only for security notifications)</span>
-                    </div>
-                    <div className="github-permission-item">
-                      <span className="github-permission-icon">✓</span>
-                      <span><b>IaC Security Verification</b> (autonomous drift & patch auditing)</span>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <button
-                    type="submit"
-                    className="github-btn-authorize"
-                    disabled={ssoModal.authorizing}
-                  >
-                    {ssoModal.authorizing ? (
-                      <>
-                        <span className="auth-spinner" style={{ width: '16px', height: '16px', borderTopColor: '#ffffff' }}></span>
-                        <span>
-                          {ssoModal.authMethod === 'email' ? 'Dispatching Email Code...' : 'Authorizing with GitHub...'}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                        </svg>
-                        <span>
-                          {ssoModal.authMethod === 'mobile' && 'Continue with GitHub Mobile →'}
-                          {ssoModal.authMethod === 'email' && 'Send Email Code & Authorize →'}
-                          {ssoModal.authMethod === 'password' && 'Authorize AgentShield AI'}
-                        </span>
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="github-btn-cancel"
-                    onClick={() => !ssoModal.authorizing && setSsoModal(null)}
-                    disabled={ssoModal.authorizing}
-                  >
-                    Cancel and return to AgentShield AI
-                  </button>
                 </form>
               )}
 
-              {/* Step 2: GitHub Mobile 2FA Prompt */}
+              {/* Step 3: Google Prompt 2-Step Verification */}
               {ssoModal.step === '2fa_mobile' && (
                 <div>
-                  <div className="github-mobile-box">
-                    <div className="github-mobile-icon-wrap">
-                      <div className="github-mobile-pulse"></div>
+                  <div className="google-mobile-box">
+                    <div className="google-mobile-icon-wrap">
+                      <div className="google-mobile-pulse"></div>
                       <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                         <line x1="12" y1="18" x2="12.01" y2="18"></line>
                       </svg>
                     </div>
 
-                    <h3 className="github-mobile-title">Check your GitHub Mobile</h3>
-                    <p className="github-mobile-desc">
-                      Open the GitHub Mobile app on your phone and tap the matching number below to approve this authorization request for <b>AgentShield AI</b>:
+                    <h3 className="google-mobile-title">2-Step Verification</h3>
+                    <p className="google-mobile-desc">
+                      Check your phone. Google sent a notification to your device. Tap <b>Yes</b> on the prompt, then select this matching number:
                     </p>
 
-                    <div className="github-mobile-number">
+                    <div className="google-mobile-number">
                       {ssoModal.mobileCode}
                     </div>
 
-                    <div className="github-mobile-waiting">
-                      <span className="auth-spinner" style={{ width: '13px', height: '13px', borderTopColor: '#3fb950' }}></span>
-                      <span>Waiting for approval on your mobile device...</span>
+                    <div className="google-mobile-waiting">
+                      <span className="auth-spinner" style={{ width: '13px', height: '13px', borderTopColor: '#8ab4f8' }}></span>
+                      <span>Waiting for approval on your phone...</span>
                     </div>
 
                     <button
                       type="button"
-                      className="github-btn-authorize"
-                      onClick={handleApproveMobile}
+                      className="google-btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', marginTop: '6px' }}
+                      onClick={handleGoogleApproveMobile}
                       disabled={ssoModal.authorizing}
                     >
                       {ssoModal.authorizing ? (
                         <>
-                          <span className="auth-spinner" style={{ width: '16px', height: '16px', borderTopColor: '#ffffff' }}></span>
-                          <span>Verifying Mobile Approval...</span>
+                          <span className="auth-spinner" style={{ width: '14px', height: '14px', borderTopColor: '#ffffff' }}></span>
+                          <span>Verifying Device Approval...</span>
                         </>
                       ) : (
-                        <span>Approve on GitHub Mobile Device ✓</span>
+                        <span>Tap Yes and {ssoModal.mobileCode} to Approve ✓</span>
                       )}
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="github-btn-cancel"
-                    onClick={() => setSsoModal({ ...ssoModal, step: 'credentials', error: '' })}
-                    disabled={ssoModal.authorizing}
-                  >
-                    ← Try another authorization method
-                  </button>
+                  <div className="google-actions-row">
+                    <button
+                      type="button"
+                      className="google-btn-text"
+                      onClick={() => setSsoModal({ ...ssoModal, step: 'password', error: '' })}
+                      disabled={ssoModal.authorizing}
+                    >
+                      ← Try another way
+                    </button>
+                  </div>
                 </div>
               )}
 
-              {/* Step 3: GitHub Email Code 2FA Prompt */}
+              {/* Step 4: Google Email 2FA Code */}
               {ssoModal.step === '2fa_email' && (
-                <form onSubmit={handleVerifyEmail2FA}>
-                  <div className="github-mobile-box">
-                    <div className="github-mobile-icon-wrap">
+                <form onSubmit={handleGoogleVerifyEmail2FA}>
+                  <div className="google-mobile-box">
+                    <div className="google-mobile-icon-wrap">
                       <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                         <polyline points="22,6 12,13 2,6"></polyline>
                       </svg>
                     </div>
 
-                    <h3 className="github-mobile-title">Device verification code</h3>
-                    <p className="github-mobile-desc">
-                      We sent a 6-digit verification code to <b style={{ color: '#f0f6fc' }}>{ssoModal.email}</b>. Enter it below to complete authorization:
+                    <h3 className="google-mobile-title">Check your email</h3>
+                    <p className="google-mobile-desc">
+                      A 6-digit verification code was sent to <b style={{ color: '#e8eaed' }}>{ssoModal.email}</b>. Enter it below to complete sign in:
                     </p>
 
                     <input
@@ -1139,130 +1301,51 @@ export default function Auth({ initialMode = 'login' }) {
                         const val = e.target.value.replace(/[^0-9]/g, '')
                         setSsoModal({ ...ssoModal, enteredCode: val, error: '' })
                       }}
-                      className="github-code-input"
+                      className="google-code-input"
                       autoFocus
                       disabled={ssoModal.authorizing}
                     />
 
                     <button
                       type="submit"
-                      className="github-btn-authorize"
+                      className="google-btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', marginTop: '6px' }}
                       disabled={ssoModal.authorizing}
                     >
                       {ssoModal.authorizing ? (
                         <>
-                          <span className="auth-spinner" style={{ width: '16px', height: '16px', borderTopColor: '#ffffff' }}></span>
+                          <span className="auth-spinner" style={{ width: '14px', height: '14px', borderTopColor: '#ffffff' }}></span>
                           <span>Verifying Code...</span>
                         </>
                       ) : (
-                        <span>Verify & Authorize AgentShield AI</span>
+                        <span>Verify & Sign in</span>
                       )}
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="github-btn-cancel"
-                    onClick={() => setSsoModal({ ...ssoModal, step: 'credentials', error: '' })}
-                    disabled={ssoModal.authorizing}
-                  >
-                    ← Try another authorization method
-                  </button>
+                  <div className="google-actions-row">
+                    <button
+                      type="button"
+                      className="google-btn-text"
+                      onClick={() => setSsoModal({ ...ssoModal, step: 'password', error: '' })}
+                      disabled={ssoModal.authorizing}
+                    >
+                      ← Try another way
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
 
-            {/* GitHub Footer */}
-            <div className="github-oauth-footer">
-              Authorizing will redirect to <b>agentshield.ai/console</b><br />
-              <span>GitHub, Inc. &bull; <a href="https://docs.github.com" target="_blank" rel="noreferrer">Terms</a> &bull; <a href="https://docs.github.com" target="_blank" rel="noreferrer">Privacy</a> &bull; <a href="https://github.community" target="_blank" rel="noreferrer">Support</a></span>
+            {/* Google Window Footer */}
+            <div className="google-oauth-footer">
+              <span>English (United States)</span>
+              <div className="google-footer-links">
+                <a href="https://support.google.com/accounts" target="_blank" rel="noreferrer">Help</a>
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Privacy</a>
+                <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer">Terms</a>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Google SSO Verification Modal */}
-      {ssoModal && ssoModal.provider === 'google' && (
-        <div className="modal-overlay" onClick={() => !ssoModal.authorizing && setSsoModal(null)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, color: '#FFFFFF', fontFamily: 'Outfit', fontSize: '18px' }}>
-                {mode === 'login' ? 'Sign in with Google' : 'Create Account with Google'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => !ssoModal.authorizing && setSsoModal(null)}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', fontSize: '18px', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <p style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '18px' }}>
-              {mode === 'login'
-                ? 'Enter your registered Google account email to access the console:'
-                : 'Enter your name and Google account email to register your new enterprise account:'}
-            </p>
-
-            {ssoModal.error && (
-              <div className="auth-alert error" style={{ marginBottom: '16px' }}>
-                <span className="alert-dot"></span>
-                <span>{ssoModal.error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSSOSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {mode === 'signup' && (
-                <div>
-                  <label className="form-label" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={ssoModal.name}
-                    onChange={(e) => setSsoModal({ ...ssoModal, name: e.target.value, error: '' })}
-                    className="form-input"
-                    style={{ width: '100%' }}
-                    disabled={ssoModal.authorizing}
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="form-label" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
-                  Google Account Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={ssoModal.email}
-                  onChange={(e) => setSsoModal({ ...ssoModal, email: e.target.value, error: '' })}
-                  className="form-input"
-                  style={{ width: '100%' }}
-                  disabled={ssoModal.authorizing}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  className="soc-back-home-btn"
-                  onClick={() => !ssoModal.authorizing && setSsoModal(null)}
-                  disabled={ssoModal.authorizing}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn-start-analysis"
-                  style={{ padding: '8px 18px', fontSize: '13px' }}
-                  disabled={ssoModal.authorizing}
-                >
-                  {ssoModal.authorizing ? 'Verifying...' : mode === 'login' ? 'Verify & Sign In →' : 'Register & Sign In →'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

@@ -21,6 +21,11 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "").strip()
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "").strip()
 GITHUB_REDIRECT_URI = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/api/auth/github/callback").strip()
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback").strip()
+
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").strip()
 
 
@@ -353,4 +358,157 @@ async def github_callback(
         return RedirectResponse(
             url=f"{FRONTEND_URL}/login?github_error={urllib.parse.quote(str(exc))}"
         )
+
+
+# ==========================================
+# Real Google OAuth 2.0 Endpoints
+# ==========================================
+
+@router.get("/google/status")
+def get_google_status() -> dict:
+    """Return whether real Google OAuth is configured in the environment."""
+    return {
+        "configured": bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET),
+        "client_id": f"{GOOGLE_CLIENT_ID[:6]}..." if GOOGLE_CLIENT_ID else None,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+    }
+
+
+@router.get("/google/login")
+def google_login(state: str | None = None):
+    """
+    Redirect the user to Google's real OAuth 2.0 authorization page.
+    Requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET configured in .env.
+    """
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=400,
+            detail="Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in backend/.env",
+        )
+
+    oauth_state = state or secrets.token_urlsafe(16)
+    params = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": oauth_state,
+        "access_type": "offline",
+        "prompt": "select_account",
+    }
+    google_auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+    logger.info("Redirecting user to Google OAuth: %s", google_auth_url)
+    return RedirectResponse(url=google_auth_url)
+
+
+@router.get("/google/callback")
+async def google_callback(
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+    error_description: str | None = None,
+):
+    """
+    Handle Google OAuth 2.0 callback:
+    1. Exchange authorization code for access token via https://oauth2.googleapis.com/token.
+    2. Fetch user profile and email from https://www.googleapis.com/oauth2/v3/userinfo.
+    3. Register or update the user in the SQLite database.
+    4. Redirect the browser to the AgentShield frontend console.
+    """
+    if error:
+        err_msg = error_description or error or "Google authentication failed"
+        logger.error("Google OAuth error from provider: %s", err_msg)
+        return RedirectResponse(
+            url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote(err_msg)}"
+        )
+
+    if not code:
+        logger.error("No authorization code provided in Google OAuth callback")
+        return RedirectResponse(
+            url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote('Missing authorization code from Google.')}"
+        )
+
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        logger.error("Google OAuth credentials not configured on callback")
+        return RedirectResponse(
+            url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote('Google OAuth credentials are not configured on the server.')}"
+        )
+
+    token_url = "https://oauth2.googleapis.com/token"
+    token_payload = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+    }
+    headers = {"Accept": "application/json"}
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            token_resp = await client.post(token_url, data=token_payload, headers=headers)
+            if token_resp.status_code != 200:
+                logger.error("Failed to exchange code with Google: %s", token_resp.text)
+                return RedirectResponse(
+                    url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote('Failed to exchange code with Google.')}"
+                )
+
+            token_data = token_resp.json()
+            access_token = token_data.get("access_token")
+            if not access_token:
+                err_desc = token_data.get("error_description", "No access token received from Google.")
+                logger.error("Google token error: %s", err_desc)
+                return RedirectResponse(
+                    url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote(err_desc)}"
+                )
+
+            # Fetch user profile from Google UserInfo endpoint
+            user_resp = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            if user_resp.status_code != 200:
+                logger.error("Failed to fetch user profile from Google: %s", user_resp.text)
+                return RedirectResponse(
+                    url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote('Failed to fetch user profile from Google.')}"
+                )
+
+            user_data = user_resp.json()
+            email = user_data.get("email")
+            name = user_data.get("name") or user_data.get("given_name") or "Google User"
+            picture = user_data.get("picture", "")
+
+            if not email:
+                return RedirectResponse(
+                    url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote('No email associated with this Google account.')}"
+                )
+
+            clean_email = email.strip().lower()
+
+            # Provision or update user in SQLite database
+            workspace_store.save_user(
+                email=clean_email,
+                name=name,
+                password="",
+                org_name="Google Account",
+                providers="google",
+            )
+            logger.info("Google user successfully authenticated & saved: %s (%s)", clean_email, name)
+
+            # Redirect user to the frontend console with auth params
+            redirect_params = urllib.parse.urlencode({
+                "google_auth": "success",
+                "email": clean_email,
+                "name": name,
+                "provider": "google",
+                "picture": picture,
+            })
+            return RedirectResponse(url=f"{FRONTEND_URL}/console?{redirect_params}")
+
+    except Exception as exc:
+        logger.exception("Unexpected error during Google OAuth callback: %s", exc)
+        return RedirectResponse(
+            url=f"{FRONTEND_URL}/login?google_error={urllib.parse.quote(str(exc))}"
+        )
+
 

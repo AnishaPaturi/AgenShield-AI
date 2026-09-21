@@ -109,6 +109,40 @@ export default function Console() {
       }
     }
 
+    // Detect Google OAuth 2.0 redirect return
+    if (params.get('google_auth') === 'success') {
+      const email = (params.get('email') || '').trim().toLowerCase()
+      const name = (params.get('name') || '').trim() || 'Google User'
+
+      if (email) {
+        const users = getRegisteredUsers()
+        let gUser = users.find((u) => u.email.toLowerCase() === email)
+        if (!gUser) {
+          gUser = {
+            id: `usr-${Date.now()}`,
+            name: name,
+            email: email,
+            password: '',
+            orgName: 'Google Account',
+            providers: ['google'],
+            createdAt: new Date().toISOString(),
+          }
+          users.push(gUser)
+        } else {
+          if (!gUser.providers) gUser.providers = ['email']
+          if (!gUser.providers.includes('google')) {
+            gUser.providers.push('google')
+          }
+        }
+        saveRegisteredUsers(users)
+        saveCurrentUserSession(gUser)
+        setCurrentUser(gUser)
+        // Clean URL query parameters
+        window.history.replaceState({}, document.title, window.location.pathname)
+        showToast(`Welcome ${name}! Authenticated via Google (${email})`)
+      }
+    }
+
     const user = getCurrentUser()
     if (!user) {
       navigate('/login')
