@@ -159,7 +159,15 @@ export async function updatePasswordInDb(email, newPassword, code = null) {
   return asJson(res)
 }
 
+export async function getGitHubOAuthStatus() {
+  try {
+    const res = await fetch(`${base()}/api/auth/github/status`)
+    return await asJson(res)
+  } catch {
+    return { configured: false }
+  }
+}
 
-
-
-
+export function getGitHubLoginUrl() {
+  return `${base()}/api/auth/github/login`
+}

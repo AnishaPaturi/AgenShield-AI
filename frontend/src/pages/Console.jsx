@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getCurrentUser, logout } from '../auth.js'
+import { getCurrentUser, setCurrentUser as saveCurrentUserSession, getRegisteredUsers, saveRegisteredUsers, logout } from '../auth.js'
 import {
   checkHealth,
   listWorkspaces,
@@ -73,6 +73,42 @@ export default function Console() {
   }, [])
 
   useEffect(() => {
+    // Detect GitHub OAuth 2.0 redirect return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('github_auth') === 'success') {
+      const email = (params.get('email') || '').trim().toLowerCase()
+      const name = (params.get('name') || '').trim() || 'GitHub Developer'
+      const login = (params.get('login') || '').trim()
+
+      if (email) {
+        const users = getRegisteredUsers()
+        let ghUser = users.find((u) => u.email.toLowerCase() === email)
+        if (!ghUser) {
+          ghUser = {
+            id: `usr-${Date.now()}`,
+            name: name,
+            email: email,
+            password: '',
+            orgName: login ? `${login} (GitHub)` : 'GitHub Enterprise',
+            providers: ['github'],
+            createdAt: new Date().toISOString(),
+          }
+          users.push(ghUser)
+        } else {
+          if (!ghUser.providers) ghUser.providers = ['email']
+          if (!ghUser.providers.includes('github')) {
+            ghUser.providers.push('github')
+          }
+        }
+        saveRegisteredUsers(users)
+        saveCurrentUserSession(ghUser)
+        setCurrentUser(ghUser)
+        // Clean URL query parameters
+        window.history.replaceState({}, document.title, window.location.pathname)
+        showToast(`Welcome ${name}! Authenticated via GitHub (@${login || email})`)
+      }
+    }
+
     const user = getCurrentUser()
     if (!user) {
       navigate('/login')
@@ -82,7 +118,7 @@ export default function Console() {
     refreshHealth()
     refreshWorkspaces()
     refreshAuditStats()
-  }, [navigate, refreshHealth, refreshWorkspaces, refreshAuditStats])
+  }, [navigate, refreshHealth, refreshWorkspaces, refreshAuditStats, showToast])
 
   async function handleScan(file, options = {}) {
     setScanning(true)
