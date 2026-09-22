@@ -168,6 +168,7 @@ graph TD
 * **Vector DB / RAG Ingestion:** Qdrant / ChromaDB & `sentence-transformers`
 * **Static Scanners & Secrets Engines:** Checkov, tfsec, KICS, Gitleaks, TruffleHog
 * **Language Models:** Anthropic Claude 3.5 (via Bedrock/API), OpenAI GPT-4o, Local Distilled SLM
+* **Cloud Providers & SDKs:** AWS (`boto3`), Azure (`azure-identity`, `azure-mgmt-*`), GCP (`google-cloud-asset`), LocalStack (AWS Emulation)
 * **Validation & Sandbox:** LocalStack (AWS Emulation), `terraform validate`, `cfn-lint`
 * **Development Utilities:** `uv` (Fast Python package manager), Docker, Pytest
 
@@ -576,6 +577,164 @@ AgentShield-AI/
 | **`frontend/src/landing.css`** | Page Styles | Layout and animation stylesheet for the landing upload section, drag-and-drop file dropzone, and progress indicators. |
 | **`frontend/src/components/`** | UI Components | Reusable React UI components including file dropzone, vulnerability card list, risk score gauges, unified diff patch viewer, and export modal. |
 | **`frontend/src/pages/`** | Page Views | Top-level dashboard page views including template scanner page, interactive workspace view, and settings configuration. |
+
+---
+
+## ☁️ Connecting Cloud Accounts (AWS, Azure, GCP)
+
+AgentShield AI operates in two operational modes:
+1. **Shift-Left Pre-Deployment Mode (Default):** Evaluates Infrastructure-as-Code (Terraform, CloudFormation, Kubernetes, Helm) statically via AST parsing, multi-LLM ensemble analysis, and local sandbox dry-runs (LocalStack) **without requiring live cloud credentials**.
+2. **Connected Cloud Mode (Live Drift Detection & Posture Auditing — Task 5.2):** Securely connects to live **AWS**, **Microsoft Azure**, and **Google Cloud Platform (GCP)** environments to compare deployed cloud reality against declared IaC templates, discover out-of-band changes ("drift"), and generate automated reconciliation patches.
+
+---
+
+### 🏛️ Cloud Integration Architecture
+
+```mermaid
+flowchart TD
+    subgraph "Shift-Left IaC Ingestion"
+        A["IaC Templates (Terraform / CFN / K8s)"] --> B[Hybrid AST Parser]
+    end
+
+    subgraph "Connected Cloud Accounts (Task 5.2)"
+        AWS["AWS Account (boto3 / AWS Config)"]
+        AZURE["Azure Subscription (azure-mgmt / Resource Graph)"]
+        GCP["GCP Project (google-cloud-asset)"]
+    end
+
+    B -->|Declared State| D[DriftDetector Engine]
+    AWS -->|Live State| D
+    AZURE -->|Live State| D
+    GCP -->|Live State| D
+
+    D -->|Discrepancies & Drift| R[DriftReport]
+    R -->|Reconciliation Diff| REM[Remediation Agent]
+    REM -->|Unified Patch Diff| V[Sandbox Validation Harness]
+```
+
+---
+
+### 🔑 1. Cloud Provider Authentication & Credentials Setup
+
+AgentShield AI adheres strictly to the **Principle of Least Privilege (PoLP)**. It only requires **Read-Only / Security Audit** permissions to inspect cloud configurations. It **never** requires write or delete permissions on your live infrastructure.
+
+#### **A. Amazon Web Services (AWS)**
+
+* **Supported Auth Methods:** IAM User Access Keys, IAM Roles (AssumeRole / STS), Instance Profile, or LocalStack (offline emulation).
+* **Target Services Queried:** Amazon S3 (`GetBucketPublicAccessBlock`), EC2 Security Groups (`DescribeSecurityGroups`), Amazon RDS (`DescribeDBInstances`), and AWS Config.
+* **Minimum Required IAM Policy:** Attach the AWS managed policy `arn:aws:iam::aws:policy/SecurityAudit` or `arn:aws:iam::aws:policy/ReadOnlyAccess`.
+* **Configuration (`backend/.env`):**
+  ```bash
+  AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"
+  AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+  AWS_DEFAULT_REGION="us-east-1"
+  # Optional: For temporary STS session credentials
+  # AWS_SESSION_TOKEN="AQoDYXdzEJr1..."
+  # Optional: For LocalStack containerized emulation (default: http://localhost:4566)
+  LOCALSTACK_ENDPOINT_URL="http://localhost:4566"
+  ```
+
+#### **B. Microsoft Azure**
+
+* **Supported Auth Methods:** Azure Service Principal (Client Secret), Azure Managed Identity, or Azure CLI (`az login`).
+* **Target Services Queried:** Azure Resource Graph, Network Security Groups (`Microsoft.Network/networkSecurityGroups`), Storage Accounts (`Microsoft.Storage/storageAccounts`), and Key Vaults.
+* **Minimum Required Role:** Assign the **Reader** or **Security Reader** role at the Subscription or Resource Group level:
+  ```bash
+  az ad sp create-for-rbac --name "AgentShield-Monitor" \
+    --role "Security Reader" \
+    --scopes "/subscriptions/<YOUR_SUBSCRIPTION_ID>"
+  ```
+* **Configuration (`backend/.env`):**
+  ```bash
+  AZURE_TENANT_ID="00000000-0000-0000-0000-000000000000"
+  AZURE_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+  AZURE_CLIENT_SECRET="your-azure-service-principal-client-secret"
+  AZURE_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
+  ```
+
+#### **C. Google Cloud Platform (GCP)**
+
+* **Supported Auth Methods:** Google Service Account JSON Key file or Application Default Credentials (ADC).
+* **Target Services Queried:** Cloud Asset Inventory (`cloudasset.googleapis.com`), Cloud Storage (`storage.googleapis.com`), Compute Engine Firewall Rules (`compute.googleapis.com`).
+* **Minimum Required IAM Roles:** Grant `roles/viewer` (Viewer) and `roles/cloudasset.viewer` (Cloud Asset Viewer) to the service account:
+  ```bash
+  gcloud projects add-iam-policy-binding <GCP_PROJECT_ID> \
+    --member="serviceAccount:agentshield-reader@<GCP_PROJECT_ID>.iam.gserviceaccount.com" \
+    --role="roles/cloudasset.viewer"
+  ```
+* **Configuration (`backend/.env`):**
+  ```bash
+  GOOGLE_APPLICATION_CREDENTIALS="/absolute/path/to/service-account-key.json"
+  GCP_PROJECT_ID="your-gcp-project-id"
+  ```
+
+---
+
+### 🚀 2. How to Trigger Live Cloud Drift Scans
+
+Once your cloud credentials are configured, AgentShield AI detects discrepancies between your IaC template and the live cloud reality.
+
+#### **Via REST API Endpoints:**
+
+1. **Trigger a Live Drift Scan:**
+   ```http
+   POST /api/workspaces/{workspace_id}/drift/scan
+   Content-Type: application/json
+   ```
+   **Response (`DriftReport`):**
+   ```json
+   {
+     "workspace_id": "ws-abc123",
+     "cloud_provider": "aws",
+     "total_drifts": 1,
+     "drifts": [
+       {
+         "resource_id": "aws_s3_bucket.data_lake",
+         "resource_type": "aws_s3_bucket",
+         "property_path": "block_public_acls",
+         "declared_value": true,
+         "live_value": false,
+         "drift_type": "MODIFIED",
+         "severity": "HIGH",
+         "reconciliation_patch": "--- a/main.tf\n+++ b/main.tf\n@@ -12,3 +12,3 @@\n-  block_public_acls = false\n+  block_public_acls = true"
+       }
+     ],
+     "status": "DRIFT_DETECTED"
+   }
+   ```
+
+2. **Retrieve Latest Cached Drift Report:**
+   ```http
+   GET /api/workspaces/{workspace_id}/drift
+   ```
+
+#### **Via Python SDK:**
+
+```python
+from agentshield.core.drift import DriftDetector
+from agentshield.core.drift.monitors import AWSCloudMonitor, AzureCloudMonitor, GCPCloudMonitor
+from agentshield.core.schemas import CloudProvider
+
+# Initialize detector with configured cloud monitors
+detector = DriftDetector(monitors={
+    CloudProvider.AWS: AWSCloudMonitor(region_name="us-east-1"),
+    CloudProvider.AZURE: AzureCloudMonitor(),
+    CloudProvider.GCP: GCPCloudMonitor(),
+})
+
+# Run drift inspection against an IaC template
+drift_report = detector.detect_drift(template=workspace.template)
+print(f"Detected {drift_report.total_drifts} out-of-band drifts!")
+```
+
+---
+
+### 🛡️ 3. Security & Least-Privilege Safeguards
+
+1. **Zero State Mutation:** The `BaseCloudMonitor` interface strictly implements read queries (`get_live_resource_state`). It contains zero provision, update, or delete commands.
+2. **Credential Privacy:** Cloud credentials, API secrets, and tokens are **never** logged to disk, persisted in workspace records, or exported in compliance reports.
+3. **Secrets Scanner Interception:** AgentShield's integrated `SecretsScannerAgent` (Gitleaks + TruffleHog + Shannon Entropy) automatically intercepts any hardcoded AWS, Azure, or GCP credentials accidentally committed into IaC templates before deployment.
+4. **LocalStack Emulation for Zero Cloud Costs:** For local development and patch dry-runs, AgentShield can run against **LocalStack** (`http://localhost:4566`) without incurring any cloud provider bills or requiring production access.
 
 ---
 

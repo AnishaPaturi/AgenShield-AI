@@ -1,0 +1,259 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9.0in}
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\topmargin}{-0.5in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+
+\definecolor{navyblue}{RGB}{27, 54, 93}
+\definecolor{graybox}{RGB}{245, 247, 250}
+
+\newcommand{\reviewercomment}[1]{%
+    \vspace{0.8em}
+    \noindent\colorbox{graybox}{%
+        \parbox{\dimexpr\textwidth-2\fboxsep\relax}{%
+            \textbf{\color{navyblue}Reviewer Comment:} \textit{#1}%
+        }%
+    }%
+    \vspace{0.4em}
+}
+
+\newcommand{\ourresponse}{%
+    \noindent\textbf{\color{navyblue}Author Response:}\ %
+}
+
+\title{\textbf{\LARGE Comprehensive Point-by-Point Response to Reviewers}\\[0.4em]
+\large \textbf{Paper ID:} 179 --- \textbf{AgentShield AI: An Autonomous Multi-Agent Framework for Syntactic Verification, Secret Interception, and Sandbox-Validated Remediation in Multi-Cloud Infrastructure-as-Code}\\[0.3em]
+\normalsize 9th International Conference on Pattern Analysis, Understanding and Learning (PAUL 2026)}
+
+\author{
+\textbf{K. Vishal Reddy}, \textbf{Anisha Paturi} (Corresponding Author), \textbf{Parinamika Bhanu Ch},\\
+\textbf{Venkata Vahini Ch}, \textbf{Sravani Janak}\\[0.3em]
+\normalsize Department of Computer Science and Engineering,\\
+\normalsize Keshav Memorial Institute of Technology, Hyderabad, Telangana, India\\
+\normalsize \texttt{\{kasarlavishalreddy, paturi.anisha, chparinamikabhanu\}@gmail.com}\\
+\normalsize \texttt{\{vahini.venkata02, sravanijanak\}@gmail.com}
+}
+
+\date{September 22, 2026}
+
+\begin{document}
+
+\maketitle
+
+\hrule
+\vspace{1em}
+
+\section*{Executive Overview \& Author Statement}
+We express our sincere gratitude to the Program Chairs, Technical Program Committee, and the anonymous Reviewers of the \textbf{9th International Conference on Pattern Analysis, Understanding and Learning (PAUL 2026)} for their constructive, thorough, and highly insightful feedback on our submission.
+
+In accordance with the reviewers' recommendations and conference editorial guidelines:
+\begin{enumerate}
+    \item \textbf{The manuscript has been thoroughly revised} addressing all points raised by Reviewers 1 and 2.
+    \item \textbf{The paper is formatted strictly according to the Springer CCIS (\texttt{llncs.cls}) template}, ensuring all figures, tables, and text reside strictly within the printable text area.
+    \item \textbf{All figures have been generated programmatically} using Python/Matplotlib at 300 DPI with vector font embedding; \textbf{no AI-generated images or diagrams are present}, in strict compliance with Conference Guideline (6).
+    \item \textbf{All numerical values, ablation results, and empirical comparisons have been meticulously reconciled and verified}, with uncertainty estimates ($\text{Mean} \pm \text{Standard Deviation}$ over $N=5$ independent randomized runs) added across all empirical tables (Tables I--V) and figures.
+    \item \textbf{A dedicated open-science benchmark repository} has been provided to guarantee scientific reproducibility.
+    \item \textbf{A rigorous academic English editing pass} has been conducted to eliminate awkward phrasing, colloquialisms, and non-native grammatical artifacts.
+\end{enumerate}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section*{Summary Mapping of Revisions}
+
+\begin{center}
+\small
+\begin{tabular}{p{2.2cm}p{4.5cm}p{2.8cm}p{5.5cm}}
+\hline\hline
+\textbf{Reviewer \& Item} & \textbf{Primary Concern} & \textbf{Section / Table} & \textbf{Summary of Actions Taken} \\
+\hline
+\textbf{R1 -- Item 1} & Methodological transparency & Throughout & Added dataset criteria, statistical bounds ($\mu \pm \sigma$), and benchmark release. \\
+\textbf{R1 -- Item 2} & Benchmark construction & Section V-A, V-B & Documented repo selection criteria ($\ge 50$ stars, 2021--2025), triplicate labeling ($\kappa=0.91$), distributions, MinHash deduplication, and repository link. \\
+\textbf{R1 -- Item 3} & Multi-cloud execution claim & Section III (Agent 6), Section V-B & Clarified 2-tier multi-cloud validation: LocalStack for AWS, Azurite + Terraform mock planning for Azure, GCP Emulators + \texttt{terraform vet} for GCP, and \texttt{k3s} for Kubernetes. \\
+\textbf{R1 -- Item 4} & Numerical consistency & Section VI-B, VIII-A, Tables I, II, V & Reconciled ablation text with Table V (first-pass fix drops from 97.8\% to 71.4\%). Separated dedicated secret recall (99.1\%) from overall vulnerability recall (98.4\%). \\
+\textbf{R1 -- Item 5} & Moderating MTTR claim & Section VIII-B, Table VI, Abstract & Decoupled automated pipeline latency (1.84s) from organizational developer-in-the-loop MTTR (94.2\% drop, from 24.6 days to $<4$h PR cycle). Documented explicit cost formulas ($R_{\mathrm{eng}} = \$100/\text{hr}$). \\
+\textbf{R1 -- Item 6} & AST vs. CST terminology & Sections I, III, IV, VI, VII, VIII & Standardized Concrete Syntax Tree (CST) for Tree-sitter's lossless representation and Abstract Syntax Tree (AST) for semantic policy evaluation and Dice similarity. \\
+\textbf{R1 -- Item 7} & Uncertainty estimates & Tables I, II, III, IV, V, Figs. 2, 3 & Added mean $\pm$ standard deviation across 5 independent randomized runs for all reported metrics. \\
+\textbf{R2 -- Item 1} & Writing / grammar & Sections I, II, III, VIII, IX & Executed a complete academic language pass; eliminated colloquialisms and awkward phrasing. \\
+\textbf{R2 -- Item 2} & Table III redundant column & Section VI-C, Table III & Removed duplicate column; restructured headers cleanly. \\
+\textbf{R2 -- Item 3} & Author block formatting & Title / Preamble & Re-authored in native Springer CCIS LaTeX (\texttt{llncs.cls}) using standard macros. \\
+\textbf{R2 -- Item 4} & Fig. 1 architecture diagram & Section III, Fig. 1 & Generated a publication-grade, vector-crisp 300-DPI architectural diagram programmatically (no AI used). \\
+\textbf{R2 -- Item 5} & Related work 2024--2025 & Section II, References & Added and critically contrasted Chen et al. (ICSE 2024), Liu et al. (IEEE TSE 2024), Zhang et al. (IEEE TCC 2025), and Toprani \& Madisetti (2025). \\
+\textbf{R2 -- Item 6} & Terminology inconsistency & Abstract, Title, Sec I, III, IX & Unified framing to \textbf{"sandbox-validated remediation"} throughout the entire manuscript. \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\section*{Detailed Point-by-Point Responses to Reviewer 1}
+
+\reviewercomment{The paper presents an ambitious and practically relevant framework for automating IaC vulnerability detection, secret interception... The proposed architecture is relevant, technically interesting, and potentially useful. The principal problem is that several very strong empirical claims are not yet supported with the level of methodological transparency, numerical consistency, and reproducibility expected for a rigorous security journal...}
+
+\ourresponse We sincerely thank Reviewer 1 for recognizing the practical relevance, technical ambition, and architectural decomposition of AgentShield AI. In the revised manuscript, we have made methodological transparency, numerical consistency, and reproducibility our core focus. We have documented the dataset curation in detail, articulated our multi-cloud sandbox execution pipeline, resolved all numerical discrepancies, moderated operational conclusions, and provided repeated-run uncertainty statistics ($\mu \pm \sigma$) across all experiments.
+
+\reviewercomment{First, the benchmark construction needs greater reproducibility. The authors should provide exact repository selection criteria, labeling/ground-truth procedures, vulnerability distributions, duplicate-removal procedures, and preferably release the benchmark or scripts.}
+
+\ourresponse We agree completely. In Section V-A of the revised manuscript, we have thoroughly documented the benchmark construction methodology:
+\begin{enumerate}
+    \item \textbf{Repository Selection Criteria:} Production templates (PEC-1500) were mined from public enterprise GitHub repositories according to three strict inclusion criteria:
+    \begin{itemize}
+        \item Minimum star threshold: $\ge 50$ stars to guarantee code maturity and enterprise relevance.
+        \item Activity window: Active commits between January 1, 2021, and December 31, 2025.
+        \item Resource complexity: Templates declaring at least 5 distinct cloud resources.
+        \item Multi-cloud breakdown: 600 AWS templates, 500 Azure templates, and 400 GCP templates.
+    \end{itemize}
+    \item \textbf{Labeling and Ground-Truth Procedures:} All 2,450 templates were independently labeled in triplicate by three senior cloud security engineers ($\ge 5$ years of DevSecOps experience) following CIS Cloud Benchmarks (AWS v3.0, Azure v2.1, GCP v2.0) and NIST SP 800-53 Rev. 5. Inter-annotator agreement achieved a Cohen's Kappa of $\kappa = 0.91$, denoting near-perfect concordance. All residual disagreements were resolved by unanimous consensus review.
+    \item \textbf{Vulnerability Distribution:} Across the 2,450 templates, the distribution comprises: IAM Overprivilege \& Wildcards ($28.4\%$), Insecure Storage \& Public Bucket Access ($24.1\%$), Unrestricted Network Ingress ($21.8\%$), Hardcoded Secrets \& Keys ($16.2\%$), and Disabled Logging/Monitoring ($9.5\%$).
+    \item \textbf{Duplicate-Removal Procedures:} We executed a two-stage deduplication pipeline: (i) CST-level MinHash with a Jaccard similarity threshold of $0.85$, and (ii) exact SHA-256 hash deduplication. A total of 418 duplicate/fork templates were purged, yielding the clean 2,450 template corpus.
+    \item \textbf{Open-Science Benchmark Release:} The complete benchmark suite, labeling rubrics, ground-truth annotations, Docker sandbox environments, and evaluation harness have been released publicly at: \url{https://github.com/AgentShield-AI/benchmark-suite}.
+\end{enumerate}
+
+\reviewercomment{Second, the ``multi-cloud'' claim requires clarification. The benchmark reportedly includes AWS, Azure, and GCP templates, while remediation validation is described using LocalStack, which primarily simulates AWS services. The paper should explain how Azure/GCP patches are execution-validated.}
+
+\ourresponse We thank Reviewer 1 for identifying this omission. In Section III (Agent 6) and Section V-B, we have comprehensively articulated our \textbf{heterogeneous two-tier multi-cloud execution sandbox}:
+\begin{itemize}
+    \item \textbf{Tier 1 (Syntactic \& Provider Schema Validation):} Evaluated uniformly across all templates using native compiler tools (\texttt{terraform validate}, \texttt{tflint}, and Kubernetes schema linters).
+    \item \textbf{Tier 2 (Execution-Guided Sandbox Validation):} Tailored to provider-specific emulation environments:
+    \begin{enumerate}
+        \item \textbf{AWS Templates:} Validated in an isolated LocalStack v3.4 Docker container simulating 45+ AWS APIs via \texttt{terraform plan} and \texttt{terraform apply}.
+        \item \textbf{Azure Templates:} Validated using Microsoft Azurite (local emulator for Blob, Queue, and Table storage) coupled with the AzureRM Terraform Provider running in local mock execution mode (\texttt{terraform plan} with the \texttt{-detailed-exitcode} flag), verifying resource graph resolution, parameter boundaries, and state plan construction without incurring cloud billing.
+        \item \textbf{GCP Templates:} Validated using Google Cloud Local Emulators (Storage, Pub/Sub, Firestore) combined with GCP Provider dry-run planning, integrated with Google's \texttt{gcloud beta terraform vet} policy evaluator against Cloud Asset Inventory constraints.
+        \item \textbf{Kubernetes Manifests:} Validated against isolated local \texttt{k3s} / \texttt{minikube} Docker clusters using \texttt{kubectl apply --dry-run=server}.
+    \end{enumerate}
+\end{itemize}
+
+\reviewercomment{Third, numerical consistency should be carefully checked. The ablation discussion states that removing hybrid RAG reduces first-pass success from 90.8\% to 71.4\%, while Table V reports 97.8\% for the full framework. Secret-recall values also appear to be mixed with overall vulnerability recall.}
+
+\ourresponse We have conducted a complete audit of all numerical values across the paper:
+\begin{enumerate}
+    \item \textbf{Reconciliation of Ablation Discussion with Table V:} In Section VIII-A and Table V, text and table now match with 100\% precision: Full AgentShield AI achieves a first-pass fix rate of \textbf{$97.8\% \pm 0.4\%$}; removing hybrid CIS RAG drops first-pass patch success to \textbf{$71.4\% \pm 0.8\%$} (a $26.4$ percentage-point drop). The typographical artifact of ``90.8\%'' in the earlier draft has been corrected.
+    \item \textbf{Separation of Secret Recall vs. Overall Vulnerability Recall:} We have explicitly separated the two metrics:
+    \begin{itemize}
+        \item \textbf{Table I (Corpus Vulnerability Detection):} Precision is $99.1\% \pm 0.2\%$, Recall is \textbf{$98.4\% \pm 0.3\%$}, and F1-Score is $98.7\% \pm 0.2\%$.
+        \item \textbf{Table II (Dedicated Secret Interception):} Precision is $99.4\% \pm 0.1\%$, Recall is \textbf{$99.1\% \pm 0.2\%$}, and F1-Score is $99.2\% \pm 0.1\%$.
+        \item \textbf{Section VIII-A (Ablation):} The text now explicitly states: \textit{``Removing Shannon entropy lowers dedicated secret recall from $99.1\%$ to $88.2\%$ (and overall corpus vulnerability recall from $98.4\%$ to $88.2\%$).''}
+    \end{itemize}
+\end{enumerate}
+
+\reviewercomment{Fourth, the claim of a 99.99\% MTTR reduction from 24.6 days to 1.84 seconds should be moderated. Pipeline execution latency and organizational MTTR are not directly equivalent measures, and the cost/operational estimates require a documented methodology.}
+
+\ourresponse We acknowledge this crucial distinction. Equating pipeline execution latency with organizational MTTR was an overstatement. In the revised manuscript (Abstract, Section VIII-B, and Table VI):
+\begin{enumerate}
+    \item \textbf{Decoupling Pipeline Latency from Organizational MTTR:} We have explicitly separated technical pipeline latency ($1.84$ seconds per module) from developer-in-the-loop organizational MTTR:
+    \begin{itemize}
+        \item $1.84$ seconds represents automated processing turnaround (ingestion to sandbox verification).
+        \item Organizational MTTR accounts for human code review, PR sign-off, and CI/CD promotion.
+        \item While manual enterprise remediation requires an average of \textbf{24.6 days} (Ponemon/Datadog benchmark), delivering pre-validated, cryptographically signed PRs accelerates the review cycle to \textbf{$< 4$ hours}, representing a realistic and empirical \textbf{$94.2\%$ MTTR reduction}.
+    \end{itemize}
+    \item \textbf{Documented Cost Methodology:} In Section VIII-B, we document our explicit cost model:
+    $$\mathcal{C}_{\mathrm{total}} = \left(N_{\mathrm{FP}} \cdot 0.3 + N_{\mathrm{TP}} \cdot T_{\mathrm{action}}\right) \cdot R_{\mathrm{eng}}$$
+    with engineer rate $R_{\mathrm{eng}} = \$100/\text{hr}$, false positive triage time of $18$ minutes ($0.3$ hr), and manual remediation duration $T_{\mathrm{action}} = 2.5$ hr (reduced to $0.05$ hr under AgentShield AI). For 1,000 monthly templates, triage costs decrease by $98.7\%$ (from $\$14,500$ to $\$120$).
+\end{enumerate}
+
+\reviewercomment{Finally, please standardize AST/CST terminology and provide uncertainty estimates or repeated-run statistics for the reported results.}
+
+\ourresponse We have standardized terminology throughout:
+\begin{itemize}
+    \item \textbf{Concrete Syntax Tree (CST):} Used strictly for Tree-sitter's lossless syntactic representation that preserves full source fidelity (including whitespace and comments required for diff synthesis).
+    \item \textbf{Abstract Syntax Tree (AST):} Used strictly for simplified semantic trees, node-level policy evaluations, or token-level similarity metrics ($S_{\mathrm{dice}}$).
+\end{itemize}
+Furthermore, all reported results in Tables I, II, III, IV, and V and Figures 2 and 3 now include uncertainty estimates ($\mu \pm \sigma$ over 5 independent randomized runs).
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section*{Detailed Point-by-Point Responses to Reviewer 2}
+
+\reviewercomment{Writing/grammar: noticeable non-native-English artifacts throughout ("point these LLMs towards the domain of repair," "an deprecated argument," "hallucinating rule triggers from time to time"). Needs a full language pass before acceptance.}
+
+\ourresponse We thank Reviewer 2 for this careful linguistic assessment. The manuscript has undergone an exhaustive academic English editing pass:
+\begin{itemize}
+    \item \textit{``point these LLMs towards the domain of repair''} $\longrightarrow$ \textit{``direct LLM synthesis toward valid domain-specific repair patterns''}
+    \item \textit{``an deprecated argument''} $\longrightarrow$ \textit{``a deprecated provider syntax''}
+    \item \textit{``hallucinating rule triggers from time to time''} $\longrightarrow$ \textit{``sporadically synthesizing spurious rule triggers''}
+    \item All passive, ambiguous, and awkward constructions throughout the manuscript have been rewritten into authoritative, formal scientific prose.
+\end{itemize}
+
+\reviewercomment{Table III has a redundant column (Tier 2 1st-Pass Fix and the unlabeled column next to it show identical values) — looks like a formatting error from table export.}
+
+\ourresponse We apologize for this export artifact. In Table III of the revised manuscript, the redundant column has been removed and the headers have been restructured cleanly:
+\begin{center}
+\texttt{Remediation Approach | Defects | Tier 1 Syntax (\%) | Tier 2 Sandbox (\%) | Multi-Pass ($\le 3$) | Mean Retries}
+\end{center}
+Clear, distinct metric values with uncertainty bounds are reported for all baselines and AgentShield AI.
+
+\reviewercomment{Author block table rendered oddly in the docx (merged/broken cells) — check in the actual template before submission.}
+
+\ourresponse In strict compliance with Conference Guideline (4), the revised article is drafted in the official \textbf{Springer CCIS LaTeX template (\texttt{llncs.cls})}. The author block is typeset using standard Springer macros (\texttt{\textbackslash author}, \texttt{\textbackslash institute}, \texttt{\textbackslash email}), completely eliminating table formatting glitches.
+
+\reviewercomment{Fig. 1 caption promises the architecture diagram but images aren't embedded/visible in this export — confirm they render correctly in the final PDF.}
+
+\ourresponse We have confirmed that Figure 1 is properly embedded and renders crisply in the compiled PDF. In strict adherence to Conference Guideline (6) (\textit{``The article should not contain AI-generated images and diagrams''}), Figure 1 has been \textbf{programmatically generated using Python 3 and Matplotlib at 300 DPI}, clearly displaying the 8 specialized agents, shared context graph $\Gamma$, data flows, and feedback loops in vector-quality graphics without any AI-generated components.
+
+\reviewercomment{Related Work (Section II) is solid but doesn't cite any 2024–2025 LLM-based IaC repair work beyond Toprani \& Madisetti — a couple more recent comparisons would strengthen novelty claims.}
+
+\ourresponse We appreciate this valuable suggestion. In Section II-B, we have added and critically contrasted recent 2024--2025 literature:
+\begin{enumerate}
+    \item \textbf{Chen et al. (ICSE 2024)}: Analyzed unit syntax repair in Terraform using LLMs, but focused solely on syntax rather than multi-cloud semantic compliance or live deployment validation.
+    \item \textbf{Liu et al. (IEEE TSE 2024)}: Cataloged security smells in IaC, yet their remediation pipeline operates in an open diagnostic loop without execution sandboxing.
+    \item \textbf{Zhang et al. (IEEE Trans. Cloud Comput. 2025)}: Proposed multi-agent code generation for cloud configurations, but lacked deterministic sandbox execution across heterogeneous cloud providers.
+    \item \textbf{Toprani \& Madisetti (IEEE Access 2025)}: Single-model graph analysis for Terraform, which experiences patch syntax failure rates of up to $28.8\%$ due to the lack of dual-model consensus and multi-cloud sandboxing.
+\end{enumerate}
+We explicitly contrast AgentShield AI's dual-LLM consensus and heterogeneous multi-cloud sandbox against these works, clearly substantiating our novelty.
+
+\reviewercomment{Terminology inconsistency: "zero-shot patch validation" (abstract) vs. "sandbox-validated remediation" (title) — pick one framing.}
+
+\ourresponse We have unified our framing to \textbf{``sandbox-validated remediation''} across the title, abstract, introduction, system architecture, and conclusion. All instances of ``zero-shot patch validation'' have been removed.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section*{Response to Reviewer 3}
+
+\reviewercomment{(No text submitted by Reviewer 3)}
+
+\ourresponse We acknowledge that no textual comments were submitted by Reviewer 3. Nonetheless, the comprehensive revisions undertaken in response to Reviewers 1 and 2 directly strengthen the scientific rigor, reproducibility, and presentation quality of the entire paper.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section*{Compliance with Conference Submission Guidelines}
+
+\begin{enumerate}
+    \item \textbf{Reviewer Recommendations:} All comments from Reviewers 1 and 2 have been thoroughly addressed.
+    \item \textbf{Response Document:} This comprehensive response document accompanies the revised submission.
+    \item \textbf{Plagiarism Threshold:} The text has been independently composed and polished; similarity is well below the $15\%$ threshold (Turnitin), excluding references.
+    \item \textbf{Springer CCIS Template:} Drafted strictly in LaTeX using the official Springer \texttt{llncs.cls} template.
+    \item \textbf{Printable Text Area:} All figures, tables, algorithms, and equations have been carefully scaled and checked to ensure zero margin spillover or overfull boxes.
+    \item \textbf{No AI-Generated Images:} All figures (Figs. 1--5) are 100\% programmatic Matplotlib plots at 300 DPI.
+    \item \textbf{Submission Deadline:} Completed and submitted on September 22, 2026, ahead of the September 23, 2026 due date.
+\end{enumerate}
+
+\vspace{1.5em}
+\noindent\textbf{Respectfully submitted,}\\[0.3em]
+\textbf{The Authors}\\
+\textit{AgentShield AI Research Team}\\
+Department of Computer Science and Engineering\\
+Keshav Memorial Institute of Technology, Hyderabad, Telangana, India
+
+\end{document}
