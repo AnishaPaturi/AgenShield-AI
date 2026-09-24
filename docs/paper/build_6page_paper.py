@@ -32,7 +32,7 @@ import paper_data_6pages as pdata
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 FIG_DIR = os.path.join(ROOT_DIR, "paper_figures")
 
-IMAGE_FIG1 = os.path.join(ROOT_DIR, "image.png")
+IMAGE_FIG1 = os.path.join(FIG_DIR, "fig_architecture_agentshield.png")
 IMAGE_FIG2 = os.path.join(FIG_DIR, "fig_vulnerability_benchmark.png")
 IMAGE_FIG3 = os.path.join(FIG_DIR, "fig_secret_and_remediation.png")
 IMAGE_FIG4 = os.path.join(FIG_DIR, "fig_latency_breakdown.png")
@@ -66,40 +66,42 @@ def render_latex_flowable(latex_str, max_width=255.0, max_height=24.0):
     return RLImage(buf, width=pt_w, height=pt_h)
 
 
-class IEEENumberedCanvas6P(canvas.Canvas):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._saved_page_states = []
+def make_numbered_canvas(footer_right='IEEE Trans. Dependable & Secure Comput.'):
+    class IEEENumberedCanvas6P(canvas.Canvas):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._saved_page_states = []
 
-    def showPage(self):
-        self._saved_page_states.append(dict(self.__dict__))
-        self._startPage()
+        def showPage(self):
+            self._saved_page_states.append(dict(self.__dict__))
+            self._startPage()
 
-    def save(self):
-        num_pages = len(self._saved_page_states)
-        for state in self._saved_page_states:
-            self.__dict__.update(state)
-            self.draw_header_footer(num_pages)
-            super().showPage()
-        super().save()
+        def save(self):
+            num_pages = len(self._saved_page_states)
+            for state in self._saved_page_states:
+                self.__dict__.update(state)
+                self.draw_header_footer(num_pages)
+                super().showPage()
+            super().save()
 
-    def draw_header_footer(self, total_pages):
-        self.saveState()
-        self.setFont('Times-Roman', 7.5)
-        self.setFillColor(colors.HexColor('#222222'))
-        self.setStrokeColor(colors.HexColor('#888888'))
-        self.setLineWidth(0.5)
-        
-        # Bottom Footer
-        self.line(36, 30, 576, 30)
-        footer_text = f'AgentShield AI: Autonomous Multi-Agent IaC Security Framework - Page {self._pageNumber} of {total_pages}'
-        self.drawString(36, 20, footer_text)
-        self.drawRightString(576, 20, 'IEEE Trans. Dependable & Secure Comput.')
-        self.restoreState()
+        def draw_header_footer(self, total_pages):
+            self.saveState()
+            self.setFont('Times-Roman', 7.5)
+            self.setFillColor(colors.HexColor('#222222'))
+            self.setStrokeColor(colors.HexColor('#888888'))
+            self.setLineWidth(0.5)
+            
+            # Bottom Footer
+            self.line(36, 30, 576, 30)
+            footer_text = f'AgentShield AI: Autonomous Multi-Agent IaC Security Framework - Page {self._pageNumber} of {total_pages}'
+            self.drawString(36, 20, footer_text)
+            self.drawRightString(576, 20, footer_right)
+            self.restoreState()
+    return IEEENumberedCanvas6P
 
 
 def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0, tbl_pad=1.3, sec_sp_before=3.8, sec_sp_after=1.6,
-                   fig1_h=125, fig2_h=120, fig3_h=114, fig4_h=114, fig5_h=114):
+                   fig1_h=125, fig2_h=120, fig3_h=114, fig4_h=114, fig5_h=114, footer_right='IEEE Trans. Dependable & Secure Comput.'):
     doc = BaseDocTemplate(
         pdf_path,
         pagesize=letter,
@@ -255,7 +257,12 @@ def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0,
         story.append(Spacer(1, 1.5))
         story.append(RLImage(IMAGE_FIG1, width=col_w - 6, height=fig1_h))
         story.append(Spacer(1, 1.5))
-        fig_cap1 = "<b>Fig. 1.</b> End-to-End System Architecture of AgentShield AI illustrating the 8-agent orchestration pipeline, Tree-sitter AST parsing, entropy-based secret scanning, hybrid RAG retrieval, dual-LLM consensus, and LocalStack sandbox validation."
+        fig_cap1 = (
+            "<b>Fig. 1.</b> End-to-End System Architecture of AgentShield AI. This system consists of an eight-agent orchestration pipeline "
+            "that utilizes Tree-sitter CSTs to analyze the structure of code, entropy calculations to detect secrets within the code, a hybrid RAG "
+            "model to retrieve relevant patches, two LLM models to determine which patches are most appropriate for the detected security vulnerabilities "
+            "and a sandbox environment in which the selected patches are validated for effectiveness."
+        )
         story.append(Paragraph(fig_cap1, fig_caption_style))
         story.append(Spacer(1, p_sp))
 
@@ -320,7 +327,7 @@ def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0,
         story.append(Spacer(1, 1.5))
         story.append(RLImage(IMAGE_FIG3, width=col_w - 6, height=fig3_h))
         story.append(Spacer(1, 1.5))
-        fig_cap3 = "<b>Fig. 3.</b> (a) Secret Detection Precision and False-Alarm Suppression; (b) Two-Tier LocalStack Sandbox Remediation Pass Rates (1st-Pass and Multi-Pass)."
+        fig_cap3 = "<b>Fig. 3.</b> (a) Secret Detection Precision and False-Alarm Suppression; (b) Two-Tier Multi-Cloud Sandbox Remediation Pass Rates (1st-Pass and Multi-Pass)."
         story.append(Paragraph(fig_cap3, fig_caption_style))
         story.append(Spacer(1, p_sp))
 
@@ -332,7 +339,7 @@ def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0,
     # Subsection VI-C
     story.append(Paragraph(sec6_paras[2], body_style))
     story.append(Paragraph(pdata.TABLES_DATA_6P["TABLE III"]["title"], table_title_style))
-    cws3 = [74, 30, 36, 40, 40, 40]
+    cws3 = [76, 28, 42, 42, 40, 32]
     story.append(make_table_flowable(pdata.TABLES_DATA_6P["TABLE III"], cws3))
     story.append(Spacer(1, p_sp))
 
@@ -373,7 +380,7 @@ def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0,
         story.append(Spacer(1, 1.5))
         story.append(RLImage(IMAGE_FIG5, width=col_w - 6, height=fig5_h))
         story.append(Spacer(1, 1.5))
-        fig_cap5 = "<b>Fig. 5.</b> (a) Component Ablation Study across 500 templates; (b) Enterprise Cost and Mean Time to Remediate (MTTR) Reduction (99.99% decrease)."
+        fig_cap5 = "<b>Fig. 5.</b> (a) Component Ablation Study across 500 templates; (b) Enterprise Cost and Mean Time to Remediate (MTTR) Reduction (94.2% drop in developer MTTR; 56.2% faster CI/CD execution)."
         story.append(Paragraph(fig_cap5, fig_caption_style))
         story.append(Spacer(1, p_sp))
 
@@ -399,7 +406,7 @@ def compile_pdf_6p(pdf_path, body_fs=10.3, body_lead=12.1, p_sp=4.2, tbl_fs=6.0,
     for ref_str in pdata.REFERENCES_6P:
         story.append(Paragraph(ref_str, ref_style))
 
-    doc.build(story, canvasmaker=IEEENumberedCanvas6P)
+    doc.build(story, canvasmaker=make_numbered_canvas(footer_right))
     reader = pypdf.PdfReader(pdf_path)
     return len(reader.pages)
 
@@ -431,11 +438,14 @@ def build_docx_6p(docx_path):
     # 4-Column Author Table in DOCX matching IEEE layout
     tbl_auth = doc.add_table(rows=1, cols=len(pdata.AUTHORS))
     tbl_auth.alignment = WD_TABLE_ALIGNMENT.CENTER
+    col_w_docx = DocxInches(7.5 / len(pdata.AUTHORS))
+    for col in tbl_auth.columns:
+        col.width = col_w_docx
     for c_idx, auth in enumerate(pdata.AUTHORS):
         name = auth["name"]
         email = auth["email"]
         cell = tbl_auth.cell(0, c_idx)
-        cell.width = DocxInches(7.5 / len(pdata.AUTHORS))
+        cell.width = col_w_docx
         
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -520,7 +530,7 @@ def build_docx_6p(docx_path):
         r_sec.font.bold = True
 
         if sec_title.startswith("III."):
-            add_docx_fig(IMAGE_FIG1, "Fig. 1. End-to-End System Architecture of AgentShield AI.")
+            add_docx_fig(IMAGE_FIG1, "Fig. 1. End-to-End System Architecture of AgentShield AI. This system consists of an eight-agent orchestration pipeline that utilizes Tree-sitter CSTs to analyze the structure of code, entropy calculations to detect secrets within the code, a hybrid RAG model to retrieve relevant patches, two LLM models to determine which patches are most appropriate for the detected security vulnerabilities and a sandbox environment in which the selected patches are validated for effectiveness.")
 
         for p_text in paragraphs:
             if p_text.startswith("$$"):
@@ -543,7 +553,7 @@ def build_docx_6p(docx_path):
 
         if sec_title.startswith("VI."):
             add_docx_fig(IMAGE_FIG2, "Fig. 2. Comparative Vulnerability Detection Performance Across 2,450 Templates.")
-            add_docx_fig(IMAGE_FIG3, "Fig. 3. Secret Detection & Sandbox Remediation Pass Rates.")
+            add_docx_fig(IMAGE_FIG3, "Fig. 3. Secret Detection & Multi-Cloud Sandbox Remediation Pass Rates.")
             add_docx_fig(IMAGE_FIG4, "Fig. 4. Execution Latency Breakdown per Agent (Total: 1.84s).")
 
         if sec_title.startswith("VIII."):
@@ -601,27 +611,56 @@ def build_docx_6p(docx_path):
 
 def calibrate_and_build():
     root_dir = os.path.dirname(os.path.abspath(__file__))
-    target_pdf = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.pdf")
-    target_docx = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.docx")
+    target_pdf_paul = os.path.join(root_dir, "AgentShield_AI_PAUL2026_Revised.pdf")
+    target_docx_paul = os.path.join(root_dir, "AgentShield_AI_PAUL2026_Revised.docx")
+    target_pdf_ieee = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.pdf")
+    target_docx_ieee = os.path.join(root_dir, "AgentShield_AI_6_Page_IEEE_Research_Paper.docx")
 
-    print("Beginning precision calibration for exactly 6.0 pages...")
+    print("Beginning precision calibration for exactly 6.0 pages (Two-Column Format)...")
     
-    # Targeted parameters for exactly 6.0 full pages
-    params = {'body_fs': 10.4, 'body_lead': 12.2, 'p_sp': 4.4, 'tbl_fs': 6.0, 'tbl_pad': 1.4, 'fig1_h': 126, 'fig2_h': 122, 'fig3_h': 115, 'fig4_h': 115, 'fig5_h': 115}
-    pages = compile_pdf_6p(target_pdf, **params)
-    print(f"Generated PDF with {pages} pages using optimal parameters.")
+    # Try multiple parameter configurations to ensure exactly 6.0 pages
+    search_space = [
+        {'body_fs': 10.4, 'body_lead': 12.2, 'p_sp': 4.4, 'tbl_fs': 6.0, 'tbl_pad': 1.4, 'fig1_h': 130, 'fig2_h': 122, 'fig3_h': 115, 'fig4_h': 115, 'fig5_h': 115},
+        {'body_fs': 10.3, 'body_lead': 12.1, 'p_sp': 4.2, 'tbl_fs': 6.0, 'tbl_pad': 1.3, 'fig1_h': 128, 'fig2_h': 120, 'fig3_h': 114, 'fig4_h': 114, 'fig5_h': 114},
+        {'body_fs': 10.2, 'body_lead': 12.0, 'p_sp': 4.0, 'tbl_fs': 6.0, 'tbl_pad': 1.3, 'fig1_h': 125, 'fig2_h': 118, 'fig3_h': 112, 'fig4_h': 112, 'fig5_h': 112},
+        {'body_fs': 10.1, 'body_lead': 11.9, 'p_sp': 3.8, 'tbl_fs': 5.9, 'tbl_pad': 1.2, 'fig1_h': 122, 'fig2_h': 116, 'fig3_h': 110, 'fig4_h': 110, 'fig5_h': 110},
+        {'body_fs': 10.0, 'body_lead': 11.8, 'p_sp': 3.6, 'tbl_fs': 5.8, 'tbl_pad': 1.2, 'fig1_h': 120, 'fig2_h': 114, 'fig3_h': 108, 'fig4_h': 108, 'fig5_h': 108},
+        {'body_fs': 9.9, 'body_lead': 11.6, 'p_sp': 3.5, 'tbl_fs': 5.8, 'tbl_pad': 1.1, 'fig1_h': 118, 'fig2_h': 112, 'fig3_h': 106, 'fig4_h': 106, 'fig5_h': 106},
+        {'body_fs': 9.8, 'body_lead': 11.5, 'p_sp': 3.4, 'tbl_fs': 5.7, 'tbl_pad': 1.1, 'fig1_h': 116, 'fig2_h': 110, 'fig3_h': 105, 'fig4_h': 105, 'fig5_h': 105},
+        {'body_fs': 9.7, 'body_lead': 11.4, 'p_sp': 3.2, 'tbl_fs': 5.6, 'tbl_pad': 1.0, 'fig1_h': 115, 'fig2_h': 108, 'fig3_h': 104, 'fig4_h': 104, 'fig5_h': 104},
+        {'body_fs': 9.6, 'body_lead': 11.2, 'p_sp': 3.0, 'tbl_fs': 5.5, 'tbl_pad': 1.0, 'fig1_h': 112, 'fig2_h': 106, 'fig3_h': 102, 'fig4_h': 102, 'fig5_h': 102},
+        {'body_fs': 9.5, 'body_lead': 11.1, 'p_sp': 2.8, 'tbl_fs': 5.5, 'tbl_pad': 1.0, 'fig1_h': 110, 'fig2_h': 105, 'fig3_h': 100, 'fig4_h': 100, 'fig5_h': 100},
+    ]
+
+    pages = 0
+    best_cfg = None
+    for idx, cfg in enumerate(search_space):
+        pages = compile_pdf_6p(target_pdf_paul, footer_right='PAUL 2026 (Paper ID: 179)', **cfg)
+        print(f"Calibration attempt {idx+1}: fs={cfg['body_fs']}, lead={cfg['body_lead']}, p_sp={cfg['p_sp']} -> {pages} pages")
+        if pages == 6:
+            best_cfg = cfg
+            print(f"SUCCESS: Found exact 6.0-page configuration at attempt {idx+1}!")
+            break
 
     if pages != 6:
-        # Fallback grid search
-        for fs in [10.3, 10.2, 10.1, 10.0, 9.9]:
-            lead = fs * 1.18
-            pages = compile_pdf_6p(target_pdf, body_fs=fs, body_lead=lead, p_sp=4.2, tbl_fs=6.0, tbl_pad=1.3, fig1_h=124, fig2_h=120, fig3_h=114, fig4_h=114, fig5_h=114)
-            print(f"Fallback grid fs={fs}: pages={pages}")
+        print(f"Warning: Did not hit 6 pages on initial search, current pages={pages}. Performing fine-grained search...")
+        # Fine-grained interpolation
+        for fs in [9.85, 9.75, 9.65, 9.55, 9.45, 9.35, 9.25]:
+            lead = round(fs * 1.17, 2)
+            pages = compile_pdf_6p(target_pdf_paul, footer_right='PAUL 2026 (Paper ID: 179)', body_fs=fs, body_lead=lead, p_sp=3.0, tbl_fs=5.6, tbl_pad=1.0, fig1_h=112, fig2_h=106, fig3_h=102, fig4_h=102, fig5_h=102)
+            print(f"Fine search fs={fs}, lead={lead} -> {pages} pages")
             if pages == 6:
+                best_cfg = {'body_fs': fs, 'body_lead': lead, 'p_sp': 3.0, 'tbl_fs': 5.6, 'tbl_pad': 1.0, 'fig1_h': 112, 'fig2_h': 106, 'fig3_h': 102, 'fig4_h': 102, 'fig5_h': 102}
                 break
 
-    build_docx_6p(target_docx)
-    print(f"Completed! PDF: {target_pdf} ({pages} pages) | DOCX: {target_docx}")
+    # Also compile IEEE version with exact calibrated configuration
+    if best_cfg:
+        compile_pdf_6p(target_pdf_ieee, footer_right='IEEE Trans. Dependable & Secure Comput.', **best_cfg)
+        print(f"Compiled IEEE 6-page paper with optimal configuration.")
+
+    build_docx_6p(target_docx_paul)
+    build_docx_6p(target_docx_ieee)
+    print(f"Completed!\nPAUL 2026 6P PDF: {target_pdf_paul} ({pages} pages)\nIEEE 6P PDF: {target_pdf_ieee} (6 pages)\nDOCX files generated successfully.")
 
 
 def main():

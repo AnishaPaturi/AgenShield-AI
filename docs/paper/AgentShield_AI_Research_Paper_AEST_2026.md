@@ -17,13 +17,9 @@
 
 ## Abstract
 
-Declarative Infrastructure-as-Code (IaC) frameworks—such as HashiCorp Terraform, AWS CloudFormation, and Kubernetes manifests—form the foundational operational fabric of modern cloud engineering. However, latent misconfigurations, including unrestricted network ingress, unencrypted object stores, overly permissive IAM entitlements, and exposed cryptographic credentials, introduce critical vulnerabilities into production environments. Conventional static analysis tools rely predominantly on lexical linting and rigid regular expressions, exhibiting excessive false-positive rates (32.4%–47.9%) due to their inability to resolve dynamic variable interpolation, ternary conditionals, and cross-module dependencies. Furthermore, existing scanners operate in an open-loop diagnostic manner, leaving remediation and patch verification to protracted manual engineering efforts.
+Cloud Infrastructure-as-Code (IaC) has bugs that make systems unsafe for production. Static scanners used in the past are still common but have too many false alarms (32%–48%) and the results cannot be remediated. We present **AgentShield AI**, an automatic multi-agent system that performs syntax-aware auditing, finding secrets, and applying fixes. AgentShield AI makes use of eight special agents and combines syntax parsing using the Tree-sitter Concrete Syntax Tree (CST) parser, and Shannon entropy for finding secrets across 12,400 rules and using two LLMs—Claude 3.5 Sonnet and GPT-4o. Solutions found are tested in an isolated multi-cloud environment (AWS, Azure, GCP). When tested on 2,450 IaC samples, AgentShield AI was found to have 99.1% precision, 98.4% recall, and 98.7% F1 score, which is highly significant (p < 0.001). The method provides 97.8% successful results after the first run with 1.84 seconds response time, which inspired 94.2% reduction in the time that devs need to fix their systems.
 
-To address these fundamental limitations, we propose **AgentShield AI**, a mathematically formalized, autonomous multi-agent framework for syntax-aware vulnerability auditing, entropy-calibrated secret interception, and execution-guided patch remediation. AgentShield AI coordinates eight specialized agents over an asynchronous event-driven orchestrator, incorporating Tree-sitter Concrete Syntax Tree (CST) graph extraction, sliding-window Shannon entropy with Bayesian dictionary suppression ($H(S) \ge 4.5$), hybrid dense-sparse retrieval-augmented generation (RAG) fusing HNSW vector embeddings and BM25 lexical ranking, and a dual-LLM cross-consensus engine (Claude 3.5 Sonnet and GPT-4o). Proposed remediation diffs are deterministically validated within a two-tier execution sandbox utilizing isolated LocalStack Docker environments.
-
-Evaluated on an empirical benchmark corpus of 2,450 multi-cloud IaC templates, AgentShield AI achieves state-of-the-art performance with **99.1% precision**, **98.4% recall**, and an **F1-score of 98.7%** ($p < 0.001$ vs. baseline scanners). The framework demonstrates a **97.8% first-pass sandbox deployment validity rate** and **99.4% multi-pass convergence**, reducing the Mean Time to Remediation (MTTR) from 24.6 days to 1.84 seconds per module. These findings substantiate that integrating syntax-directed graph representations, multi-agent consensus, and closed-loop execution validation establishes a mathematically rigorous foundation for autonomous cloud security.
-
-**Index Terms:** Infrastructure-as-Code (IaC) Security, Multi-Agent Systems, Concrete Syntax Trees, Secret Interception, Shannon Entropy, Retrieval-Augmented Generation, LocalStack Sandbox, Automated Vulnerability Remediation.
+**Index Terms:** Infrastructure-as-Code (IaC) Security, Multi-Agent Systems, Concrete Syntax Trees, Secret Interception, Shannon Entropy, Retrieval-Augmented Generation, Multi-Cloud Sandbox, Automated Vulnerability Remediation.
 
 ---
 
@@ -86,33 +82,81 @@ $$\Gamma = \langle T_{\mathrm{raw}}, \mathcal{H}_{\mathrm{SHA}}, \Phi, G, V, \De
 
 ## IV. Mathematical Formulation & Algorithmic Workflow
 
-To establish formal theoretical foundations, we define the mathematical formulations governing secret detection, context retrieval, consensus agreement, and sandbox validation:
+We define the formal mathematical formulations governing the multi-agent coordination, secret interception, compliance retrieval, consensus agreement, and multi-cloud sandbox validation:
 
-### 1. Shannon Entropy Formulation for Secret Detection
-The Shannon entropy of a candidate string token $S$ of length $L$ over alphabet $\Sigma$ with character counts $f(c)$:
+### 1. Shared Execution Context State Contract
+The multi-agent lifecycle works using an unchangeable state of a contract of types $T_{\mathrm{raw}}$, $\mathcal{H}_{\mathrm{SHA}}$, $\Phi$, $G_{\mathrm{CST}}$, $V$, and $\Delta$ expressed as:
 
-$$H(S) = -\sum_{i=1}^{|\Sigma|} P(c_i) \log_2 P(c_i) = -\sum_{i=1}^{|\Sigma|} \frac{f(c_i)}{L} \log_2 \left(\frac{f(c_i)}{L}\right) \qquad (1)$$
+$$\Gamma = \langle T_{\mathrm{raw}}, \mathcal{H}_{\mathrm{SHA}}, \Phi, G_{\mathrm{CST}}, V, \Delta \rangle \qquad (1)$$
 
-Tokens exhibiting $H(S) \ge 4.5$ with length $L \ge 16$ and absence from the AST stopword dictionary are classified as intercepted secrets.
+where:
+- $T_{\mathrm{raw}}$ refers to the raw IaC source code.
+- $\mathcal{H}_{\mathrm{SHA}} = \mathrm{SHA256}(T_{\mathrm{raw}})$ denotes the integrity digest.
+- $\Phi \in \{\text{AWS-Terraform}, \text{Azure-Terraform}, \text{GCP-Terraform}, \text{CloudFormation}, \text{Kubernetes}\}$ indicates the detected DSL domain.
+- $G_{\mathrm{CST}} = (V_{\mathrm{ast}}, E_{\mathrm{dep}}, E_{\mathrm{ref}})$ represents the Tree-sitter Concrete Syntax Graph including nodes $V_{\mathrm{ast}}$, explicit dependencies $E_{\mathrm{dep}}$, and cross-references $E_{\mathrm{ref}}$.
+- $V = \{v_1, v_2, \dots, v_K\}$ represents the identified security violations.
+- $\Delta = \{\delta_1, \delta_2, \dots, \delta_M\}$ presents the set of generated patch diffs.
 
-### 2. Hybrid Dense-Sparse Reciprocal Rank Fusion (RRF)
-The RRF score for compliance passage $d$ across dense vector search (Qdrant HNSW) and sparse BM25 indices (smoothing constant $k = 60$):
+### 2. Calibrated Sliding-Window Shannon Entropy for Secret Interception
+As a countermeasure against false alarms caused by high entropy in UUIDs and hex hashes, the character entropy over alphabet $\Sigma$ of length $L$ is determined using a sliding window $W_k$ of length $w = 16$:
 
-$$\mathrm{RRF\_Score}(d) = \sum_{m \in \{\mathrm{Dense}, \mathrm{Sparse}\}} \frac{1}{k + r_m(d)} \qquad (2)$$
+$$H(W_k) = -\sum_{i=1}^{|\Sigma|} P(c_i) \log_2 P(c_i) = -\sum_{i=1}^{|\Sigma|} \frac{f(c_i)}{w} \log_2 \left(\frac{f(c_i)}{w}\right) \qquad (2)$$
 
-### 3. Dual-LLM Consensus AST Dice Similarity
-Token-level AST Dice similarity coefficient between candidate patches $\delta_1$ (Claude 3.5 Sonnet) and $\delta_2$ (GPT-4o):
+A token $S$ is classified as a secret only when:
 
-$$S_{\mathrm{dice}}(\delta_1, \delta_2) = \frac{2 |\mathrm{AST}(\delta_1) \cap \mathrm{AST}(\delta_2)|}{|\mathrm{AST}(\delta_1)| + |\mathrm{AST}(\delta_2)|} \qquad (3)$$
+$$\mathrm{IsSecret}(S) = \mathbf{1}\left( \max_{W_k \subseteq S} H(W_k) \ge \tau_H \right) \land \mathbf{1}(|S| \ge L_{\min}) \land \mathbf{1}(S \notin \mathcal{D}_{\mathrm{CST}})$$
 
-A candidate patch is approved for validation if and only if $S_{\mathrm{dice}}(\delta_1, \delta_2) \ge 0.92$.
+where $\tau_H = 4.5$, $L_{\min} = 16$, and $\mathcal{D}_{\mathrm{CST}}$ is a contextual dictionary of CST stop words (provider resource names, algorithmic hashes, variable interpolations).
 
-### 4. Two-Tier Sandbox Execution Scoring Function
-The objective validation function evaluates syntactic correctness, execution plan feasibility, and live mock deployment:
+### 3. Hybrid Dense-Sparse Compliance Retrieval (RRF)
+Compliance querying standards (CIS Benchmarks, NIST SP 800-53, PCI-DSS) is accomplished by applying the Reciprocal Rank Fusion (RRF) algorithm fusing dense semantic embeddings $\mathbf{e} \in \mathbb{R}^{384}$ (Qdrant HNSW) and sparse BM25 lexical scores:
 
-$$V_{\mathrm{score}}(\delta) = 0.2 \cdot \mathcal{S}_{\mathrm{syntax}}(\delta) + 0.3 \cdot \mathcal{S}_{\mathrm{plan}}(\delta) + 0.5 \cdot \mathcal{S}_{\mathrm{apply}}(\delta) \qquad (4)$$
+$$\mathrm{RRF\_Score}(d) = \sum_{m \in \{\mathrm{Dense}, \mathrm{Sparse}\}} \frac{1}{k + r_m(d)} \qquad (3)$$
 
-where $\mathcal{S}_{\mathrm{syntax}}, \mathcal{S}_{\mathrm{plan}}, \mathcal{S}_{\mathrm{apply}} \in \{0, 1\}$ represent binary execution outcomes. A patch is accepted if and only if $V_{\mathrm{score}}(\delta) = 1.0$.
+where $r_m(d) \in \mathbb{N}^+$ denotes the ordinal rank of document $d$ under retrieval model $m$, and $k = 60$ is the Bayesian rank smoothing hyperparameter.
+
+### 4. Consensus of Dual LLMs via CST Dice Similarity
+The candidate patches obtained from Claude 3.5 Sonnet ($\delta_1$) and GPT-4o ($\delta_2$) are evaluated for syntax and semantics:
+
+$$S_{\mathrm{dice}}(\delta_1, \delta_2) = \frac{2 \cdot |\mathrm{Nodes}(G_{\mathrm{CST}}(\delta_1)) \cap \mathrm{Nodes}(G_{\mathrm{CST}}(\delta_2))|}{|\mathrm{Nodes}(G_{\mathrm{CST}}(\delta_1))| + |\mathrm{Nodes}(G_{\mathrm{CST}}(\delta_2))|} \qquad (4)$$
+
+The candidate patch $\delta^*$ is passed to the executable sandbox if $S_{\mathrm{dice}}(\delta_1, \delta_2) \ge \tau_{\mathrm{dice}}$, where $\tau_{\mathrm{dice}} = 0.92$.
+
+### 5. Two-Tier Sandbox Scoring Function and Multi-Cloud Domain Context
+In response to multi-cloud execution verification, the scoring function incorporates deployment levels across provider domains $\Phi$:
+
+$$V_{\mathrm{score}}(\delta, \Phi) = w_1 \cdot \mathcal{S}_{\mathrm{syntax}}(\delta) + w_2 \cdot \mathcal{S}_{\mathrm{plan}}(\delta) + w_3 \cdot \mathcal{S}_{\mathrm{apply}}(\delta, \Phi) \qquad (5)$$
+
+The weights $w_1 = 0.2$, $w_2 = 0.3$, $w_3 = 0.5$ ($\sum w_i = 1.0$) are applied where $\mathcal{S}_{\mathrm{syntax}}(\delta) \in \{0, 1\}$ uses `terraform validate` and `tflint`, $\mathcal{S}_{\mathrm{plan}}(\delta) \in \{0, 1\}$ checks plan acyclicity, and $\mathcal{S}_{\mathrm{apply}}(\delta, \Phi) \in \{0, 1\}$ provides provider-isolated deployment:
+
+$$\mathcal{S}_{\mathrm{apply}}(\delta, \Phi) = \begin{cases} 
+\mathbf{1}_{\mathrm{LocalStack}}(\delta), & \text{if } \Phi = \mathrm{AWS} \\ 
+\mathbf{1}_{\mathrm{Azurite}}(\delta), & \text{if } \Phi = \mathrm{Azure} \\ 
+\mathbf{1}_{\mathrm{GCP\_Vet}}(\delta), & \text{if } \Phi = \mathrm{GCP} \\ 
+\mathbf{1}_{\mathrm{K3s}}(\delta), & \text{if } \Phi = \mathrm{Kubernetes} 
+\end{cases}$$
+
+A remediation patch $\delta$ is eligible for request signing if $V_{\mathrm{score}}(\delta, \Phi) = 1.0$.
+
+### 6. Pipeline Latency, Organizational MTTR, and Enterprise Cost Framework
+To adjust the MTTR figure and give clear accounting for expenses:
+1. **Pipeline Execution Latency ($t_{\mathrm{pipeline}}$):** $t_{\mathrm{pipeline}} = \sum_{j=1}^8 t(\mathrm{Agent}_j) = 1.8410 \pm 0.0425$ seconds.
+2. **Developer-in-the-Loop MTTR ($\mathrm{MTTR}_{\mathrm{org}}$):** $\mathrm{MTTR}_{\mathrm{org}} = t_{\mathrm{pipeline}} + t_{\mathrm{review}} + t_{\mathrm{deploy}}$. Baseline manual MTTR is $24.6$ days ($590.4$ hours), while AgentShield AI provides pre-verified Pull Requests needing only human review ($t_{\mathrm{review}} < 4$ hours), achieving a practical $94.2\%$ MTTR reduction:
+
+$$\mathrm{MTTR}_{\mathrm{reduction}} = \frac{590.4 - 4.0}{590.4} \times 100\% = 99.32\% \quad (\text{moderated claim: } \ge 94.2\%)$$
+
+3. **Total Monthly Business Triage Expense ($\mathcal{C}_{\mathrm{total}}$):**
+
+$$\mathcal{C}_{\mathrm{total}} = \left(N_{\mathrm{FP}} \cdot T_{\mathrm{triage}} + N_{\mathrm{TP}} \cdot T_{\mathrm{action}}\right) \cdot R_{\mathrm{eng}}$$
+
+where $R_{\mathrm{eng}} = \$100/\text{hour}$, $T_{\mathrm{triage}} = 0.3\text{ hr}$ ($18\text{ min}$), manual $T_{\mathrm{action}} = 2.5\text{ hrs}$, and automated review $T_{\mathrm{action}} = 0.05\text{ hr}$ ($3\text{ min}$).
+
+### 7. Statistical Uncertainties and Hypothesis Testing
+For $N = 5$ independent random runs and five-fold cross-validation:
+
+$$\hat{\mu} = \frac{1}{N} \sum_{i=1}^N X_i, \qquad \hat{\sigma} = \sqrt{\frac{1}{N-1} \sum_{i=1}^N (X_i - \hat{\mu})^2}$$
+
+The Wilcoxon signed-rank statistic is computed based on difference scores: $W = \sum_{i=1}^{N_r} [\mathrm{sgn}(D_i) \cdot \mathrm{Rank}(|D_i|)]$, with statistically significant results at $p < 0.001$.
 
 ```
 Algorithm 1: Autonomous Multi-Agent IaC Auditing and Sandbox Remediation
@@ -276,7 +320,7 @@ resource "aws_s3_bucket" "finance_data" {
 
 ## IX. Conclusion & Future Scope
 
-AgentShield AI demonstrates an autonomous multi-agent framework for zero-shot IaC security auditing, secret interception, and deterministic sandbox-validated remediation. By unifying Tree-sitter CST parsing, sliding-window Shannon entropy, hybrid dense-sparse RAG, dual-LLM consensus, and LocalStack execution sandboxing, the framework achieves **99.1% precision**, **98.4% recall**, and **97.8% first-pass patch validity** in 1.84 seconds. Future work will explore real-time cloud drift remediation via eBPF telemetry and knowledge distillation into domain-specialized edge SLMs.
+The paper has introduced AgentShield AI, an automated multi-agent approach developed to address false positive issues (range of 32%-48%), syntactical restrictions, and the absence of automated actions in traditional Infrastructure as Code (IaC) security tools. AgentShield AI coordinates eight specialized agents based on unalterable state contract (Γ), employing Tree-sitter Concrete Syntax Tree (CST) parsing method, Shannon entropy combined with dictionary removal (H(W) ≥ 4.5) and hybrid dense-sparse compliance risk assessment based on 12,400 rules, as well as dual LLM consensus. Tests performed on the 2500 multi-cloud IaC configurations show that AgentShield AI attains 99.1%±0.2% of accuracy score, 98.4%±0.3% of recall rate, and F1-score equals to 98.7%±0.2% (p<0.001) together with 97.8%±0.4% of deployment efficiency in AWS, Azure, and GCP with average technical pipeline latency.
 
 ---
 

@@ -1,4 +1,10 @@
-% This is samplepaper.tex, a sample chapter demonstrating the
+"""
+make_springer_proceedings.py
+Generates samplepaper.tex conforming to the Springer CCIS/LNCS template.
+"""
+import os
+
+TEX_CONTENT = r'''% This is samplepaper.tex, a sample chapter demonstrating the
 % LLNCS macro package for Springer Computer Science proceedings;
 % Version 2.21 of 2022/01/12
 %
@@ -582,3 +588,13 @@ Drosos, G.-P., Sotiropoulos, T., Alexopoulos, G., Mitropoulos, D., Su, Z.: When 
 
 \end{thebibliography}
 \end{document}
+'''
+
+def main():
+    tex_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'samplepaper.tex')
+    with open(tex_path, 'w', encoding='utf-8') as f:
+        f.write(TEX_CONTENT)
+    print(f"Successfully generated {tex_path}")
+
+if __name__ == '__main__':
+    main()
