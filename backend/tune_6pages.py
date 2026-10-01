@@ -279,21 +279,24 @@ def generate_doc(fig_width=4.6, body_font=10.0, line_spacing=1.03, p_space=2.2):
     for t in list(doc.tables):
         t._tbl.getparent().remove(t._tbl)
         
-    sec = doc.sections[0]
-    sec.top_margin = Inches(0.75)
-    sec.bottom_margin = Inches(0.75)
-    sec.left_margin = Inches(0.75)
-    sec.right_margin = Inches(0.75)
-    sec.page_width = Inches(8.27)
-    sec.page_height = Inches(11.69)
-    
-    # Completely remove conference header and footers
-    for h in [sec.header, sec.first_page_header, sec.even_page_header, sec.footer, sec.first_page_footer]:
-        for p in h.paragraphs:
-            p.text = ""
-        # Also remove any extra paragraphs
-        while len(h.paragraphs) > 1:
-            h.paragraphs[-1]._p.getparent().remove(h.paragraphs[-1]._p)
+    for sec in doc.sections:
+        sec.top_margin = Inches(0.75)
+        sec.bottom_margin = Inches(0.75)
+        sec.left_margin = Inches(0.75)
+        sec.right_margin = Inches(0.75)
+        sec.page_width = Inches(8.27)
+        sec.page_height = Inches(11.69)
+        sec.different_first_page_header_footer = False
+        
+        # Remove any header references in sectPr
+        for child in list(sec._sectPr):
+            if child.tag.endswith('headerReference'):
+                sec._sectPr.remove(child)
+                
+        # Completely remove conference header and footers
+        for h in [sec.header, sec.first_page_header, sec.even_page_header]:
+            for p in list(h.paragraphs):
+                p._p.getparent().remove(p._p)
     
     # Title
     p_title = doc.add_paragraph(style='Title')
@@ -361,7 +364,7 @@ def generate_doc(fig_width=4.6, body_font=10.0, line_spacing=1.03, p_space=2.2):
     p_abs.paragraph_format.line_spacing = 1.02
     p_abs.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     r_ab = p_abs.add_run(
-        "Infrastructure-As-Code (IaC) templates like Terraform, AWS CloudFormation, Kubernetes manifests and Helm charts play a major role in developing multi-cloud environment solutions. Security misconfiguration, credential leakage and permission anti-patterns that appear at the template stage of development seem to bypass traditional static linters, resulting in severe run-time vulnerabilities. Existing Large Language Model (LLM) security tools are limited to single cloud, show high false positives level (around 15%-32%), provide non-executable text recommendations, do not detect embedded secrets and produce broken code patches. In this paper, we describe AgentShield AI, a multi-agent autonomous framework powered by LangGraph and designed for multi-cloud Infrastructure as Code protection. The AgentShield AI solution brings together eight different agents that operate in an asynchronous event-driven workflow: Manager/Router, Hybrid Concrete Syntax Tree (CST) parser, Secrets scanner, Hybrid RAG query agent, Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 Sonnet + GPT-4o), Human Security Audit Queue, Auto Patch Remediation Agent, Code & The Validator Agent is working in collaboration with a two-stage validation harness. The AgentShield AI has ensured that there is no occurrence of a single-model hallucination by integrating Tree-sitter dynamic parameter pre-resolution, hybrid dense-sparse retrieval techniques, dual-engine Shannon entropy secret scanning, consensus confidence scoring, and LocalStack/Azurite dry-run validation inside containers. The AgentShield AI was calculated across 2,450 multi-cloud IaC modules where it accomplished 99.1% detection accuracy, 98.4% recall, false-positive percentages below 0.05%, 97.8% sandbox patch percentage at first pass and execution latencies averaging 1.84 seconds for every template."
+        "Infrastructure-As-Code (IaC) templates like Terraform, AWS CloudFormation, Kubernetes manifests and Helm charts play a role in developing multi-cloud environment solutions. Security misconfiguration, credential leakage and permission anti-patterns that appear at the template stage of development seem to bypass static linters resulting in severe run-time vulnerabilities. Existing Large Language Model (LLM) security tools are limited to cloud show high false positives level (around 15%-32%) provide non-executable text recommendations do not detect embedded secrets and produce broken code patches. In this paper we describe AgentShield AI, a -agent autonomous framework powered by LangGraph and designed for multi-cloud Infrastructure as Code protection. The AgentShield AI solution brings together eight agents that operate in an asynchronous event-driven workflow: Manager/Router, Hybrid Concrete Syntax Tree (CST) parser, Secrets scanner, Hybrid RAG query agent, Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 Sonnet + GPT-4o) Human Security Audit Queue, Auto Patch Remediation Agent, Code & The Validator Agent is working in collaboration with a two-stage validation harness. The AgentShield AI has ensured that there is no occurrence of a single-model hallucination by integrating Tree-sitter dynamic parameter pre-resolution, hybrid sparse retrieval techniques dual-engine Shannon entropy secret scanning, consensus confidence scoring and LocalStack/Azurite dry-run validation inside containers. The AgentShield AI was calculated across 2,450 -cloud IaC modules where it accomplished 99.1% detection accuracy 98.4% recall, false-positive percentages, below 0.05%, 97.8% sandbox patch percentage at first pass and execution latencies averaging 1.84 seconds for every template."
     )
     r_ab.font.name = "Times New Roman"
     r_ab.font.size = Pt(9.0)
@@ -399,23 +402,23 @@ def generate_doc(fig_width=4.6, body_font=10.0, line_spacing=1.03, p_space=2.2):
     
     add_body_p(doc, "1) The Manager/Router Agent accepts the raw multi-cloud templates, determines the type of template (Terraform HCL2, CloudFormation, Kubernetes, Helm) and checks that the schema is correct before initiating parallel execution in a controlled fashion, similar to a ripple.\n2) The hybrid AST Parser Agent splits up the declarative code into standard AST components, resolves dynamic references, and handles conditional blocks such as 'count' and 'for_each' before any LLM reasoning is carried out.\n3) Secrets Scanner Agent: works with zero-egress isolation, uses deterministic regex matching together with a sliding Shannon entropy evaluation, and basically tries to identify exposed API credentials and private keys before they have an opportunity to be transmitted.\n4) The RAG Query Agent: generates combined dense and sparse vector queries against an indexed database that includes security benchmarks (such as CIS, NIST SP 800-53, SOC 2, and PCI-DSS) as well as daily CVE feeds in order that the context stays up to date.\n5) The Security Analyst Agent carries out parallel dual model inference using Claude 3.5 Sonnet and GPT 4o and, when appropriate, applies Chain of Thought (CoT) reasoning to produce structured vulnerability hypotheses, sometimes adding a bit of narrative as well.\n6) The Human Security Audit Queue Agent detects cases that have a low confidence level (C_ensemble < 0.85) or any cases that conflict, and then queues these results in an interactive web-based triage dashboard for the security engineers to review, verify them and possibly reframe them.\n7) The Auto Patch Remediation Agent creates Unified Diff patches that are both deterministic and syntactically correct and is aimed at specific line offsets in the original templates, with the same level of precision.\n8) Code & Sandbox Validator Agent: carries out a two-stage validation process, beginning with the use of local static linters before performing a dry run deployment within containerized LocalStack/Azurite sandboxes.", bold_prefix="Specialized Multi Agent Roles (not exactly rigid, but mostly): ", font_size=body_font, line_spacing=line_spacing, space_after=p_space)
 
-    # 3. Theory and Calculation
-    add_numbered_heading(doc, "Theory and Calculation", level=0)
-    add_body_p(doc, "The theoretical foundation of AgentShield AI models IaC security verification as a multi-stage graph and decision-theoretic optimization problem.", font_size=body_font, line_spacing=line_spacing, space_after=p_space)
+    # 3. Theory and Computation
+    add_numbered_heading(doc, "Theory and Computation", level=0)
+    add_body_p(doc, "The theoretical underpinnings of the AgentShield AI models used to verify IaC security are provided as a multi-stage graph and a decision-theoretic optimisation problem. In this section, we will provide the formalisms, symbolic nomenclature, probability calculations, and computational expressions that drive the operations of the eight-agent autonomous pipeline.", font_size=body_font, line_spacing=line_spacing, space_after=p_space)
     
-    add_numbered_heading(doc, "Mathematical Expressions and Symbols", level=1)
+    add_numbered_heading(doc, "Mathematical Expressions and Nomenclature", level=1)
     
-    nom_headers = ["Symbol", "Domain", "Operational Description", "Agent Stage"]
+    nom_headers = ["Symbol", "Domain", "Description", "Agent Stage"]
     nom_rows = [
-        ["T_IaC", "String / Tree", "Raw multi-cloud Infrastructure-as-Code template", "Manager Agent"],
-        ["G_cst", "CST Syntax Tree", "Concrete Syntax Tree generated via Tree-sitter parser", "AST Parser Agent"],
+        ["T_IaC", "String / Tree", "Multi-cloud Infrastructure-as-Code template", "Manager Agent"],
+        ["G_cst", "CST Syntax Tree", "CST generated via Tree-sitter parser", "AST Parser Agent"],
         ["G_dep", "Graph (V, E)", "Resource dependency graph extracted from resolved constructs", "AST Parser Agent"],
-        ["V, C", "Sets of Vars/Configs", "Variables and conditional/configuration constructs", "AST Parser Agent"],
-        ["H(X)", "Real in [0, 8]", "Shannon Entropy of candidate string literal X", "Secrets Scanner"],
-        ["S_hybrid", "Real in [0, 1]", "Hybrid dense-sparse semantic relevance score", "RAG Query Agent"],
-        ["C_ensemble", "Real in [0, 1]", "Multi-LLM consensus confidence score across Claude & GPT-4o", "Analyst Agent"],
-        ["B(r), X(r)", "Real in [0, 1]", "Blast-radius and topological exposure of compromised resource r", "Prioritizer Engine"],
-        ["P(v)", "Real in [0, 100]", "Composite priority score combining severity, exposure, & blast", "Prioritizer Engine"],
+        ["V, C", "Set of Vars/Configs", "Variables and conditional/configuration constructs", "AST Parser Agent"],
+        ["H(X)", "Real in [0 8]", "Shannon Entropy of candidate string X", "Secrets Scanner"],
+        ["S_hybrid", "Real in [0 1]", "Hybrid dense-sparse semantic relevance score", "RAG Query Agent"],
+        ["C_ensemble", "Real in [0 1]", "Multi-LLM consensus confidence score of Claude & GPT-4o", "Analyst Agent"],
+        ["B(r) X(r)", "In [0 1]", "Blast-radius and topological exposure of compromised resource r", "Prioritiser Engine"],
+        ["P(v)", "Real in [0 100]", "Composite priority score combining severity, exposure, & blast", "Prioritiser Engine"],
         ["Delta_patch", "POSIX Unified Diff", "Synthesized line-level code patch targeting specific resources", "Remediation Agent"],
         ["Omega_Total", "Binary {0, 1}", "Two-tier validation outcome combining linter and sandbox", "Validator Agent"]
     ]
@@ -524,18 +527,43 @@ def generate_doc(fig_width=4.6, body_font=10.0, line_spacing=1.03, p_space=2.2):
     add_numbered_heading(doc, "Conclusions", level=0)
     add_body_p(
         doc,
-        "AgentShield AI is an autonomous multi-agent framework that offers consistent end-to-end syntactic checking, credential interception, and sandbox-validated remediation for multi-cloud infrastructure-as-code solutions. AgentShield AI overcomes critical shortcomings of conventional static rule-checkers and baseline open-loop large language models, including single-cloud restrictions, elevated false-positive rates, non-executable textual recommendations, token hallucinations, and broken deployment dependencies. Operating as a dependable foundation for automated DevSecOps workflows, the framework coordinates eight specialized agents orchestrated via LangGraph, integrating Tree-sitter dynamic parameter pre-resolution, dual-engine Shannon entropy secret scanning, hybrid dense-sparse retrieval across 12,400 CIS and NIST rules, and multi-LLM consensus voting (Claude 3.5 Sonnet and GPT-4o), paired with a two-tier validation harness featuring containerized LocalStack and Azurite execution sandboxes. Rigorous empirical evaluation across 2,450 multi-cloud Infrastructure-as-Code templates spanning Terraform, CloudFormation, Kubernetes, and Helm demonstrates a detection precision of 99.1%, recall of 98.4%, false-positive rate below 0.05%, and a first-pass sandbox patch acceptance rate of 97.8% (converging to 99.4% upon automated multi-pass retry) with an average execution latency of 1.84 seconds per template, substantially outperforming traditional static analyzers and open-loop LLM baselines. Despite these advantages, several operational limitations remain: local containerized sandboxes emulate provider control planes rather than complete physical data centers, and sophisticated multi-cloud identity federation policies introduce complex permission boundaries that require ongoing rule synchronization. In response to these challenges, future research will pursue two principal avenues: first, engineering autonomous self-healing control loops that continuously reconcile live cloud infrastructure drift detected via provider telemetry APIs; and second, distilling multi-LLM ensemble reasoning into edge-optimized Small Language Models (SLMs) to enable sub-second, privacy-preserving local security execution directly within developer integrated development environments.",
+        "AgentShield AI brings together multiple agents to secure multi-cloud infrastructure-as-code solutions. The framework covers three main tasks: checking syntax, detecting exposed credentials, and testing fixes in a sandbox before they are applied.",
+        font_size=body_font, line_spacing=line_spacing, space_after=p_space
+    )
+    add_body_p(
+        doc,
+        "The framework was developed to address some of the common problems with static checkers and open-loop LLMs. Static checkers can generate a large number of false positives, while open-loop LLMs may produce fixes that cannot be executed because of token hallucinations. They can also introduce broken dependencies that cause deployment failures.",
+        font_size=body_font, line_spacing=line_spacing, space_after=p_space
+    )
+    add_body_p(
+        doc,
+        "The system brings together eight specialized agents through LangGraph. It uses Tree-sitter to resolve dynamic parameters, a dual-engine approach to detect leaked secrets, and a hybrid search system covering 12,400 CIS and NIST rules. It also uses Claude 3.5 Sonnet and GPT-4o for consensus-based voting. Proposed fixes are then tested through a two-tier validation harness using containerized LocalStack and Azurite sandboxes.",
+        font_size=body_font, line_spacing=line_spacing, space_after=p_space
+    )
+    add_body_p(
+        doc,
+        "The framework was evaluated on 2,450 multi-cloud templates covering Terraform, CloudFormation, Kubernetes, and Helm. It achieved 99.1% precision and 98.4% recall, with a false-positive rate below 0.05%. The first-pass sandbox patch acceptance rate was 97.8%, increasing to 99.4% after automated multi-pass retries. Each template took an average of 1.84 seconds to process. These results were higher than those of the static analyzers and open-loop LLM baselines used in the evaluation.",
+        font_size=body_font, line_spacing=line_spacing, space_after=p_space
+    )
+    add_body_p(
+        doc,
+        "Some limitations remain. Although local sandboxes can simulate cloud provider control planes, they cannot fully reproduce physical data centers. Multi-cloud identity federation also introduces complex permission boundaries, making regular updates to security rules necessary.",
+        font_size=body_font, line_spacing=line_spacing, space_after=p_space
+    )
+    add_body_p(
+        doc,
+        "Future work will focus on two areas. One is developing self-healing loops that use provider telemetry APIs to detect and continuously reconcile changes in live cloud infrastructure. The other is reducing multi-LLM reasoning into edge-optimized Small Language Models (SLMs) that can perform security checks locally within developer IDEs, with sub-second execution and privacy preservation.",
         font_size=body_font, line_spacing=line_spacing, space_after=p_space
     )
 
     # Acknowledgements, Funding, Conflict of Interest
     add_unnumbered_heading(doc, "Acknowledgements")
-    add_body_p(doc, "The authors express their sincere gratitude to the Department of Computer Science and Engineering, Keshav Memorial Institute of Technology (KMIT), Hyderabad, for providing computational infrastructure and academic mentorship.", font_size=body_font, line_spacing=line_spacing, space_after=1.5)
+    add_body_p(doc, "We thank the Department of Computer Science and Engineering at Keshav Memorial Institute of Technology, Hyderabad, for providing the infrastructure, laboratory resources, and academic guidance needed for this research.", font_size=body_font, line_spacing=line_spacing, space_after=1.5)
     
-    add_unnumbered_heading(doc, "Funding source")
+    add_unnumbered_heading(doc, "Source of Funding")
     add_body_p(doc, "No funding was received for this study.", font_size=body_font, line_spacing=line_spacing, space_after=1.5)
     
-    add_unnumbered_heading(doc, "Conflict of Interest")
+    add_unnumbered_heading(doc, "Conflicts of Interest")
     add_body_p(doc, "The authors declare no conflict of interest.", font_size=body_font, line_spacing=line_spacing, space_after=1.5)
     
     # References (bolded and centered per template guidelines)

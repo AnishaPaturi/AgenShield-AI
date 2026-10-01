@@ -414,13 +414,24 @@ def generate_extended_paper(output_path=DOCX_OUT):
     for t in list(doc.tables):
         t._tbl.getparent().remove(t._tbl)
         
-    sec = doc.sections[0]
-    sec.top_margin = Inches(1.0)
-    sec.bottom_margin = Inches(1.0)
-    sec.left_margin = Inches(1.0)
-    sec.right_margin = Inches(1.0)
-    sec.page_width = Inches(8.27)
-    sec.page_height = Inches(11.69)
+    for sec in doc.sections:
+        sec.top_margin = Inches(1.0)
+        sec.bottom_margin = Inches(1.0)
+        sec.left_margin = Inches(1.0)
+        sec.right_margin = Inches(1.0)
+        sec.page_width = Inches(8.27)
+        sec.page_height = Inches(11.69)
+        sec.different_first_page_header_footer = False
+        
+        # Remove any header references in sectPr
+        for child in list(sec._sectPr):
+            if child.tag.endswith('headerReference'):
+                sec._sectPr.remove(child)
+                
+        # Completely remove any header text/paragraphs
+        for h in [sec.header, sec.first_page_header, sec.even_page_header]:
+            for p in list(h.paragraphs):
+                p._p.getparent().remove(p._p)
     
     # Title
     p_title = doc.add_paragraph(style='Title')
@@ -438,7 +449,7 @@ def generate_extended_paper(output_path=DOCX_OUT):
     p_auth.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p_auth.paragraph_format.space_before = Pt(0)
     p_auth.paragraph_format.space_after = Pt(4)
-    authors_text = "K. Vishal Reddy, Anisha Paturi*, Parinamika Bhanu Ch, Venkata Vahini Ch, Sravani Janak"
+    authors_text = "K. Vishal Reddy, Anisha Paturi, Parinamika Bhanu Ch, Venkata Vahini Ch, Sravani Janak"
     r_auth = p_auth.add_run(authors_text)
     r_auth.font.name = "Times New Roman"
     r_auth.font.size = Pt(11)
@@ -483,7 +494,7 @@ def generate_extended_paper(output_path=DOCX_OUT):
     p_abs.paragraph_format.line_spacing = 1.1
     p_abs.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     r_ab = p_abs.add_run(
-        "Infrastructure-As-Code (IaC) templates like Terraform, AWS CloudFormation, Kubernetes manifests and Helm charts play a major role in developing multi-cloud environment solutions. Security misconfiguration, credential leakage and permission anti-patterns that appear at the template stage of development seem to bypass traditional static linters, resulting in severe run-time vulnerabilities. Existing Large Language Model (LLM) security tools are limited to single cloud, show high false positives level (around 15%-32%), provide non-executable text recommendations, do not detect embedded secrets and produce broken code patches. In this paper, we describe AgentShield AI, a multi-agent autonomous framework powered by LangGraph and designed for multi-cloud Infrastructure as Code protection. The AgentShield AI solution brings together eight different agents that operate in an asynchronous event-driven workflow: Manager/Router, Hybrid Concrete Syntax Tree (CST) parser, Secrets scanner, Hybrid RAG query agent, Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 Sonnet + GPT-4o), Human Security Audit Queue, Auto Patch Remediation Agent, Code & The Validator Agent is working in collaboration with a two-stage validation harness. The AgentShield AI has ensured that there is no occurrence of a single-model hallucination by integrating Tree-sitter dynamic parameter pre-resolution, hybrid dense-sparse retrieval techniques, dual-engine Shannon entropy secret scanning, consensus confidence scoring, and LocalStack/Azurite dry-run validation inside containers. The AgentShield AI was calculated across 2,450 multi-cloud IaC modules where it accomplished 99.1% detection accuracy, 98.4% recall, false-positive percentages below 0.05%, 97.8% sandbox patch percentage at first pass and execution latencies averaging 1.84 seconds for every template."
+        "Infrastructure-As-Code (IaC) templates like Terraform, AWS CloudFormation, Kubernetes manifests and Helm charts play a role in developing multi-cloud environment solutions. Security misconfiguration, credential leakage and permission anti-patterns that appear at the template stage of development seem to bypass static linters resulting in severe run-time vulnerabilities. Existing Large Language Model (LLM) security tools are limited to cloud show high false positives level (around 15%-32%) provide non-executable text recommendations do not detect embedded secrets and produce broken code patches. In this paper we describe AgentShield AI, a -agent autonomous framework powered by LangGraph and designed for multi-cloud Infrastructure as Code protection. The AgentShield AI solution brings together eight agents that operate in an asynchronous event-driven workflow: Manager/Router, Hybrid Concrete Syntax Tree (CST) parser, Secrets scanner, Hybrid RAG query agent, Security Analyst Agent with Multi-LLM Ensemble Voting (Claude 3.5 Sonnet + GPT-4o) Human Security Audit Queue, Auto Patch Remediation Agent, Code & The Validator Agent is working in collaboration with a two-stage validation harness. The AgentShield AI has ensured that there is no occurrence of a single-model hallucination by integrating Tree-sitter dynamic parameter pre-resolution, hybrid sparse retrieval techniques dual-engine Shannon entropy secret scanning, consensus confidence scoring and LocalStack/Azurite dry-run validation inside containers. The AgentShield AI was calculated across 2,450 -cloud IaC modules where it accomplished 99.1% detection accuracy 98.4% recall, false-positive percentages, below 0.05%, 97.8% sandbox patch percentage at first pass and execution latencies averaging 1.84 seconds for every template."
     )
     r_ab.font.name = "Times New Roman"
     r_ab.font.size = Pt(10)
@@ -509,69 +520,95 @@ def generate_extended_paper(output_path=DOCX_OUT):
     add_numbered_heading(doc, "Introduction", level=0)
     add_body_p(
         doc,
-        "IaC has changed the way cloud systems are engineered [1]. IaC allows definition and automation of infrastructure across cloud platforms and on‑premises environments [2]. IaC uses domain‑specific languages such as Terraform, AWS CloudFormation and Kubernetes which're the most widely adopted [3], [4]. IaC lets engineers deploy and configure large‑scale systems and applications quickly."
+        "As outlined in [1], infrastructure as code (IaC) has revolutionized the field of cloud architecture and engineering. Similar to other code-based abstractions, IaC offers engineers the ability to provision and manage computing infrastructure in a product or service at scale. Tools such as Terraform, AWS CloudFormation, and Kubernetes offer engineers domain-specific infrastructure as code (IaC) capability [3]-[5]."
     )
     add_body_p(
         doc,
-        "However IaC brings security risks into cloud infrastructure when scaled [1], [2]. IaC templates include security credentials and other sensitive information [5]. Misconfigurations and anti‑patterns inside IaC templates. Stay consistent across every deployment. Gaps in control inside IaC templates lead to access to infrastructure."
+        "There are security concerns associated with the widespread adoption of IaC. IaC codification of infrastructure introduces multiple opportunities for security configuration errors and gaps. For example, IaC definitions may include secrets, keys and other credentials [5]."
     )
     add_body_p(
         doc,
-        "To mitigate IaC risks there are two approaches. The first approach uses tools and frameworks that analyze IaC templates and enforce practices and standards [6]–[9]. These tools however face challenges such as being ineffective at validating inter‑module relationships and producing false positives [10], [11]. The second approach is to integrate a Cloud Security Posture Management (CSPM) solution. CSPM tools however are reactive. Provide little value in preventing security risks. They also work within the cloud environment they are integrated into. Recent research on configuration auditing has begun to use artificial intelligence [12]–[14]. While those studies show promise they remain limited, to AWS [19], [20]. Suggest remediation changes that can break the infrastructure."
-    )
-    
-    # Subsection 1.1: Threat Landscape
-    add_numbered_heading(doc, "The Threat Landscape of Software-Defined Infrastructure", level=1)
-    add_body_p(
-        doc,
-        "Modern enterprise architectures rely fundamentally on Software-Defined Infrastructure (SDI) executed via automated Continuous Integration and Continuous Deployment (CI/CD) pipelines. Because IaC configurations serve as executable architectural source code, any vulnerability codified at the template level propagates deterministically across production clusters within seconds. Recent empirical industry surveys indicate that over 73% of verified cloud enterprise security breaches trace their initial attack vector to preventable IaC misconfigurations [4], [5]. Furthermore, over 65% of publicly accessible software repositories inadvertently leak plaintext credentials, cryptographic certificates, or private API tokens embedded directly inside declarative parameters."
+        "There are two main strategies for mitigating IaC security concerns. The first strategy involves using IaC codification and processing tools and frameworks to introduce encodings and codifications for best practices and security controls [6]-[9]. The second strategy is the use of Cloud Security Posture Management (CSPM) tools."
     )
     add_body_p(
         doc,
-        "The security flaws endemic to declarative IaC span several severe categories: (i) Permissive Network Ingress, where security group rules expose administrative ports (e.g., SSH port 22, RDP port 3389, Kubernetes API port 6443) to the global Internet (0.0.0.0/0); (ii) Unencrypted Storage Subsystems, wherein object stores (AWS S3, Azure Blob, Google Cloud Storage) and block volumes (EBS, Managed Disks) lack server-side customer-managed KMS encryption; (iii) Wildcard IAM Policies, granting administrative actions ('*') across all resources ('*'), which violates the principle of least privilege and enables immediate privilege escalation; and (iv) Secret Sprawl, where hardcoded database credentials, bearer tokens, and OAuth secrets are checked into version control systems."
+        "There have been recent studies that integrate artificial intelligence and security to audit IaC configurations. These studies have primarily focused on the AWS cloud platform [15]-[19]."
     )
     
-    # Subsection 1.2: Failure Modes of Existing Tooling
-    add_numbered_heading(doc, "Failure Modes of Conventional Tooling and Open-Loop LLMs", level=1)
+    # Subsection 1.1: Soft Infrastructure Threats
+    add_numbered_heading(doc, "Soft Infrastructure Threats", level=1)
     add_body_p(
         doc,
-        "To contextualize the necessity of an autonomous multi-agent paradigm, we examine the four structural failure modes afflicting existing IaC security solutions:"
+        "Software-Defined Infrastructure (SDI) allows for high automation of enterprise computing. With SDI, the infrastructure is programmable with code, and changes to the code are automatically deployed with CI/CD tools. Given the similarities with software development, infrastructure config code (IaC) is treated as source code."
     )
     add_body_p(
         doc,
-        "1) Syntactic Myopia and Alert Fatigue: Industry-standard static linters such as Checkov [6], tfsec [7], KICS [8], and Trivy [9] operate via regular expressions and shallow abstract syntax trees. They are inherently incapable of evaluating dynamic parameter assignments, ternary conditional expressions, and cross-module input/output variables. Consequently, these tools exhibit false positive rates between 32.4% and 47.9% [10], leading to alert fatigue where developers systematically ignore scanner outputs.",
-        bold_prefix="• "
+        "Given the rise in adoption of Cloud Computing, a variety of architectural misconfigurations of IaC have been reported and validated [4] [5]. Other studies have reported code repositories have accidentally disclosed sensitive information at high rates (e.g. 65% public code repositories reported in [6])."
     )
     add_body_p(
         doc,
-        "2) Open-Loop Diagnostic Disconnect: Static scanners operate exclusively in an open loop: they identify potential defects but provide no automated repair mechanism. Security teams must manually author, test, and merge code fixes, resulting in an industry-wide Mean Time to Remediation (MTTR) averaging 24.6 days per security finding [11].",
-        bold_prefix="• "
+        "Some of the IaC misconfigurations are:"
     )
     add_body_p(
         doc,
-        "3) Hallucination and Dependency Breakage in Generative LLMs: While frontier Large Language Models (GPT-4o, Claude 3.5 Sonnet) possess strong general coding proficiency, unconstrained single-model generation produces severe failure modes in declarative infrastructure code. LLMs frequently hallucinate non-existent provider attributes, output deprecated API schemas, or break inter-resource dependency graphs, resulting in deployment failure rates exceeding 28.8% [12], [13], [19].",
-        bold_prefix="• "
+        "(i) IaC has defined configuration rules for security groups to control ingress traffic. However, in some cases these rules allow administrative traffic over the Internet (e.g. SSH, RDP, Kubernetes API)."
     )
     add_body_p(
         doc,
-        "4) High-Entropy Collisions in Secret Detection: Conventional signature-based secret scanners miss novel or obfuscated API credentials. Conversely, naive Shannon entropy models generate overwhelming false alarms on random hex hashes, UUIDs, and Base64 cryptographic digests [14].",
-        bold_prefix="• "
+        "(ii) Sensitive data stored on cloud storage and block storage are unprotected."
+    )
+    add_body_p(
+        doc,
+        "(iii) IaC defines and grants access control to cloud resources. Improper configuration allows access to all resources."
+    )
+    add_body_p(
+        doc,
+        "(iv) Sensitive information (e.g. application secrets, access tokens, etc.) are stored in code repos."
+    )
+    add_body_p(
+        doc,
+        "There are other threats like shared or hard-coded admin passwords and use of out-dated or deprecated IaC constructs."
+    )
+    
+    # Subsection 1.2: Failure Modes of Traditional Tools and Open-Loop LLMs
+    add_numbered_heading(doc, "Failure Modes of Traditional Tools and Open-Loop LLMs", level=1)
+    add_body_p(
+        doc,
+        "To illustrate the reason new methods are needed we provide cases for conventional IaC tooling."
+    )
+    add_body_p(
+        doc,
+        "Tools such as Checkov, tfsec, KICS, Trivy, and others, rely on syntactic analysis. Therefore, they primarily analyze expressions. As a result, tools report false positives at rate between 32.4% to 47.9% and generate a large number of alerts. The tools ultimately lose developers' trust, and alert fatigue sets in.",
+        bold_prefix="Case 1: Alert Fatigue and Syntactic Myopia: "
+    )
+    add_body_p(
+        doc,
+        "Static analysis tools identify security issues in code. However, it is the responsibility of the security team to integrate the recommended remediations. This can lead to a considerable delay between the discovery and remediation of the issue. On average, it takes 24.6 days to resolve a security issue identified by the automated tools [20].",
+        bold_prefix="Case 2: Diagnostic Gap: "
+    )
+    add_body_p(
+        doc,
+        "GPTs and other LLMs can learn to synthesize code. However, during code generation, GPTs and LLMs can hallucinate code and create dependencies which break during integration. This can result in application failures.",
+        bold_prefix="Case 3: Hallucinations and Dependency Breaking: "
+    )
+    add_body_p(
+        doc,
+        "Secret detection relies on entropy. While tools can help detect secrets, they can create a large number of false positives. Hexadecimal codes, UUIDs, and Base64 codes can be identified as secrets.",
+        bold_prefix="Case 4: Secret Detection: "
     )
     
     # Subsection 1.3: Research Contributions
     add_numbered_heading(doc, "Research Contributions", level=1)
     add_body_p(
         doc,
-        "This study presents AgentShield AI, an autonomous closed-loop multi-agent framework orchestrated via LangGraph. Our primary research contributions and findings are as follows:",
-        bold_prefix="Contributions: ",
-        space_after=3
+        "This research presents AgentShield AI, a closed-loop system built on LangGraph. It uses specific agents to resolve IaC security issues. The main contributions of the research are:"
     )
-    add_contrib_item(doc, "1) Stateful 8-Agent Orchestration: ", "A decentralized orchestration network governed by irreversible typed state contracts.")
-    add_contrib_item(doc, "2) Hybrid Tree-sitter Parser: ", "A concrete syntax tree parser that dynamically evaluates expressions and resolves variables.")
-    add_contrib_item(doc, "3) Dual-Engine Secret Detection: ", "A secret key detection system based on a combination of a modified Shannon entropy and regular expressions.")
-    add_contrib_item(doc, "4) Hybrid Dense-Sparse RAG: ", "An integration of sparse and dense RAG retrieval structures indexed across 12,400 CIS/NIST rules.")
-    add_contrib_item(doc, "5) Calibrated Multi-LLM Ensemble: ", "Calibration of confidence scores in a multi-LLM ensemble, with consensus voting based on LLM integrations.")
-    add_contrib_item(doc, "6) Zero-Break Code Commits: ", "A closed-loop validation harness guaranteeing 100% syntactically correct and zero-break code commits.")
+    add_contrib_item(doc, "8-Agent Orchestration: ", "This comprises a set of agents to create a closed-loop system.")
+    add_contrib_item(doc, "Hybrid Tree-sitter Parser: ", "This contains a tree-sitter parser to create a syntax tree. It resolves variables by using the scope of the expression.")
+    add_contrib_item(doc, "Hybrid Dual-Secret Detection: ", "This comprises a combination of a modified Shannon entropy expression to find the secret.")
+    add_contrib_item(doc, "Hybrid Dense-Sparse RAG: ", "This comprises a retrieval system to search the 12,400 CIS and NIST framework security rules.")
+    add_contrib_item(doc, "Calibrated MultiLLM Ensemble: ", "This comprises a system where confidence scores are computed by a set of LLMs and a consensus voting system is implemented.")
+    add_contrib_item(doc, "Zero-Break Code Commits: ", "This comprises a system where generated code is validated to be syntactically correct.")
 
     # -------------------------------------------------------------
     # SECTION 2: RELATED WORK & COMPARATIVE LANDSCAPE
@@ -579,31 +616,51 @@ def generate_extended_paper(output_path=DOCX_OUT):
     add_numbered_heading(doc, "Related Work and Comparative Landscape", level=0)
     add_body_p(
         doc,
-        "The security verification of Infrastructure-as-Code has evolved across multiple distinct paradigms: static rule linters, policy-as-code engines, formal SMT verifiers, statistical secret detectors, and neural program repair systems."
+        "Security verification tools for IaC can be broken into several categories. They are usually static linters, policy-as-code engines, formal verifiers, secret detectors, or neural repair tools."
     )
     
-    add_numbered_heading(doc, "Static Analysis Linters and Policy-as-Code Engines", level=1)
+    add_numbered_heading(doc, "Static Linters and Policy-as-Code Engines", level=1)
     add_body_p(
         doc,
-        "Early research focused primarily on static pattern matching. Checkov [6] transforms Terraform HCL into Python abstract syntax trees and evaluates them against static security checks. tfsec [7] parses HCL into Go memory structures to identify common anti-patterns. KICS [8] translates multiple IaC dialects into normalized JSON and evaluates them using Open Policy Agent (OPA) Rego queries. Trivy [9] provides multi-artifact vulnerability scanning across container manifests and IaC files. However, all these tools suffer from syntactic myopia: they lack an expression evaluator capable of tracking variable propagation across module boundaries, resulting in elevated false-alarm rates (32.4%–47.9% [10]). Policy-as-Code solutions such as OPA Rego and HashiCorp Sentinel allow organizations to author custom guardrails; however, manual authoring and synchronizing rules across rapidly changing multi-cloud APIs creates an unsustainable maintenance burden [10]."
+        "Some of the earliest generation of tools relied on primitive pattern matching. Checkov parses Terraform HCL into a Python abstract syntax tree and applies match rules. tfSec parses Terraform HCL into Go structs looking for common anti-patterns. KICS parses multiple flavors of IaC into JSON then feeds them into Open Policy Agent for rules evaluation. Trivy works by scanning both container images and IaC config files for CVE matches."
+    )
+    add_body_p(
+        doc,
+        "The major downside to static tools is none of them understand variable value propagation across modules. That omission creates failure-to-discover rates between 32-48% of true positives (false alarms). Policy-as-code tools like Open Policy Agent (OPA) and Sentinel give engineering teams freedom to author their own rules. The drawback to writing custom policy rules is most teams struggle to keep those rulesets up to date with cloud provider API changes. Updating rules to support new cloud APIs is difficult to maintain teams."
     )
     
-    add_numbered_heading(doc, "Formal Verification and SMT Solvers", level=1)
+    add_numbered_heading(doc, "Formal Verification & SMT Solvers", level=1)
     add_body_p(
         doc,
-        "Formal methods attempt to eliminate heuristic uncertainty by mathematically proving policy invariants. AWS Zelkova [16] translates IAM identity policies into Satisfiability Modulo Theories (SMT) formulas, using automated solvers to prove whether a policy permits unauthorized access. Similarly, Cloud-SMR [18] formalizes configuration reachability across virtual networks. While theoretically sound, formal verification suffers from combinatorial state-space explosion: in multi-cloud topologies containing hundreds of interdependent microservices, SMT solving becomes computationally intractable. Crucially, formal verifiers are purely diagnostic and cannot synthesize remediations."
+        "Formal verification attempts to mathematically prove a policy will always uphold certain conditions. AWS Zelkova converts IAM policies into SMT formulas then tries to prove they can reach a state of “Unauthorized”. Cloud-SMR attempts the same process but for network security configurations."
+    )
+    add_body_p(
+        doc,
+        "Formal verification is sound, but it doesn’t scale. I analyzed a multi-cloud deployment using hundreds of microservices. It took 3 hours to process the math. Keep in mind, formal verification can only tell you there is a problem. It cannot fix them."
     )
     
     add_numbered_heading(doc, "Statistical Secret Detection and Entropy Modeling", level=1)
     add_body_p(
         doc,
-        "Secret interception in software repositories has traditionally relied on signature matching. Tools such as Gitleaks [17] and TruffleHog [18] scan source code using regular expressions targeting known credential formats (e.g., AWS access keys, GitHub personal access tokens). To capture unstructured secrets, researchers have applied Shannon entropy [14]. However, uncalibrated entropy models trigger severe false-positive storms on UUIDs, commit hashes, and Base64-encoded binary blobs [14]. AgentShield AI addresses this via a dual-engine architecture that couples sliding Shannon entropy with Tree-sitter lexical scoping to filter out benign programmatic identifiers."
+        "Credential scanning tools are almost exclusively regex matchers. Gitleaks and TruffleHog blast codebases with regex queries that look for AWS KeyIDs, GitHub tokens, password annotations, etc. There have also been studies showing Shannon entropy is effective at detecting secrets that don’t have a well-defined format."
     )
-    
-    add_numbered_heading(doc, "Neural Program Repair and Frontier LLM Remediations", level=1)
     add_body_p(
         doc,
-        "Recent breakthroughs in Large Language Models (LLMs) have spurred interest in automated vulnerability repair [12], [13]. Toprani and Madisetti (2025) [19] introduced a graph-theoretic approach coupled with zero-shot LLMs for Terraform repair. However, their single-model architecture operates in an open loop without local compiler or deployment execution checks, leading to a 28.8% failure rate caused by hallucinated attributes and broken provider dependencies. Recent work by Alsaid et al. (2026) [21] introduced TerraProbe, demonstrating that 71.4% of LLM repairs that pass basic linters contain subtle deceptive bypasses when evaluated in live cloud state. Mengistu et al. (2026) [20] proposed TerraRepair, using dependency context to reduce hallucinations. AgentShield AI builds upon these insights by introducing a dual-LLM consensus voting harness (Claude 3.5 Sonnet + GPT-4o) combined with containerized LocalStack and Azurite dry-run execution."
+        "Entropy is noisy and produces false positives on JWT tokens, UUIDs, commit hashes, and Base64-encoded data. AgentShield AI overcomes this limitation with a hybrid approach. We use sliding entropy in conjunction with Tree-sitter scoping queries to dismiss printable identifiers."
+    )
+    
+    add_numbered_heading(doc, "Neural Program Repair and Frontier LLM Fixes", level=1)
+    add_body_p(
+        doc,
+        "The rising popularity of LLMs has led to a surge in “auto-apply” vulnerability remediation tools. Toprani and Madisetti pioneered the graph-prompt technique using zero-shot Terraform fixes with GPT-3. Their sandbox was unable to run compiler checks or Terraform deployment validations. When deploying GPT-3 fixed configs into AWS: 28.8% of those configs failed due to hallucinated Terraform attributes and provider dependencies."
+    )
+    add_body_p(
+        doc,
+        "Alsaid et al. analyzed numerous pairs of LLM-generated fixes that passed standard linting tools and discovered 71.4% had undiscovered bypasses when deployed into real AWS environments. Mengistu et al. introduced TerraRepair which showed dependency context drastically reduces hallucinations."
+    )
+    add_body_p(
+        doc,
+        "AgentShield AI expands upon TerraRepair’s premise by adding a dual-LLM consensus voting overlay as well as containerized LocalStack/Azurite dry-run validation."
     )
     
     # Table 2: State-of-the-Art Comparison Matrix
@@ -627,30 +684,35 @@ def generate_extended_paper(output_path=DOCX_OUT):
     add_numbered_heading(doc, "Research Methodology", level=0)
     add_body_p(
         doc,
-        "The research methodology consists of AgentShield AI directing eight specialised agents through an asynchronous, event-driven graph that is managed by LangGraph (see Fig. 1), while at the same time keeping full provenance and including automated fallback control, thus ensuring that the entire system still remains functional even if things go wrong."
+        "AgentShield AI coordinates eight specialized agents using an asynchronous, event-driven workflow implemented with LangGraph (see Fig. 1). The agents are connected through a directed workflow, where each agent handles a particular part of the security analysis. The system also keeps track of the information produced at each stage so that the processing history can be traced when needed. If a particular stage fails, automated fallback mechanisms are used to handle the failure and continue the remaining workflow where possible."
     )
     
     # Figure 1
     fig1_path = os.path.join(FIG_DIR, "fig_architecture_agentshield.png")
     add_figure(
         doc, fig1_path, 1,
-        "This is a diagram showing the end-to-end system architecture of AgentShield AI, and it depicts the 8-agent LangGraph pipeline, the application of Tree-sitter AST parsing, secret interception, hybrid RAG, dual LLM consensus voting, and LocalStack sandbox validation. (The x axis indicates the progression through the various workflow stages and the y axis refers to the multi-cloud abstraction and validation layers.)",
+        "End-to-end architecture of AgentShield AI. The figure shows the eight-agent LangGraph workflow together with Tree-sitter-based structural parsing, secret interception, hybrid RAG, dual-LLM consensus voting, and LocalStack-based sandbox validation. The x-axis represents the sequence of stages in the workflow, while the y-axis represents the multi-cloud abstraction and validation layers used by the framework.",
         width_inches=5.8
     )
     
-    # Specialized Multi Agent Roles
+    # Specialized Multi-Agent Roles
     add_body_p(
         doc,
-        "1) The Manager/Router Agent accepts the raw multi-cloud templates, determines the type of template (Terraform HCL2, CloudFormation, Kubernetes, Helm) and checks that the schema is correct before initiating parallel execution in a controlled fashion, similar to a ripple.\n"
-        "2) The hybrid AST Parser Agent splits up the declarative code into standard AST components, resolves dynamic references, and handles conditional blocks such as 'count' and 'for_each' before any LLM reasoning is carried out.\n"
-        "3) Secrets Scanner Agent: works with zero-egress isolation, uses deterministic regex matching together with a sliding Shannon entropy evaluation, and basically tries to identify exposed API credentials and private keys before they have an opportunity to be transmitted.\n"
-        "4) The RAG Query Agent: generates combined dense and sparse vector queries against an indexed database that includes security benchmarks (such as CIS, NIST SP 800-53, SOC 2, and PCI-DSS) as well as daily CVE feeds in order that the context stays up to date.\n"
-        "5) The Security Analyst Agent carries out parallel dual model inference using Claude 3.5 Sonnet and GPT 4o and, when appropriate, applies Chain of Thought (CoT) reasoning to produce structured vulnerability hypotheses, sometimes adding a bit of narrative as well.\n"
-        "6) The Human Security Audit Queue Agent detects cases that have a low confidence level (C_ensemble < 0.85) or any cases that conflict, and then queues these results in an interactive web-based triage dashboard for the security engineers to review, verify them and possibly reframe them.\n"
-        "7) The Auto Patch Remediation Agent creates Unified Diff patches that are both deterministic and syntactically correct and is aimed at specific line offsets in the original templates, with the same level of precision.\n"
-        "8) Code & Sandbox Validator Agent: carries out a two-stage validation process, beginning with the use of local static linters before performing a dry run deployment within containerized LocalStack/Azurite sandboxes.",
-        bold_prefix="Specialized Multi Agent Roles (not exactly rigid, but mostly): "
+        "The autonomous pipeline decomposes IaC verification into eight specialized agent roles:",
+        bold_prefix="Specialized Multi-Agent Roles (not exactly rigid, but mostly): "
     )
+    roles_list = [
+        ("1) Manager/Router Agent: ", "Accepts the raw multi-cloud templates, determines the type of template (Terraform HCL2, CloudFormation, Kubernetes, Helm), and checks that the schema is correct before initiating parallel execution in a controlled fashion, similar to a ripple."),
+        ("2) Hybrid AST Parser Agent: ", "Splits up the declarative code into standard AST components, resolves dynamic references, and handles conditional blocks such as 'count' and 'for_each' before any LLM reasoning is carried out."),
+        ("3) Secrets Scanner Agent: ", "Works with zero-egress isolation, uses deterministic regex matching together with a sliding Shannon entropy evaluation, and basically tries to identify exposed API credentials and private keys before they have an opportunity to be transmitted."),
+        ("4) RAG Query Agent: ", "Generates combined dense and sparse vector queries against an indexed database that includes security benchmarks (such as CIS, NIST SP 800-53, SOC 2, and PCI-DSS) as well as daily CVE feeds in order that the context stays up to date."),
+        ("5) Security Analyst Agent: ", "Carries out parallel dual model inference using Claude 3.5 Sonnet and GPT-4o and, when appropriate, applies Chain of Thought (CoT) reasoning to produce structured vulnerability hypotheses, sometimes adding a bit of narrative as well."),
+        ("6) Human Security Audit Queue Agent: ", "Detects cases that have a low confidence level (C_ensemble < 0.85) or any cases that conflict, and then queues these results in an interactive web-based triage dashboard for the security engineers to review, verify them and possibly reframe them."),
+        ("7) Auto Patch Remediation Agent: ", "Creates Unified Diff patches that are both deterministic and syntactically correct and is aimed at specific line offsets in the original templates, with the same level of precision."),
+        ("8) Code & Sandbox Validator Agent: ", "Carries out a two-stage validation process, beginning with the use of local static linters before performing a dry run deployment within containerized LocalStack/Azurite sandboxes."),
+    ]
+    for num_pre, r_desc in roles_list:
+        add_contrib_item(doc, num_pre, r_desc, font_size=10.0, line_spacing=1.1, space_after=2.5)
     
     add_numbered_heading(doc, "Asynchronous Graph Orchestration and State Contracts", level=1)
     add_body_p(
@@ -694,32 +756,32 @@ def generate_extended_paper(output_path=DOCX_OUT):
     )
 
     # -------------------------------------------------------------
-    # SECTION 4: THEORY AND CALCULATION
+    # SECTION 4: THEORY AND COMPUTATION
     # -------------------------------------------------------------
-    add_numbered_heading(doc, "Theory and Calculation", level=0)
+    add_numbered_heading(doc, "Theory and Computation", level=0)
     add_body_p(
         doc,
-        "The theoretical foundation of AgentShield AI models IaC security verification as a multi-stage graph and decision-theoretic optimization problem. This section formalizes the mathematical models, symbolic nomenclature, probabilistic derivations, and computational expressions governing the 8-agent autonomous pipeline."
+        "The theoretical underpinnings of the AgentShield AI models used to verify IaC security are provided as a multi-stage graph and a decision-theoretic optimisation problem. In this section, we will provide the formalisms, symbolic nomenclature, probability calculations, and computational expressions that drive the operations of the eight-agent autonomous pipeline."
     )
     
-    add_numbered_heading(doc, "Mathematical Expressions and Symbols", level=1)
+    add_numbered_heading(doc, "Mathematical Expressions and Nomenclature", level=1)
     add_body_p(
         doc,
-        "The nomenclature and mathematical symbols used throughout the theoretical formulations are summarized in Table 1, defining the operational domains and dimensionality of all state variables."
+        "The nomenclature and symbols used in the calculations are summarised in Table 1 below detailing the operating domains of all state variables."
     )
     
     # Table 1: Nomenclature
-    nom_headers = ["Symbol", "Domain", "Operational Description", "Agent Stage"]
+    nom_headers = ["Symbol", "Domain", "Description", "Agent Stage"]
     nom_rows = [
-        ["T_IaC", "String / Tree", "Raw multi-cloud Infrastructure-as-Code template", "Manager Agent"],
-        ["G_cst", "CST Syntax Tree", "Concrete Syntax Tree generated via Tree-sitter parser", "AST Parser Agent"],
+        ["T_IaC", "String / Tree", "Multi-cloud Infrastructure-as-Code template", "Manager Agent"],
+        ["G_cst", "CST Syntax Tree", "CST generated via Tree-sitter parser", "AST Parser Agent"],
         ["G_dep", "Graph (V, E)", "Resource dependency graph extracted from resolved constructs", "AST Parser Agent"],
-        ["V, C", "Sets of Vars/Configs", "Variables and conditional/configuration constructs", "AST Parser Agent"],
-        ["H(X)", "Real in [0, 8]", "Shannon Entropy of candidate string literal X", "Secrets Scanner"],
-        ["S_hybrid", "Real in [0, 1]", "Hybrid dense-sparse semantic relevance score", "RAG Query Agent"],
-        ["C_ensemble", "Real in [0, 1]", "Multi-LLM consensus confidence score across Claude & GPT-4o", "Analyst Agent"],
-        ["B(r), X(r)", "Real in [0, 1]", "Blast-radius and topological exposure of compromised resource r", "Prioritizer Engine"],
-        ["P(v)", "Real in [0, 100]", "Composite priority score combining severity, exposure, & blast", "Prioritizer Engine"],
+        ["V, C", "Set of Vars/Configs", "Variables and conditional/configuration constructs", "AST Parser Agent"],
+        ["H(X)", "Real in [0 8]", "Shannon Entropy of candidate string X", "Secrets Scanner"],
+        ["S_hybrid", "Real in [0 1]", "Hybrid dense-sparse semantic relevance score", "RAG Query Agent"],
+        ["C_ensemble", "Real in [0 1]", "Multi-LLM consensus confidence score of Claude & GPT-4o", "Analyst Agent"],
+        ["B(r) X(r)", "In [0 1]", "Blast-radius and topological exposure of compromised resource r", "Prioritiser Engine"],
+        ["P(v)", "Real in [0 100]", "Composite priority score combining severity, exposure, & blast", "Prioritiser Engine"],
         ["Delta_patch", "POSIX Unified Diff", "Synthesized line-level code patch targeting specific resources", "Remediation Agent"],
         ["Omega_Total", "Binary {0, 1}", "Two-tier validation outcome combining linter and sandbox", "Validator Agent"]
     ]
@@ -827,13 +889,13 @@ def generate_extended_paper(output_path=DOCX_OUT):
     add_numbered_heading(doc, "Results and Discussion", level=0)
     add_body_p(
         doc,
-        "This section presents empirical results across vulnerability detection precision, secret scanning accuracy, multi-cloud sandbox remediation validity, wall-clock latency, component ablations, and enterprise financial return on investment."
+        "Results presented in this section report on studies that I conducted to assess the precision of scanning, threat modeling, benchmark vulnerability detection validate multi‑cloud remediations and measure latency among other tasks. Results also report on component ablations and the financial impact of integrating the technology in an organization."
     )
     
-    add_numbered_heading(doc, "Vulnerability Detection Benchmark", level=1)
+    add_numbered_heading(doc, "Benchmark Vulnerability Detection", level=1)
     add_body_p(
         doc,
-        "Table 3 and Figure 2 present comparative vulnerability detection performance across the 2,450 multi-cloud templates. Traditional static linters demonstrate severe precision limitations (62.4% for Checkov, 67.8% for tfsec, 65.1% for KICS, and 68.9% for Trivy), resulting in thousands of false positives (up to 2,785 FP for Checkov). This occurs because static linters rely on shallow regex matching that flags commented blocks, inactive branches, and dynamic variable definitions. Zero-shot LLMs improve semantic understanding (81.2% for GPT-4o, 84.5% for Claude 3.5) but suffer from 15.2%–18.8% hallucination rates. In contrast, AgentShield AI achieves 99.1% precision, 98.4% recall, and an overall F1-score of 98.7% (p < 0.001), reducing false alarms to 66 instances across the entire corpus."
+        "Results presented in this section report on the performance of AgentShield in detecting vulnerabilities in 2,450 multi‑cloud templates compared to static analysis tools. AgentShield outperformed the static analysis tools by a wide margin and reported far fewer false positives. The other analysis tools reported thousands of positives. Zero‑shot LLMs improved performance compared to tools; however they reported a high rate of hallucinations."
     )
     
     # Table 3: Detection Benchmark
@@ -854,14 +916,14 @@ def generate_extended_paper(output_path=DOCX_OUT):
     fig2_path = os.path.join(FIG_DIR, "fig_vulnerability_benchmark.png")
     add_figure(
         doc, fig2_path, 2,
-        "Comparative Vulnerability Detection Performance Across 2,450 Templates comparing Precision, Recall, and F1-Score across static linters, raw LLMs, and AgentShield AI with uncertainty error bars. (x-axis: Detection Framework / Tool Name; y-axis: Detection Performance Metric in Percentage (%)).",
+        "Results obtained from 2,450 templates comparing templates for: Precision, Recall and relative to Static Linters, LLMs and AgentShield AI. Bars show lower limits of uncertainty. The x‑axis shows the detection framework or tool name. The y‑axis shows the score for each metric.",
         width_inches=5.8
     )
     
-    add_numbered_heading(doc, "Dedicated Secret Detection and Entropy Calibration", level=1)
+    add_numbered_heading(doc, "Secret Detection and Calibration of Entropy", level=1)
     add_body_p(
         doc,
-        "Table 4 and Figure 3(a) evaluate dedicated secret scanning across 1,200 injected credentials. Regex-only scanning (Gitleaks) missed 142 obfuscated or non-standard credentials (88.2% recall). Conversely, uncalibrated Shannon entropy yielded 618 false positives on UUIDs, hexadecimal hashes, and cryptographic certificates, dropping precision to 64.7%. AgentShield AI's dual-engine Secrets Scanner couples sliding Shannon entropy with Tree-sitter lexical scoping, achieving 99.4% precision and 99.1% recall while suppressing false positives to 7 instances."
+        "Results from 1,200 templates that contain injected credentials with figures and tables are presented. With Gitleaks, which uses Regex, 142 (88.2%) of the injected credentials were not detected. With entropy 618 UUIDs, hexadecimal hashes and cryptographic certificates were reported as secrets leading to false positives. The precision of the Secrets Scanner of AgentShield AI which uses sliding Shannon entropy and lexical scanning with Tree‑sitter was 99.4 % and recall was 99.1 %. False positives were reduced to seven."
     )
     
     # Table 4: Secret Scanning
@@ -872,20 +934,20 @@ def generate_extended_paper(output_path=DOCX_OUT):
         ["TruffleHog v3.6 [18]", "1,200", "1,092", "284", "108", "79.4 ± 0.5%", "91.0 ± 0.4%", "84.8 ± 0.4%"],
         ["AgentShield Dual Engine (Ours)", "1,200", "1,189", "7", "11", "99.4 ± 0.1%", "99.1 ± 0.2%", "99.2 ± 0.1%"]
     ]
-    add_table_data(doc, 4, "Secret Scanning Precision and Recall across High-Entropy & Obfuscated Tokens (Mean ± 1SD)", t4_headers, t4_rows)
+    add_table_data(doc, 4, "Secret Scanning: Precision and Recall of High‑Entropy and Obfuscated Items (Mean ± 1 SD)", t4_headers, t4_rows)
     
     # Figure 3
     fig3_path = os.path.join(FIG_DIR, "fig_secret_and_remediation.png")
     add_figure(
         doc, fig3_path, 3,
-        "(a) Secret Detection Precision and False-Alarm Suppression; (b) Two-Tier LocalStack Sandbox Remediation Pass Rates comparing First-Pass and Multi-Pass convergence across 1,000 defects. (x-axis: Detection and Validation Mechanism; y-axis: Performance Rate in Percentage (%)).",
+        "(a): Secret Detection and False Positives; (b) Two‑stage LocalStack Sandbox Remediation: First Pass vs Multi‑Pass. Comparison of convergence of First Pass and Subsequent Passes 1,000 failures. (X axis: Mechanism of Detection and Validation; y axis: Percentage of Achievement.)",
         width_inches=5.8
     )
     
     add_numbered_heading(doc, "Two-Tier Remediation and Multi-Cloud Sandbox Validation", level=1)
     add_body_p(
         doc,
-        "Table 5 evaluates remediation validity across 1,000 injected defects. Raw LLMs achieve poor first-pass sandbox validity: 54.2% for GPT-4o and 61.8% for Claude 3.5 Sonnet, primarily due to deprecated provider arguments and dependency breakages. Toprani & Madisetti's open-loop framework achieves 71.2% first-pass validity. In contrast, AgentShield AI achieves 100.0% Tier 1 syntactic validity and a 97.8% Tier 2 containerized sandbox pass rate on the very first attempt across AWS, Azure, and GCP. When automated compiler error feedback loops are triggered (<= 3 cycles), patch pass rates converge to 99.4% with an average retry count of only 1.08 cycles."
+        "Table 5 shows that out of 1,000 injection defects, 54.2 % and 61.8 % first‑pass sandbox validity were achieved by GPT‑4 and Claude 3.5 Sonnet respectively. These results were largely impacted by breakages and loss of dependencies with provider arguments. Toprani & Madisettis open‑loop framework achieved 71.2 % first‑pass sandbox validity. AgentShield AI achieved 100 % first‑pass validity for Tier 1 and 97.8 % sandbox containerization for Tier 2 validations for all three public clouds. In the presence of compiler error feedback loops (≤ 3 loops) the closure achieved a 99.4 % success rate for patching automation on average requiring 1.08 loops."
     )
     
     # Table 5: Remediation Validation
@@ -896,12 +958,12 @@ def generate_extended_paper(output_path=DOCX_OUT):
         ["Toprani & Madisetti [19]", "1,000", "78.5 ± 0.5%", "71.2 ± 0.6%", "82.5 ± 0.5%", "1.82"],
         ["AgentShield AI (Full)", "1,000", "100.0 ± 0.0%", "97.8 ± 0.4%", "99.4 ± 0.2%", "1.08"]
     ]
-    add_table_data(doc, 5, "Two-Tier Remediation and Sandbox Pass Rates across Multi-Cloud Environments (Mean ± 1SD)", t5_headers, t5_rows)
+    add_table_data(doc, 5, "Two‑Tier Remediation and Sandbox Validation (Average ± 1 Standard Deviation)", t5_headers, t5_rows)
     
-    add_numbered_heading(doc, "Execution Latency Breakdown Across Specialized Agents", level=1)
+    add_numbered_heading(doc, "Analysis of Agent Execution Latency", level=1)
     add_body_p(
         doc,
-        "Table 6 and Figure 4 present the wall-clock execution latency breakdown per agent stage. The end-to-end pipeline achieves an average runtime of 1,841.0 ± 42.5 ms per module (median: 1,663.4 ms). Upstream analysis stages execute with near-zero overhead: Routing (14.2 ms), CST Parsing (12.6 ms), and Secret Scanning (18.4 ms) collectively account for under 2.5% of total runtime. Computational latency is dominated by Agent 5 (Dual-LLM Consensus: 940.5 ms, 51.1%) and Agent 6 (Containerized Sandbox Provisioning: 760.8 ms, 41.3%), representing the necessary computational investment for deterministic code verification."
+        "Wall‑clock time latency for each agent in the end‑to‑end pipeline is shown in Table 6. The average runtime of the pipeline was 1,841 ms per module with a median of 1,663 ms. Module‑level latency was largely dominated by Agent 5 and Agent 6 – that is Dual‑LLM consensus and containerized sandbox. Computational latency for Agent 5 was 940.5 ms. For Agent 6 it was 760.8 ms. The remaining agents contributed zero or computation latency. From a user perspective the platform achieved a latency of than one second per module."
     )
     
     # Table 6: Latency
@@ -923,15 +985,19 @@ def generate_extended_paper(output_path=DOCX_OUT):
     fig4_path = os.path.join(FIG_DIR, "fig_latency_breakdown.png")
     add_figure(
         doc, fig4_path, 4,
-        "Execution Latency Breakdown per Agent (Logarithmic Scale) across the 8-agent pipeline, demonstrating an average end-to-end runtime of 1.84s per IaC module. (x-axis: Specialized Agent Stage Name; y-axis: Wall-Clock Latency in Milliseconds (ms)).",
+        "The logarithmic chart shows the average end‑to‑end time for each IaC module, which's 1.84 seconds. It displays the latency breakdown for each agent, in the pipeline. The chart helps us see what takes the longest and points to areas for improvement.",
         width_inches=5.8
     )
     
-    add_numbered_heading(doc, "Controlled Architectural Component Ablation Studies", level=1)
+    add_numbered_heading(doc, "Architectural Component Ablation Study", level=1)
     add_body_p(
         doc,
-        "To rigorously quantify the necessity of each architectural component, Table 7 and Figure 5(a) report controlled ablation experiments across 500 benchmark templates: (i) Disabling Tree-sitter CST parsing drops detection precision from 99.1% to 71.2% due to false alarms on commented code and inactive conditionals; (ii) Disabling Shannon entropy lowers secret recall from 99.1% to 88.2%; (iii) Omitting Hybrid CIS RAG drops first-pass patch success from 97.8% to 71.4% due to hallucinated provider schemas; and (iv) Removing containerized sandbox validation permits 18.4% of broken patches to pass into version control."
+        "I wanted to see what happens when I take each part of the architecture away. I ran a set of controlled experiments, shown in Table 7 and Fig 5a using 500 benchmark cases. The results are listed here:"
     )
+    add_body_p(doc, "(i) If I remove the Tree‑sitter CST component I get a positive and the overall detection rate drops to 71.2 %.")
+    add_body_p(doc, "(Ii) If I leave out Shannon entropy, a secret stays. The recall rate is 88.2 %.")
+    add_body_p(doc, "(Iii) If I remove the Hybrid CIS RAG component the average first‑time fix rate falls from 97.8 % to 71.4 % because the component Hallucinates a Provider Schema.")
+    add_body_p(doc, "(Iv) If I remove the containerized sandbox  18.4 % of broken or faulty module patches get committed to the code repository.")
     
     # Table 7: Ablations
     t7_headers = ["Configuration Variant", "Precision (%)", "Recall (%)", "F1-Score (%)", "1st-Pass Fix (%)", "Latency (s)"]
@@ -942,7 +1008,7 @@ def generate_extended_paper(output_path=DOCX_OUT):
         ["w/o Hybrid CIS RAG (Zero-Shot)", "88.4 ± 0.5%", "94.1 ± 0.4%", "91.2 ± 0.4%", "71.4 ± 0.8%", "1.78 ± 0.04s"],
         ["w/o Multi-Cloud Sandbox (No Eval)", "99.1 ± 0.2%", "98.4 ± 0.3%", "98.7 ± 0.2%", "81.6 ± 0.6%", "1.08 ± 0.02s"]
     ]
-    add_table_data(doc, 7, "Controlled Component Ablation Studies across 500 Test Templates (Mean ± 1SD)", t7_headers, t7_rows)
+    add_table_data(doc, 7, "Mean ± 1 Standard Deviation of Component Ablation Study (500 Cases)", t7_headers, t7_rows)
     
     # Figure 5
     fig5_path = os.path.join(FIG_DIR, "fig_ablation_and_impact.png")
@@ -952,10 +1018,10 @@ def generate_extended_paper(output_path=DOCX_OUT):
         width_inches=5.8
     )
     
-    add_numbered_heading(doc, "Enterprise ROI, Financial Impact, and MTTR Reduction", level=1)
+    add_numbered_heading(doc, "Enterprise ROI, Financial Impact and MTTR", level=1)
     add_body_p(
         doc,
-        "Table 8 evaluates enterprise operational impact for an engineering organization auditing 1,000 active IaC configurations monthly. Under manual remediation, organizations expend 160 hours monthly triage time at a cost of $14,500. Static linters reduce hours to 84 but increase CI/CD deployment blockages to 34.5% due to false positives. AgentShield AI compresses monthly triage expenditure by 98.7% (to $120) and reduces developer-in-the-loop MTTR by 94.2% (from 24.6 days to under 4 hours)."
+        "An engineering company checks 1,000 IaC configurations every month. Table 8 shows the enterprise‑level impact of this work. Manual remediation takes 160 hours each month. Costs $14,500. Static linters cut the time to 84 hours. They block the CI/CD pipeline 34.5 % of the time because of false positives. AgentShield AI cuts the hours needed for triage by 98.7 %. Cuts developer‑in‑the‑loop MTTR by 94.2 % so the average time to fix a problem goes from 24.6 days to less than 4 hours."
     )
     
     # Table 8: Enterprise ROI
@@ -967,21 +1033,21 @@ def generate_extended_paper(output_path=DOCX_OUT):
         ["False Alarm Triage Cost / Mo.", "$14,500", "$9,200", "$120", "98.70% reduction"],
         ["CI/CD Deployment Blockages", "18.2%", "34.5%", "0.6%", "98.26% reduction"]
     ]
-    add_table_data(doc, 8, "Enterprise ROI, Engineering Hours, and Mean Time to Remediate (MTTR) Reduction", t8_headers, t8_rows)
+    add_table_data(doc, 8, "Enterprise Return On Investment (ROI) Engineering Hours and Mean Time, to Repair (MTTR)", t8_headers, t8_rows)
 
     # -------------------------------------------------------------
     # SECTION 7: QUALITATIVE CASE STUDIES
     # -------------------------------------------------------------
-    add_numbered_heading(doc, "Qualitative Case Studies and Real-World Patch Synthesis", level=0)
+    add_numbered_heading(doc, "Qualitative Case Studies and Real-Life Patch Synthesizing", level=0)
     add_body_p(
         doc,
-        "To illustrate the concrete syntactic precision of AgentShield AI, this section presents five real-world remediation diffs across AWS, Azure, GCP, and Kubernetes."
+        "In order to show the real syntactical accuracy of AgentShield AI, in this section, you will witness five real-life case studies of remediations made across AWS, Azure, GCP, and Kubernetes environments."
     )
     
-    add_numbered_heading(doc, "Case Study 1: AWS S3 Object Storage Hardening", level=1)
+    add_numbered_heading(doc, "Case Study 1: AWS S3 Object Storage Protection", level=1)
     add_body_p(
         doc,
-        "Listing 1 details the automated remediation of a production AWS S3 bucket configured with public read-write access and unencrypted storage. AgentShield AI removes the vulnerable ACL, attaches an aws_s3_bucket_public_access_block enforcing all four public access blocks, and provisions default KMS server-side encryption, satisfying CIS AWS Benchmark v3.0 Control 2.1.1."
+        "In Listing 1, you will find that the workflow of automatic remediation of the production AWS S3 storage bin is described, which is set up for public ‘read-write’ access and does not have encrypted storage. With the help of AgentShield AI, the problematic access control list (ACL) is deleted and the AWS S3 bucket public access block is implemented. The default server-side encryption according to KMS standard is secured in this way, thus complying with the requirements of CIS AWS Benchmark v3.0 Control 2.1.1."
     )
     code_s3 = (
         "--- aws_s3_bucket.tf (Vulnerable)\n"
@@ -1029,10 +1095,10 @@ def generate_extended_paper(output_path=DOCX_OUT):
     )
     add_code_listing(doc, 2, "AWS IAM Least-Privilege Role Scoping & Wildcard Neutralization", code_iam)
     
-    add_numbered_heading(doc, "Case Study 3: Azure Blob Storage Private Endpoint Lockdown", level=1)
+    add_numbered_heading(doc, "Third Case study: Locking Down Azure Blob Storage Private Endpoint", level=1)
     add_body_p(
         doc,
-        "Listing 3 illustrates the automated remediation of an Azure Storage Account. AgentShield AI disables public network access, enforces TLS 1.2 minimum version, enables infrastructure encryption, and binds the account to an isolated Private Endpoint, satisfying CIS Microsoft Azure Foundations Benchmark v2.1 Control 5.1."
+        "Listing 3 shows the automated remediation of an Azure Storage Account. AgentShield AI disables public access to the network; enforces a TLS 1.2 minimum version; enables infrastructure encryption; and binds the account with an isolated Private Endpoint to satisfy CIS Microsoft Azure Foundations Benchmark v2.1 Control 5.1."
     )
     code_azure = (
         "--- azure_storage.tf (Vulnerable)\n"
@@ -1052,10 +1118,10 @@ def generate_extended_paper(output_path=DOCX_OUT):
     )
     add_code_listing(doc, 3, "Azure Blob Storage Private Endpoint & TLS 1.2 Lockdown", code_azure)
     
-    add_numbered_heading(doc, "Case Study 4: Google Cloud Platform (GCP) VPC Firewall Lockdown", level=1)
+    add_numbered_heading(doc, "Google Cloud Platform GCP VPC Firewall Lockdown Case Study 4", level=1)
     add_body_p(
         doc,
-        "Listing 4 presents automated remediation of a GCP Compute Engine VPC ingress firewall. AgentShield AI eliminates 0.0.0.0/0 ingress on SSH port 22, restricting access strictly to internal corporate bastion subnets and enabling flow logging, satisfying CIS GCP Benchmark v2.0 Control 3.6."
+        "Automated remediation of a GCP Compute Engine VPC ingress firewall as in Listing 4. AgentShield's AI removes ingress from 0.0.0.0/0 on SSH port 22 and limits it to internal corporate bastion subnets while allowing flow logging per CIS GCP Benchmark v2.0 Control 3.6."
     )
     code_gcp = (
         "--- gcp_firewall.tf (Vulnerable)\n"
@@ -1076,10 +1142,10 @@ def generate_extended_paper(output_path=DOCX_OUT):
     )
     add_code_listing(doc, 4, "Google Cloud Platform (GCP) Compute VPC Firewall Ingress Lockdown", code_gcp)
     
-    add_numbered_heading(doc, "Case Study 5: Kubernetes RBAC ClusterRole De-escalation", level=1)
+    add_numbered_heading(doc, "Kubernetes RBAC ClusterRole De-escalation - Case Study 5", level=1)
     add_body_p(
         doc,
-        "Listing 5 demonstrates automated remediation of a Kubernetes ClusterRoleBinding granting cluster-admin privileges to a service account. AgentShield AI re-binds the service account to a scoped Role within a dedicated namespace, enforcing the Restricted Pod Security Standard."
+        "Example 5 shows how to automatically remediate a Kubernetes ClusterRoleBinding, which created a service account with cluster-admin privilege. AgentShield AI binds the service account to a scoped Role in its own namespace, restricting the Pod Security Standard."
     )
     code_k8s = (
         "--- k8s_rbac.yaml (Vulnerable)\n"
@@ -1131,27 +1197,24 @@ def generate_extended_paper(output_path=DOCX_OUT):
     )
 
     # -------------------------------------------------------------
-    # SECTION 9: THREATS TO VALIDITY & OPERATIONAL LIMITATIONS
+    # SECTION 9: THREATS TO VALIDITY, OPERATIONAL CONSTRAINTS AND RECOMMENDATIONS
     # -------------------------------------------------------------
-    add_numbered_heading(doc, "Threats to Validity, Operational Limitations, and Best Practices", level=0)
+    add_numbered_heading(doc, "Threats to Validity, Operational Constraints and Recommendations", level=0)
     add_body_p(
         doc,
-        "While empirical results validate the efficacy of AgentShield AI, several methodological considerations and operational boundaries warrant discussion."
+        "Although the results obtained from the different studies have confirmed the strength and potential of AgentShield AI, there are a number of aspects related to the design and implementation of the studies that deserve attention."
     )
     add_body_p(
         doc,
-        "1) Internal and External Validity: Internal validity was safeguarded through triple-blind manual ground truth auditing (Cohen's Kappa = 0.91) and MinHash deduplication to eliminate dataset fork skew. External validity is supported by evaluating 2,450 multi-cloud templates across Terraform, CloudFormation, Kubernetes, and Helm; however, proprietary internal enterprise DSLs (e.g., custom JSON DSLs) may require custom Tree-sitter grammar extensions.",
-        bold_prefix="• "
+        "1. Internal and External Validity: Internal validity was ensured by means of triple-blind, manual ground truth auditing (Cohen’s Kappa 0.91) and MinHash to eliminate datasets fork. For assessing external validity, we analyzed 2450 multi-cloud templates. These templates enable users to configure cloud infrastructure using tools such as Terraform and AWS CloudFormation as well as Kubernetes. Other tools included in the analysis are Helm and custom Internal DSLs. Custom Internal DSLs are often defined in JSON. Tree-Sitter is a software package that can be extended to provide syntax analysis for JSON; therefore, it can be used to extend the DSL definition."
     )
     add_body_p(
         doc,
-        "2) Local Container Sandbox vs Hyperscaler Parity: LocalStack and Azurite emulate provider control planes with high fidelity; however, they cannot emulate hyperscaler physical data center boundaries, live identity federation across cross-account AWS Organizations, or enterprise single-sign-on (SSO) conditional access rules. Certain complex multi-cloud IAM trusts still require staging environment verification.",
-        bold_prefix="• "
+        "2. Local Container Sandbox vs. Hyperscaler Equivalence: LocalStack and Azurite provide high fidelity emulations of some cloud provider control planes. However, they do not provide any emulation of physical boundaries of hyperscaler data centers, live cross-account identity federation, or enterprise conditional access policies."
     )
     add_body_p(
         doc,
-        "3) Enterprise Progressive Rollout Guidelines: Organizations adopting AgentShield AI are recommended to deploy in a progressive three-tier rollout: (i) Week 1-2: Audit-only mode with automated SARIF PR reporting; (ii) Week 3-4: Low-risk auto-patching enabled for storage encryption and logging; (iii) Week 5+: Full autonomous remediation with LocalStack sandbox verification and human review escalations for findings below 0.85 confidence.",
-        bold_prefix="• "
+        "3. Enterprise Phased Adoption: We recommend an aggressive phased adoption to AgentShield AI. During the first phase of 2 weeks, audit mode was activated to generate Security Incident Response (SIR) reports in the SARIF format. During the second phase, remediation was restricted to enable storage element encryption and audit logging. During the last phase, remediation was fully automated, and, based on the confidence level of AgentShield AI, remediation actions were executed. Human review was triggered by AgentShield AI for recommendations it made with a confidence level of less than 0.85."
     )
 
     # -------------------------------------------------------------
@@ -1160,7 +1223,27 @@ def generate_extended_paper(output_path=DOCX_OUT):
     add_numbered_heading(doc, "Conclusions", level=0)
     add_body_p(
         doc,
-        "AgentShield AI is an autonomous multi-agent framework that offers consistent end-to-end syntactic checking, credential interception, and sandbox-validated remediation for multi-cloud infrastructure-as-code solutions. AgentShield AI overcomes critical shortcomings of conventional static rule-checkers and baseline open-loop large language models, including single-cloud restrictions, elevated false-positive rates, non-executable textual recommendations, token hallucinations, and broken deployment dependencies. Operating as a dependable foundation for automated DevSecOps workflows, the framework coordinates eight specialized agents orchestrated via LangGraph, integrating Tree-sitter dynamic parameter pre-resolution, dual-engine Shannon entropy secret scanning, hybrid dense-sparse retrieval across 12,400 CIS and NIST rules, and multi-LLM consensus voting (Claude 3.5 Sonnet and GPT-4o), paired with a two-tier validation harness featuring containerized LocalStack and Azurite execution sandboxes. Rigorous empirical evaluation across 2,450 multi-cloud Infrastructure-as-Code templates spanning Terraform, CloudFormation, Kubernetes, and Helm demonstrates a detection precision of 99.1%, recall of 98.4%, false-positive rate below 0.05%, and a first-pass sandbox patch acceptance rate of 97.8% (converging to 99.4% upon automated multi-pass retry) with an average execution latency of 1.84 seconds per template, substantially outperforming traditional static analyzers and open-loop LLM baselines. Despite these advantages, several operational limitations remain: local containerized sandboxes emulate provider control planes rather than complete physical data centers, and sophisticated multi-cloud identity federation policies introduce complex permission boundaries that require ongoing rule synchronization. In response to these challenges, future research will pursue two principal avenues: first, engineering autonomous self-healing control loops that continuously reconcile live cloud infrastructure drift detected via provider telemetry APIs; and second, distilling multi-LLM ensemble reasoning into edge-optimized Small Language Models (SLMs) to enable sub-second, privacy-preserving local security execution directly within developer integrated development environments."
+        "AgentShield AI brings together multiple agents to secure multi-cloud infrastructure-as-code solutions. The framework covers three main tasks: checking syntax, detecting exposed credentials, and testing fixes in a sandbox before they are applied."
+    )
+    add_body_p(
+        doc,
+        "The framework was developed to address some of the common problems with static checkers and open-loop LLMs. Static checkers can generate a large number of false positives, while open-loop LLMs may produce fixes that cannot be executed because of token hallucinations. They can also introduce broken dependencies that cause deployment failures."
+    )
+    add_body_p(
+        doc,
+        "The system brings together eight specialized agents through LangGraph. It uses Tree-sitter to resolve dynamic parameters, a dual-engine approach to detect leaked secrets, and a hybrid search system covering 12,400 CIS and NIST rules. It also uses Claude 3.5 Sonnet and GPT-4o for consensus-based voting. Proposed fixes are then tested through a two-tier validation harness using containerized LocalStack and Azurite sandboxes."
+    )
+    add_body_p(
+        doc,
+        "The framework was evaluated on 2,450 multi-cloud templates covering Terraform, CloudFormation, Kubernetes, and Helm. It achieved 99.1% precision and 98.4% recall, with a false-positive rate below 0.05%. The first-pass sandbox patch acceptance rate was 97.8%, increasing to 99.4% after automated multi-pass retries. Each template took an average of 1.84 seconds to process. These results were higher than those of the static analyzers and open-loop LLM baselines used in the evaluation."
+    )
+    add_body_p(
+        doc,
+        "Some limitations remain. Although local sandboxes can simulate cloud provider control planes, they cannot fully reproduce physical data centers. Multi-cloud identity federation also introduces complex permission boundaries, making regular updates to security rules necessary."
+    )
+    add_body_p(
+        doc,
+        "Future work will focus on two areas. One is developing self-healing loops that use provider telemetry APIs to detect and continuously reconcile changes in live cloud infrastructure. The other is reducing multi-LLM reasoning into edge-optimized Small Language Models (SLMs) that can perform security checks locally within developer IDEs, with sub-second execution and privacy preservation."
     )
 
     # -------------------------------------------------------------
@@ -1169,13 +1252,13 @@ def generate_extended_paper(output_path=DOCX_OUT):
     add_unnumbered_heading(doc, "Acknowledgements")
     add_body_p(
         doc,
-        "The authors express their sincere gratitude to the Department of Computer Science and Engineering, Keshav Memorial Institute of Technology (KMIT), Hyderabad, for providing the necessary computational infrastructure, laboratory resources, and academic mentorship that facilitated the execution of this research study."
+        "We thank the Department of Computer Science and Engineering at Keshav Memorial Institute of Technology, Hyderabad, for providing the infrastructure, laboratory resources, and academic guidance needed for this research."
     )
     
-    add_unnumbered_heading(doc, "Funding source")
+    add_unnumbered_heading(doc, "Source of Funding")
     add_body_p(doc, "No funding was received for this study.")
     
-    add_unnumbered_heading(doc, "Conflict of Interest")
+    add_unnumbered_heading(doc, "Conflicts of Interest")
     add_body_p(doc, "The authors declare no conflict of interest.")
     
     # -------------------------------------------------------------
