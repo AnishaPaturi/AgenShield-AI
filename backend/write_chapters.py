@@ -30,8 +30,12 @@ def format_run(run, font_name="Times New Roman", size_pt=12, bold=False, italic=
 
 def add_h1(doc, text):
     p = doc.add_paragraph(style='Heading 1')
-    p.paragraph_format.space_before = Pt(22)
-    p.paragraph_format.space_after = Pt(8)
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.left_indent = Inches(0)
+    p.paragraph_format.right_indent = Inches(0)
+    p.paragraph_format.first_line_indent = Inches(0)
+    p.paragraph_format.space_before = Pt(20)
+    p.paragraph_format.space_after = Pt(6)
     p.paragraph_format.keep_with_next = True
     r = p.add_run(text)
     format_run(r, font_name="Times New Roman", size_pt=16, bold=True)
@@ -39,8 +43,12 @@ def add_h1(doc, text):
 
 def add_h2(doc, text):
     p = doc.add_paragraph(style='Heading 2')
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.left_indent = Inches(0)
+    p.paragraph_format.right_indent = Inches(0)
+    p.paragraph_format.first_line_indent = Inches(0)
     p.paragraph_format.space_before = Pt(14)
-    p.paragraph_format.space_after = Pt(6)
+    p.paragraph_format.space_after = Pt(4)
     p.paragraph_format.keep_with_next = True
     r = p.add_run(text)
     format_run(r, font_name="Times New Roman", size_pt=14, bold=True)
@@ -48,8 +56,12 @@ def add_h2(doc, text):
 
 def add_h3(doc, text):
     p = doc.add_paragraph(style='Heading 3')
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.paragraph_format.left_indent = Inches(0)
+    p.paragraph_format.right_indent = Inches(0)
+    p.paragraph_format.first_line_indent = Inches(0)
     p.paragraph_format.space_before = Pt(10)
-    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.space_after = Pt(3)
     p.paragraph_format.keep_with_next = True
     r = p.add_run(text)
     format_run(r, font_name="Times New Roman", size_pt=13, bold=True)
@@ -58,6 +70,10 @@ def add_h3(doc, text):
 def add_p(doc, text, bold_prefix=None, align=WD_ALIGN_PARAGRAPH.JUSTIFY):
     p = doc.add_paragraph()
     p.alignment = align
+    p.paragraph_format.left_indent = Inches(0)
+    p.paragraph_format.right_indent = Inches(0)
+    p.paragraph_format.first_line_indent = Inches(0)
+    p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(6)
     p.paragraph_format.line_spacing = 1.15
     if bold_prefix:
@@ -68,7 +84,12 @@ def add_p(doc, text, bold_prefix=None, align=WD_ALIGN_PARAGRAPH.JUSTIFY):
     return p
 
 def add_bullet(doc, text, bold_prefix=None):
-    p = doc.add_paragraph(style='List Paragraph')
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+    p.paragraph_format.left_indent = Inches(0.25)
+    p.paragraph_format.right_indent = Inches(0)
+    p.paragraph_format.first_line_indent = Inches(-0.25)
+    p.paragraph_format.space_before = Pt(0)
     p.paragraph_format.space_after = Pt(4)
     p.paragraph_format.line_spacing = 1.15
     if bold_prefix:
@@ -85,6 +106,9 @@ def add_figure(doc, img_filename, caption_text, width_in=6.4):
         return None
     p_img = doc.add_paragraph()
     p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_img.paragraph_format.left_indent = Inches(0)
+    p_img.paragraph_format.right_indent = Inches(0)
+    p_img.paragraph_format.first_line_indent = Inches(0)
     p_img.paragraph_format.space_before = Pt(14)
     p_img.paragraph_format.space_after = Pt(4)
     run_img = p_img.add_run()
@@ -92,6 +116,9 @@ def add_figure(doc, img_filename, caption_text, width_in=6.4):
 
     p_cap = doc.add_paragraph()
     p_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_cap.paragraph_format.left_indent = Inches(0)
+    p_cap.paragraph_format.right_indent = Inches(0)
+    p_cap.paragraph_format.first_line_indent = Inches(0)
     p_cap.paragraph_format.space_after = Pt(12)
     p_cap.paragraph_format.keep_with_next = True
     r_cap = p_cap.add_run(caption_text)
@@ -103,9 +130,6 @@ def append_all_chapters(doc):
     # =========================================================================
     # CHAPTER 1: INTRODUCTION
     # =========================================================================
-    add_h1(doc, "CHAPTER - 1")
-    add_h1(doc, "INTRODUCTION")
-
     add_h2(doc, "1.1 Purpose of the Project")
     add_p(doc, 
         "Modern cloud infrastructure engineering has undergone a fundamental transformation from manual, ad-hoc console configurations "
@@ -213,7 +237,7 @@ def append_all_chapters(doc):
     # =========================================================================
     # CHAPTER 2: LITERATURE SURVEY
     # =========================================================================
-    add_h1(doc, "CHAPTER – 2")
+    add_h1(doc, "CHAPTER - 2")
     add_h1(doc, "LITERATURE SURVEY")
 
     add_h2(doc, "2.1 Overview & Evolution of IaC Security")
@@ -427,7 +451,7 @@ def append_all_chapters(doc):
     # =========================================================================
     # CHAPTER 4: SYSTEM DESIGN
     # =========================================================================
-    add_h1(doc, "CHAPTER – 4")
+    add_h1(doc, "CHAPTER - 4")
     add_h1(doc, "SYSTEM DESIGN")
 
     add_h2(doc, "4.1 Introduction to UML")
@@ -484,7 +508,7 @@ def append_all_chapters(doc):
         "The UML Sequence Diagram illustrates the dynamic, chronological message exchanges occurring across the thirteen system participants during an end-to-end "
         "security analysis, remediation, and verification run. Figure 4.3 depicts this complete execution trace."
     )
-    add_figure(doc, "slide_17_img_20.png", "Figure 4.3: UML Sequence Diagram — Execution Trace from Ingestion to Sandbox Remediation", width_in=6.4)
+    add_figure(doc, "slide_17_img_20.png", "Figure 4.3: UML Sequence Diagram - Execution Trace from Ingestion to Sandbox Remediation", width_in=6.4)
     add_p(doc, 
         "The sequence execution proceeds through seventeen numbered chronological steps organized across five pipeline phases:"
     )
@@ -499,7 +523,7 @@ def append_all_chapters(doc):
         "The State Chart Diagram models the formal discrete state transitions of the AgentShieldWorkspace session container and candidate PatchDiff entities "
         "from initial file ingestion to final verified remediation. Figure 4.4 illustrates the state machine architecture."
     )
-    add_figure(doc, "slide_18_img_21.png", "Figure 4.4: UML Statechart Diagram — Workspace & Remediation Patch Lifecycle", width_in=6.4)
+    add_figure(doc, "slide_18_img_21.png", "Figure 4.4: UML Statechart Diagram - Workspace & Remediation Patch Lifecycle", width_in=6.4)
     add_p(doc, 
         "As formalized in Figure 4.4, the state machine comprises eight discrete states governed by specific transition guards and actions:"
     )
@@ -517,7 +541,7 @@ def append_all_chapters(doc):
         "The UML Deployment Diagram illustrates the physical and containerized node topologies, runtime execution environments, microservices, "
         "and network communication protocols governing AgentShield AI. Figure 4.5 depicts this deployment topology."
     )
-    add_figure(doc, "slide_19_img_22.png", "Figure 4.5: UML Deployment Diagram — Containerized Microservices and Cloud Infrastructure", width_in=6.4)
+    add_figure(doc, "slide_19_img_22.png", "Figure 4.5: UML Deployment Diagram - Containerized Microservices and Cloud Infrastructure", width_in=6.4)
     add_p(doc, 
         "The deployment topology is organized across four distinct computational nodes:"
     )
