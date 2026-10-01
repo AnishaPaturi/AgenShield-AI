@@ -1,0 +1,161 @@
+0: AgentShield AI — SRS Presentation
+1: Software Requirements Specification
+2: AgentShield AI
+3: Autonomous Multi-Agent Framework for
+4: Multi-Cloud Infrastructure-as-Code Security
+5: CYBER SECURITY • AI • DEVSECOPS
+6: Purpose
+7: Automate detection, verification, remediation
+8: and validation of security vulnerabilities in
+9: multi-cloud Infrastructure-as-Code using
+10: autonomous AI agents.
+11: Users
+12: Cloud / DevOps Engineers
+13: Security & Compliance Auditors
+14: DevSecOps Administrators
+15: Inputs
+16: Terraform HCL
+17: AWS CloudFormation
+18: Kubernetes manifests
+19: Helm charts
+20: Security policies & feedback
+21: Outputs
+22: Vulnerability findings
+23: Git diff remediation patches
+24: Compliance reports
+25: Validated fixes
+26: &nbsp; MULTI-CLOUD IaC
+27: Terraform
+28: AWS CloudFormation
+29: Kubernetes
+30: Helm
+31: Analysis Agents
+32: Manager / Router Agent
+33: State orchestration & task routing
+34: Hybrid AST Parser
+35: AST & resource dependency analysis
+36: Secrets Scanner
+37: Gitleaks + TruffleHog detection
+38: AgentShield AI
+39: Stateful Multi-Agent Security Engine
+40: &nbsp; LANGGRAPH ORCHESTRATION
+41: Security & Remediation
+42: RAG Query Agent
+43: CIS, NIST & security knowledge
+44: Remediation Agent
+45: Automated unified Git diff
+46: Validator Agent
+47: Linters + LocalStack sandbox
+48: &nbsp; SECURITY KNOWLEDGE
+49: CIS Benchmarks
+50: NIST 800-53
+51: CVE Records
+52: Compliance Policies
+53: System Requirements
+54: Functional & Technical Specification
+55: AgentShield AI — requirements, quality attributes
+56: and deployment environment
+57: AGENTIC DEVSECOPS
+58: &nbsp; Functional Requirements
+59: FR • 01—08
+60: 01
+61: Accept IaC templates in .tf, .json,
+62: .yaml and .yml formats and initialize
+63: AgentShield execution state.
+64: 02
+65: Parse Terraform, CloudFormation,
+66: Kubernetes and Helm templates into
+67: structured ASTs and resource graphs.
+68: 03
+69: Detect exposed credentials, tokens
+70: and private keys using Gitleaks,
+71: TruffleHog and entropy detection.
+72: 04
+73: Retrieve relevant CIS, NIST, CVE and
+74: cloud security policies through
+75: vector-based RAG.
+76: 05
+77: Perform multi-LLM vulnerability
+78: verification using Claude 3.5 Sonnet
+79: and GPT-4o ensemble voting.
+80: 06
+81: Generate syntactically correct unified
+82: Git diff patches for vulnerable
+83: resource blocks.
+84: 07
+85: Validate generated patches using
+86: static linters and LocalStack
+87: sandbox execution.
+88: 08
+89: Generate compliance reports and capture
+90: developer ACCEPT / REJECT / MODIFY
+91: feedback.
+92: &nbsp; Non-Functional Requirements
+93: QUALITY
+94: Performance
+95: ≤20 sec scan for
+96: ≤500 LOC.
+97: Accuracy
+98: False-positive target
+99: below 5%.
+100: Security
+101: 100% detected secrets
+102: removed from prompts.
+103: Sandboxing
+104: LocalStack isolated from
+105: production cloud.
+106: Self-Healing
+107: Up to 3 validation
+108: retry attempts.
+109: Availability
+110: Target API uptime
+111: of 99.5%.
+112: Extensibility
+113: Modular parser support
+114: for new IaC formats.
+115: Maintainability
+116: Target ≥85% backend
+117: unit-test coverage.
+118: &nbsp; Software & Hardware
+119: ENVIRONMENT
+120: Software Stack
+121: Python 3.12+
+122: LangGraph / LangChain
+123: FastAPI
+124: Qdrant / ChromaDB
+125: Docker + Docker Compose
+126: LocalStack
+127: Terraform / Kubernetes / Helm
+128: Checkov / tfsec / KICS
+129: Gitleaks / TruffleHog
+130: React / VS Code Extension
+131: Hardware / Environment
+132: 8+ CPU cores recommended
+133: 32 GB RAM or higher
+134: 200 GB+ storage
+135: GPU optional
+136: Stable network connection
+137: Docker Engine 24+
+138: Docker Compose v2
+139: Cloud or on-premise deployment
+140: &nbsp; High-Level System Flow
+141: END-TO-END AGENTIC PIPELINE
+142: Developer /
+143: CI/CD / IDE
+144: IaC Ingestion
+145: & Manager
+146: AST Parser
+147: + Dependency Graph
+148: Secrets
+149: Scanner
+150: RAG Security
+151: Knowledge
+152: Multi-LLM
+153: Ensemble
+154: Remediation
+155: Git Diff
+156: Validate +
+157: Compliance Report
+158: 1
+159: /
+160: 2
