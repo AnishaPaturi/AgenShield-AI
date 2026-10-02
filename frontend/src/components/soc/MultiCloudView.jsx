@@ -7,7 +7,7 @@ export default function MultiCloudView({ workspaces = [], onNavigate }) {
         name: 'Amazon Web Services',
         tag: 'AWS',
         icon: '☁️',
-        color: '#F97316',
+        color: '#DC2626',
         services: ['S3 Buckets', 'IAM Roles', 'VPC & Security Groups', 'RDS PostgreSQL', 'EKS Clusters'],
       },
       {
@@ -85,6 +85,17 @@ export default function MultiCloudView({ workspaces = [], onNavigate }) {
         </button>
       </div>
 
+      {workspaces.length === 0 && (
+        <div className="scc-panel-card" style={{ padding: '20px 24px', marginBottom: '16px', textAlign: 'center', color: '#94A3B8' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text, #F8FAFC)', marginBottom: '4px', fontWeight: 600 }}>
+            No Multi-Cloud Scans Recorded
+          </p>
+          <p style={{ fontSize: '12px', maxWidth: '520px', margin: '0 auto' }}>
+            No active scans have been executed for AWS, Azure, GCP, or Kubernetes yet. Run a security scan on an IaC template to populate live telemetry.
+          </p>
+        </div>
+      )}
+
       {/* 4 Cloud Zones */}
       <div className="cloud-zones-grid">
         {clouds.map((c) => (
@@ -105,19 +116,19 @@ export default function MultiCloudView({ workspaces = [], onNavigate }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', background: 'rgba(18, 24, 33, 0.7)', padding: '12px', borderRadius: '8px' }}>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>CRITICAL</div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#EF4444', fontFamily: 'JetBrains Mono' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#DC2626', fontFamily: 'JetBrains Mono' }}>
                   {c.crit}
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>HIGH</div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#F97316', fontFamily: 'JetBrains Mono' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#DC2626', fontFamily: 'JetBrains Mono' }}>
                   {c.high}
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '10px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>MEDIUM</div>
-                <div style={{ fontSize: '18px', fontWeight: 700, color: '#F59E0B', fontFamily: 'JetBrains Mono' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, color: '#64748B', fontFamily: 'JetBrains Mono' }}>
                   {c.med}
                 </div>
               </div>
@@ -159,42 +170,42 @@ export default function MultiCloudView({ workspaces = [], onNavigate }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'Outfit' }}>Terraform (.tf)</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+          <div style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.7))', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit' }}>Terraform (.tf)</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94A3B8)', marginTop: '4px' }}>
               Full AST resolution with loop unfolding (for_each, count), module traversal &amp; local variable propagation.
             </div>
-            <div style={{ fontSize: '11px', color: '#D6A84F', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
+            <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
               AWS · Azure · GCP · K8s
             </div>
           </div>
 
-          <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'Outfit' }}>CloudFormation (.yaml / .json)</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+          <div style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.7))', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit' }}>CloudFormation (.yaml / .json)</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94A3B8)', marginTop: '4px' }}>
               Intrinsic function evaluation (Fn::Sub, Fn::GetAtt, Ref) with cfn-lint static rule validation.
             </div>
-            <div style={{ fontSize: '11px', color: '#D6A84F', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
+            <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
               AWS Native Stacks
             </div>
           </div>
 
-          <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'Outfit' }}>Kubernetes Manifests</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+          <div style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.7))', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit' }}>Kubernetes Manifests</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94A3B8)', marginTop: '4px' }}>
               PodSecurityStandards, RBAC privilege audits, network policies, and container capabilities checks.
             </div>
-            <div style={{ fontSize: '11px', color: '#D6A84F', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
+            <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
               EKS · AKS · GKE · Vanilla
             </div>
           </div>
 
-          <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'Outfit' }}>Helm Charts &amp; Values</div>
-            <div style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+          <div style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.7))', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit' }}>Helm Charts &amp; Values</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94A3B8)', marginTop: '4px' }}>
               Template dry-run rendering, values.yaml injection checks, and secret exposure interception.
             </div>
-            <div style={{ fontSize: '11px', color: '#D6A84F', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
+            <div style={{ fontSize: '11px', color: '#DC2626', marginTop: '8px', fontFamily: 'JetBrains Mono' }}>
               Multi-Cloud Deployments
             </div>
           </div>
