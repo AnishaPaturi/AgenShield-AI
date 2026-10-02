@@ -1,0 +1,80 @@
+{
+  "name": "agentshield-vscode",
+  "displayName": "AgentShield AI — IaC Security & Auto-Patch",
+  "description": "Shift-left Infrastructure-as-Code security scanner and automated patch generator for Terraform, CloudFormation, Kubernetes, and Helm.",
+  "version": "1.0.0",
+  "publisher": "agentshield-ai",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Security",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "iac",
+    "security",
+    "terraform",
+    "cloudformation",
+    "kubernetes",
+    "helm",
+    "devsecops",
+    "autopatch"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:terraform",
+    "onLanguage:yaml",
+    "onLanguage:json"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "agentshield.scanCurrentFile",
+        "title": "AgentShield: Scan Current IaC File",
+        "category": "AgentShield AI"
+      },
+      {
+        "command": "agentshield.openDashboard",
+        "title": "AgentShield: Open Security Dashboard",
+        "category": "AgentShield AI"
+      },
+      {
+        "command": "agentshield.clearDiagnostics",
+        "title": "AgentShield: Clear Security Diagnostics",
+        "category": "AgentShield AI"
+      }
+    ],
+    "configuration": {
+      "title": "AgentShield AI",
+      "properties": {
+        "agentshield.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Base URL for the AgentShield FastAPI backend service."
+        },
+        "agentshield.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan IaC templates upon saving."
+        },
+        "agentshield.strictMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "When enabled, highlights Medium and Low/Informational findings in addition to Critical and High."
+        },
+        "agentshield.authToken": {
+          "type": "string",
+          "default": "",
+          "description": "Optional Bearer API token or JWT for authenticated AgentShield backend instances."
+        },
+        "agentshield.timeoutMs": {
+          "type": "number",
+          "default": 10000,
+          "description": "Timeout in milliseconds for scanner API requests before failing gracefully."
+        }
+      }
+    }
+  }
+}
