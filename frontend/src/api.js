@@ -169,8 +169,12 @@ export async function getGitHubOAuthStatus() {
   }
 }
 
-export function getGitHubLoginUrl() {
-  return `${base()}/api/auth/github/login`
+export function getGitHubLoginUrl(options = {}) {
+  const params = new URLSearchParams()
+  if (options.return_to) params.set('return_to', options.return_to)
+  if (options.link_email) params.set('link_email', options.link_email)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return `${base()}/api/auth/github/login${qs}`
 }
 
 export async function getGoogleOAuthStatus() {
@@ -182,6 +186,99 @@ export async function getGoogleOAuthStatus() {
   }
 }
 
-export function getGoogleLoginUrl() {
-  return `${base()}/api/auth/google/login`
+export function getGoogleLoginUrl(options = {}) {
+  const params = new URLSearchParams()
+  if (options.return_to) params.set('return_to', options.return_to)
+  if (options.link_email) params.set('link_email', options.link_email)
+  const qs = params.toString() ? `?${params.toString()}` : ''
+  return `${base()}/api/auth/google/login${qs}`
+}
+
+export async function unlinkProviderApi(email, provider) {
+  const res = await fetch(`${base()}/api/auth/unlink-provider`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, provider }),
+  })
+  return asJson(res)
+}
+
+export async function exchangeOAuthCode(provider, code, redirectUri = null) {
+  const res = await fetch(`${base()}/api/auth/${provider}/exchange`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, redirect_uri: redirectUri }),
+  })
+  return asJson(res)
+}
+
+export async function loginUserInDb(email, password) {
+  const res = await fetch(`${base()}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  return asJson(res)
+}
+
+export async function getUserProfile(email) {
+  const res = await fetch(`${base()}/api/auth/profile?email=${encodeURIComponent(email)}`)
+  return asJson(res)
+}
+
+export async function updateUserProfile({ email, name, phone, org_name, avatar }) {
+  const res = await fetch(`${base()}/api/auth/profile`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, name, phone, org_name, avatar }),
+  })
+  return asJson(res)
+}
+
+export async function changeUserEmail({ current_email, new_email, password }) {
+  const res = await fetch(`${base()}/api/auth/change-email`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ current_email, new_email, password }),
+  })
+  return asJson(res)
+}
+
+export async function changeUserPassword({ email, current_password, new_password }) {
+  const res = await fetch(`${base()}/api/auth/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, current_password, new_password }),
+  })
+  return asJson(res)
+}
+
+export async function uploadAvatarApi({ email, avatar_data }) {
+  const res = await fetch(`${base()}/api/auth/avatar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, avatar_data }),
+  })
+  return asJson(res)
+}
+
+export async function removeAvatarApi(email) {
+  const res = await fetch(`${base()}/api/auth/avatar?email=${encodeURIComponent(email)}`, {
+    method: 'DELETE',
+  })
+  return asJson(res)
+}
+
+export async function validatePatchApi(workspaceId, patchId) {
+  const res = await fetch(`${base()}/api/workspaces/${workspaceId}/patches/${patchId}/validate`, {
+    method: 'POST',
+  })
+  return asJson(res)
+}
+
+export async function validateAllPatchesApi(workspaceId) {
+  const res = await fetch(`${base()}/api/workspaces/${workspaceId}/validate-patches`, {
+    method: 'POST',
+  })
+  return asJson(res)
 }
