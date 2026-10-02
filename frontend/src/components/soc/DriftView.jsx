@@ -66,7 +66,7 @@ export default function DriftView({ workspace, onToast, onNavigate }) {
 
       {!workspace ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             No Workspace Selected
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
@@ -82,7 +82,7 @@ export default function DriftView({ workspace, onToast, onNavigate }) {
         </div>
       ) : drifts.length === 0 ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             {driftReport ? '✓ No Infrastructure Drift Detected' : 'Drift Scan Not Yet Executed'}
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
