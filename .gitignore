@@ -94,3 +94,9 @@ nvd_cve_cache.json
 data_scraped/
 .cache/
 .agentshield/
+# ===== Local Runtime / Scratch Artifacts =====
+backend/workspace_data/*.db-shm
+backend/workspace_data/*.db-wal
+scratch/
+scratch_workspaces.png
+cd backend.txt
