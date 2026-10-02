@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# AgentShield AI — Git Pre-Commit Security Hook (Task 5.1)
+#
+# Inspects staged Infrastructure-as-Code templates (.tf, .yaml, .yml, .json)
+# for hardcoded credentials, high-severity misconfigurations, and attack paths.
+#
+# Installation:
+#   git config core.hooksPath .githooks
+#   chmod +x .githooks/pre-commit
+# ==============================================================================
+
+set -e
+
+# Detect staged files with additions/modifications (filter deleted files)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+    # Fast path: No staged files
+    exit 0
+fi
+
+# Filter strictly for supported IaC file extensions
+IAC_FILES=()
+for file in $STAGED_FILES; do
+    case "$file" in
+        *.tf|*.yaml|*.yml|*.json)
+            # Ensure file is not in excluded directories (.git, node_modules, dist, etc.)
+            if [[ "$file" != *node_modules/* && "$file" != *dist/* && "$file" != *coverage/* && "$file" != *.agentshield/* ]]; then
+                IAC_FILES+=("$file")
+            fi
+            ;;
+    esac
+done
+
+if [ ${#IAC_FILES[@]} -eq 0 ]; then
+    # Fast path: No staged IaC templates
+    exit 0
+fi
+
+# Locate suitable Python executable
+PYTHON_CMD="python"
+if [ -n "$VIRTUAL_ENV" ] && [ -x "$VIRTUAL_ENV/bin/python" ]; then
+    PYTHON_CMD="$VIRTUAL_ENV/bin/python"
+elif [ -n "$VIRTUAL_ENV" ] && [ -x "$VIRTUAL_ENV/Scripts/python.exe" ]; then
+    PYTHON_CMD="$VIRTUAL_ENV/Scripts/python.exe"
+elif [ -x ".venv/bin/python" ]; then
+    PYTHON_CMD=".venv/bin/python"
+elif [ -x ".venv/Scripts/python.exe" ]; then
+    PYTHON_CMD=".venv/Scripts/python.exe"
+elif [ -x "backend/.venv/bin/python" ]; then
+    PYTHON_CMD="backend/.venv/bin/python"
+elif [ -x "backend/.venv/Scripts/python.exe" ]; then
+    PYTHON_CMD="backend/.venv/Scripts/python.exe"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON_CMD="python3"
+fi
+
+# Verify Python can import agentshield package
+if ! "$PYTHON_CMD" -c "import agentshield" >/dev/null 2>&1; then
+    # Try adding backend/src to PYTHONPATH
+    export PYTHONPATH="backend/src:$PYTHONPATH"
+fi
+
+# Execute AgentShield hook CLI runner with staged files
+"$PYTHON_CMD" -m agentshield.cli.hook --staged "${IAC_FILES[@]}"
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo ""
+    echo "❌ Commit rejected by AgentShield AI."
+    echo "   Remediate the security findings listed above before committing."
+    echo "   To auto-apply validated remediation patches, run:"
+    echo "     python -m agentshield.cli.hook --fix ${IAC_FILES[*]}"
+    echo ""
+    exit $EXIT_CODE
+fi
+
+exit 0

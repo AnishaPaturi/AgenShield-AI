@@ -6,6 +6,14 @@ const SEV_ORDER = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFORMATIONAL']
 const EXPORT_FORMATS = ['json', 'markdown', 'html', 'sarif', 'pdf']
 
 export default function ReportView({ workspace, onDecide }) {
+  if (!workspace) return null
+
+  const template = workspace.template || {}
+  const filePath = template.file_path || workspace.file_path || 'IaC Template'
+  const iacType = template.iac_type || workspace.iac_type || 'terraform'
+  const cloudProvider = template.cloud_provider || workspace.cloud_provider || 'aws'
+  const wsId = workspace.workspace_id ? workspace.workspace_id.slice(0, 8) : 'N/A'
+
   const report = workspace.report
   const s = report ? report.summary : {
     risk_score: 0, total_vulnerabilities: 0,
@@ -15,7 +23,7 @@ export default function ReportView({ workspace, onDecide }) {
   const patchesByFinding = {}
   ;(workspace.patches || []).forEach((p) => { patchesByFinding[p.finding_id] = p })
 
-  const findings = report
+  const findings = report?.findings
     ? [...report.findings].sort((a, b) => SEV_ORDER.indexOf(a.severity) - SEV_ORDER.indexOf(b.severity))
     : []
 
@@ -23,11 +31,11 @@ export default function ReportView({ workspace, onDecide }) {
     <>
       <div className="report-head">
         <div>
-          <h2>{workspace.template.file_path}</h2>
+          <h2>{filePath}</h2>
           <div className="path">
-            <span className="pill terraform">{workspace.template.iac_type}</span>
-            <span className="pill aws">{workspace.template.cloud_provider}</span>
-            &nbsp;· workspace {workspace.workspace_id.slice(0, 8)}
+            <span className="pill terraform">{iacType}</span>
+            <span className="pill aws">{cloudProvider}</span>
+            &nbsp;· workspace {wsId}
           </div>
         </div>
         <div className="export-row">

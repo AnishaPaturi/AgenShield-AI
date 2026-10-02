@@ -76,7 +76,7 @@ export default function AttackPathView({ workspace, onNavigate }) {
 
       {nodeKeys.length === 0 ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             No Attack Path Data Available
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
@@ -114,15 +114,15 @@ export default function AttackPathView({ workspace, onNavigate }) {
                       onClick={() => setSelectedNode(k)}
                       style={{ cursor: 'pointer', maxWidth: '340px', width: '90%' }}
                     >
-                      <div style={{ fontSize: '10px', color: isCritical ? '#EF4444' : isWarning ? '#F97316' : '#38BDF8', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
+                      <div style={{ fontSize: '10px', color: isCritical ? 'var(--crit, #FB7185)' : isWarning ? '#F59E0B' : 'var(--secondary, #38BDF8)', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
                         {node.type.toUpperCase()}
                       </div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#F8FAFC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text, #F8FAFC)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {node.label}
                       </div>
                     </div>
                     {idx < nodeKeys.length - 1 && (
-                      <div style={{ color: isCritical ? '#EF4444' : '#F97316', fontSize: '14px' }}>▼</div>
+                      <div style={{ color: 'var(--primary, #E11D48)', fontSize: '14px' }}>▼</div>
                     )}
                   </React.Fragment>
                 )
@@ -138,21 +138,21 @@ export default function AttackPathView({ workspace, onNavigate }) {
                   <span className="flow-node-dot"></span>
                   Node Exposure Inspector
                 </div>
-                <span style={{ fontSize: '11px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
+                <span style={{ fontSize: '11px', color: '#38BDF8', fontFamily: 'JetBrains Mono' }}>
                   {active.type}
                 </span>
               </div>
 
               <div>
                 <div className="inspector-section-label">TARGET RESOURCE</div>
-                <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#D6A84F' }}>
+                <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#38BDF8' }}>
                   {active.resource}
                 </div>
               </div>
 
               <div>
                 <div className="inspector-section-label">NETWORK EXPOSURE / ATTACK ROUTE</div>
-                <div className="inspector-section-val" style={{ color: '#FCA5A5' }}>
+                <div className="inspector-section-val" style={{ color: 'var(--crit, #FB7185)' }}>
                   {active.exposure}
                 </div>
               </div>
@@ -166,21 +166,21 @@ export default function AttackPathView({ workspace, onNavigate }) {
 
               <div>
                 <div className="inspector-section-label">BLAST RADIUS IMPACT</div>
-                <div className="inspector-section-val" style={{ color: '#EF4444', fontWeight: 700 }}>
+                <div className="inspector-section-val" style={{ color: '#F59E0B', fontWeight: 700 }}>
                   {active.blastRadius}
                 </div>
               </div>
 
               <div>
                 <div className="inspector-section-label">CHOKE POINT STATUS</div>
-                <div className="inspector-section-val" style={{ color: '#F97316', fontWeight: 600 }}>
+                <div className="inspector-section-val" style={{ color: 'var(--primary, #E11D48)', fontWeight: 600 }}>
                   {active.chokePoint}
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
+              <div style={{ borderTop: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))', paddingTop: '14px' }}>
                 <div className="inspector-section-label">RECOMMENDED REMEDIATION ACTION</div>
-                <div className="inspector-section-val" style={{ color: '#86EFAC', lineHeight: '1.55' }}>
+                <div className="inspector-section-val" style={{ color: 'var(--ok, #34D399)', lineHeight: '1.55' }}>
                   {active.recommendedAction}
                 </div>
               </div>

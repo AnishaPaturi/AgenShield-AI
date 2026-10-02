@@ -84,14 +84,44 @@ export function logout() {
   localStorage.removeItem(SESSION_STORAGE_KEY)
 }
 
-export function loginWithCredentials(email, password) {
-  const users = getRegisteredUsers()
+export async function loginWithCredentials(email, password) {
   const cleanEmail = (email || '').trim().toLowerCase()
 
   if (!cleanEmail) {
     throw new Error('Please enter your email address.')
   }
+  if (!password) {
+    throw new Error('Please enter your password.')
+  }
 
+  // 1. Attempt backend SQLite database authentication
+  try {
+    const { loginUserInDb } = await import('./api.js')
+    const resp = await loginUserInDb(cleanEmail, password)
+    if (resp && resp.user) {
+      setCurrentUser(resp.user)
+      // Sync locally for offline resilience
+      const users = getRegisteredUsers()
+      const existingIdx = users.findIndex((u) => u.email.toLowerCase() === cleanEmail)
+      if (existingIdx >= 0) {
+        users[existingIdx] = { ...users[existingIdx], ...resp.user, password }
+      } else {
+        users.push({ ...resp.user, password })
+      }
+      saveRegisteredUsers(users)
+      return resp.user
+    }
+  } catch (err) {
+    // If backend rejected with explicit auth error, throw it directly
+    const msg = err.message || ''
+    if (msg.includes('Incorrect password') || msg.includes('No account found') || msg.includes('401')) {
+      throw new Error(msg.replace(/^401:\s*/, ''))
+    }
+    // If network connection error, continue to local storage fallback
+  }
+
+  // 2. Local storage fallback
+  const users = getRegisteredUsers()
   const user = users.find((u) => u.email.toLowerCase() === cleanEmail)
   if (!user) {
     throw new Error('No account found with this email address. Please sign up first.')
@@ -262,5 +292,195 @@ export async function updateUserPassword(email, newPassword, code = null) {
   }
 
   return user
+}
+
+export async function updateUserProfileData(email, { name, orgName, phone, avatar }) {
+  const cleanEmail = (email || '').trim().toLowerCase()
+  if (!cleanEmail) throw new Error('Email is required.')
+
+  let updatedUser = null
+  const users = getRegisteredUsers()
+  const idx = users.findIndex((u) => u.email.toLowerCase() === cleanEmail)
+  if (idx >= 0) {
+    if (name !== undefined) users[idx].name = name
+    if (orgName !== undefined) users[idx].orgName = orgName
+    if (phone !== undefined) users[idx].phone = phone
+    if (avatar !== undefined) users[idx].avatar = avatar
+    updatedUser = { ...users[idx] }
+    saveRegisteredUsers(users)
+  }
+
+  const cur = getCurrentUser()
+  if (cur && cur.email.toLowerCase() === cleanEmail) {
+    const nextCur = { ...cur }
+    if (name !== undefined) nextCur.name = name
+    if (orgName !== undefined) nextCur.orgName = orgName
+    if (phone !== undefined) nextCur.phone = phone
+    if (avatar !== undefined) nextCur.avatar = avatar
+    setCurrentUser(nextCur)
+    updatedUser = nextCur
+  }
+
+  // Sync to backend SQLite database
+  try {
+    const { updateUserProfile } = await import('./api.js')
+    const res = await updateUserProfile({
+      email: cleanEmail,
+      name,
+      org_name: orgName,
+      phone,
+      avatar,
+    })
+    if (res && res.user) {
+      updatedUser = { ...updatedUser, ...res.user }
+      setCurrentUser(updatedUser)
+    }
+  } catch (err) {
+    // If backend reports explicit validation error, propagate it
+    if (err.message && !err.message.includes('Failed to fetch')) {
+      throw err
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth_change', { detail: updatedUser }))
+  }
+  return updatedUser
+}
+
+export async function changeUserEmailAddress(currentEmail, newEmail, password) {
+  const cleanCurrent = (currentEmail || '').trim().toLowerCase()
+  const cleanNew = (newEmail || '').trim().toLowerCase()
+  if (!cleanCurrent || !cleanNew) throw new Error('Both current and new email are required.')
+  if (!password) throw new Error('Password is required to change email.')
+  if (cleanCurrent === cleanNew) throw new Error('New email must be different from current email.')
+
+  // Sync to backend first
+  try {
+    const { changeUserEmail } = await import('./api.js')
+    await changeUserEmail({
+      current_email: cleanCurrent,
+      new_email: cleanNew,
+      password,
+    })
+  } catch (err) {
+    if (err.message && !err.message.includes('Failed to fetch')) {
+      throw err
+    }
+  }
+
+  const users = getRegisteredUsers()
+  const user = users.find((u) => u.email.toLowerCase() === cleanCurrent)
+  if (user) {
+    user.email = cleanNew
+    saveRegisteredUsers(users)
+  }
+
+  const cur = getCurrentUser()
+  let updatedUser = cur
+  if (cur && cur.email.toLowerCase() === cleanCurrent) {
+    updatedUser = { ...cur, email: cleanNew }
+    setCurrentUser(updatedUser)
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth_change', { detail: updatedUser }))
+  }
+  return updatedUser
+}
+
+export async function changeUserAccountPassword(email, currentPassword, newPassword) {
+  const cleanEmail = (email || '').trim().toLowerCase()
+  if (!cleanEmail) throw new Error('Email is required.')
+  if (!currentPassword) throw new Error('Current password is required.')
+  if (!newPassword || newPassword.length < 8) {
+    throw new Error('New password must be at least 8 characters long.')
+  }
+
+  // Sync to backend SQLite database
+  try {
+    const { changeUserPassword } = await import('./api.js')
+    await changeUserPassword({
+      email: cleanEmail,
+      current_password: currentPassword,
+      new_password: newPassword,
+    })
+  } catch (err) {
+    if (err.message && !err.message.includes('Failed to fetch')) {
+      throw err
+    }
+  }
+
+  const users = getRegisteredUsers()
+  const user = users.find((u) => u.email.toLowerCase() === cleanEmail)
+  if (user) {
+    user.password = newPassword
+    saveRegisteredUsers(users)
+  }
+  return true
+}
+
+export async function uploadUserAvatar(email, avatarBase64) {
+  const cleanEmail = (email || '').trim().toLowerCase()
+  if (!cleanEmail) throw new Error('Email is required.')
+
+  try {
+    const { uploadAvatarApi } = await import('./api.js')
+    await uploadAvatarApi({ email: cleanEmail, avatar_data: avatarBase64 })
+  } catch (err) {
+    if (err.message && !err.message.includes('Failed to fetch')) {
+      throw err
+    }
+  }
+
+  return updateUserProfileData(cleanEmail, { avatar: avatarBase64 })
+}
+
+export async function removeUserAvatar(email) {
+  const cleanEmail = (email || '').trim().toLowerCase()
+  if (!cleanEmail) throw new Error('Email is required.')
+
+  try {
+    const { removeAvatarApi } = await import('./api.js')
+    await removeAvatarApi(cleanEmail)
+  } catch (err) {
+    if (err.message && !err.message.includes('Failed to fetch')) {
+      throw err
+    }
+  }
+
+  return updateUserProfileData(cleanEmail, { avatar: null })
+}
+
+export async function unlinkAccountProvider(email, provider) {
+  const cleanEmail = (email || '').trim().toLowerCase()
+  const cleanProvider = (provider || '').trim().toLowerCase()
+  if (!cleanEmail) throw new Error('Email is required.')
+  if (!cleanProvider) throw new Error('Provider is required.')
+
+  const { unlinkProviderApi } = await import('./api.js')
+  const res = await unlinkProviderApi(cleanEmail, cleanProvider)
+  const updatedUser = res.user || res
+
+  // Sync to local registered users list
+  const users = getRegisteredUsers()
+  const idx = users.findIndex((u) => u.email.toLowerCase() === cleanEmail)
+  if (idx >= 0) {
+    users[idx] = { ...users[idx], ...updatedUser }
+    saveRegisteredUsers(users)
+  }
+
+  // Update current session
+  const cur = getCurrentUser()
+  if (cur && cur.email.toLowerCase() === cleanEmail) {
+    const nextCur = { ...cur, ...updatedUser }
+    setCurrentUser(nextCur)
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('auth_change', { detail: updatedUser }))
+  }
+
+  return updatedUser
 }
 

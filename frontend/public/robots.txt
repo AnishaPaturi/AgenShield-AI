@@ -1,0 +1,22 @@
+# AgentShield AI Robots Policy
+User-agent: *
+Allow: /$
+Allow: /sign-in
+Allow: /sign-up
+Allow: /privacy
+Allow: /terms
+
+# Disallow authenticated application console and private workspaces
+Disallow: /dashboard
+Disallow: /home
+Disallow: /console
+Disallow: /profile
+Disallow: /scan
+Disallow: /agents
+Disallow: /agents/*
+Disallow: /results/*
+Disallow: /projects
+Disallow: /projects/*
+Disallow: /api/
+
+Sitemap: https://agentshield.ai/sitemap.xml

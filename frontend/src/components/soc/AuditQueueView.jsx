@@ -67,7 +67,7 @@ export default function AuditQueueView({ onToast, onNavigate }) {
         </div>
       ) : items.length === 0 ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             Audit Queue is Empty
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
@@ -90,9 +90,9 @@ export default function AuditQueueView({ onToast, onNavigate }) {
             </div>
 
             <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', padding: '0 4px' }}>
-              <span style={{ color: '#EF4444', fontSize: '11.5px', fontWeight: 600 }}>● {critCount} Critical</span>
-              <span style={{ color: '#F97316', fontSize: '11.5px', fontWeight: 600 }}>● {highCount} High</span>
-              <span style={{ color: '#F59E0B', fontSize: '11.5px', fontWeight: 600 }}>● {medCount} Med</span>
+              <span style={{ color: '#DC2626', fontSize: '11.5px', fontWeight: 600 }}>● {critCount} Critical</span>
+              <span style={{ color: '#DC2626', fontSize: '11.5px', fontWeight: 600 }}>● {highCount} High</span>
+              <span style={{ color: '#64748B', fontSize: '11.5px', fontWeight: 600 }}>● {medCount} Med</span>
             </div>
 
             {items.map((item) => {
@@ -107,7 +107,7 @@ export default function AuditQueueView({ onToast, onNavigate }) {
                     <span className={`sev-badge ${item.severity}`}>{item.severity}</span>
                     <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#94A3B8' }}>#{itemId}</span>
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#FFFFFF', marginTop: '6px', lineHeight: '1.3' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text, #F8FAFC)', marginTop: '6px', lineHeight: '1.3' }}>
                     {item.title}
                   </div>
                   <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', marginTop: '4px' }}>
@@ -124,27 +124,27 @@ export default function AuditQueueView({ onToast, onNavigate }) {
               <div className="scc-panel-head">
                 <div>
                   <span className={`sev-badge ${current.severity}`}>{current.severity}</span>
-                  <h3 style={{ margin: '8px 0 2px', color: '#FFFFFF', fontFamily: 'Outfit', fontSize: '18px' }}>
+                  <h3 style={{ margin: '8px 0 2px', color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit', fontSize: '18px' }}>
                     Finding #{current.id || current.item_id}: {current.title}
                   </h3>
-                  <span style={{ fontSize: '12px', color: '#D6A84F', fontFamily: 'JetBrains Mono' }}>
+                  <span style={{ fontSize: '12px', color: '#DC2626', fontFamily: 'JetBrains Mono' }}>
                     Target: {current.resource || current.affected_resource}
                   </span>
                 </div>
               </div>
 
               {/* Model Divergence Box */}
-              <div style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.3)', borderRadius: '8px', padding: '16px' }}>
-                <div style={{ fontSize: '11px', color: '#F97316', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
+              <div style={{ background: 'rgba(220, 38, 38, 0.08)', border: '1px solid rgba(220, 38, 38, 0.3)', borderRadius: '8px', padding: '16px' }}>
+                <div style={{ fontSize: '11px', color: '#DC2626', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
                   ⚠ MODEL CONSENSUS EVALUATION
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px', margin: '12px 0' }}>
                   {current.model_agreements && typeof current.model_agreements === 'object' ? (
                     Object.entries(current.model_agreements).map(([model, score]) => (
-                      <div key={model} style={{ background: 'rgba(18, 24, 33, 0.8)', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                      <div key={model} style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.8))', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
                         <div style={{ fontSize: '10.5px', color: '#94A3B8', textTransform: 'uppercase' }}>{model}</div>
-                        <div style={{ fontSize: '16px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'JetBrains Mono' }}>
+                        <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'JetBrains Mono' }}>
                           {typeof score === 'number' ? `${Math.round(score * 100)}%` : score}
                         </div>
                       </div>
@@ -152,9 +152,9 @@ export default function AuditQueueView({ onToast, onNavigate }) {
                   ) : (
                     <>
                       {current.claudeScore && (
-                        <div style={{ background: 'rgba(18, 24, 33, 0.8)', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
+                        <div style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.8))', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
                           <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>PRIMARY MODEL</div>
-                          <div style={{ fontSize: '16px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'JetBrains Mono' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'JetBrains Mono' }}>
                             {current.claudeScore}
                           </div>
                         </div>
@@ -162,7 +162,7 @@ export default function AuditQueueView({ onToast, onNavigate }) {
                       {current.gptScore && (
                         <div style={{ background: 'rgba(18, 24, 33, 0.8)', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
                           <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>SECONDARY MODEL</div>
-                          <div style={{ fontSize: '16px', fontWeight: 700, color: '#F97316', fontFamily: 'JetBrains Mono' }}>
+                          <div style={{ fontSize: '16px', fontWeight: 700, color: '#DC2626', fontFamily: 'JetBrains Mono' }}>
                             {current.gptScore}
                           </div>
                         </div>
@@ -172,7 +172,7 @@ export default function AuditQueueView({ onToast, onNavigate }) {
                   {current.consensus_score !== undefined && (
                     <div style={{ background: 'rgba(18, 24, 33, 0.8)', padding: '10px', borderRadius: '6px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>CONSENSUS</div>
-                      <div style={{ fontSize: '16px', fontWeight: 700, color: '#EF4444', fontFamily: 'JetBrains Mono' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 700, color: '#DC2626', fontFamily: 'JetBrains Mono' }}>
                         {typeof current.consensus_score === 'number' ? `${Math.round(current.consensus_score * 100)}%` : current.consensus_score}
                       </div>
                     </div>
@@ -189,11 +189,11 @@ export default function AuditQueueView({ onToast, onNavigate }) {
 
               {/* Attack Path */}
               {current.attackPath || (Array.isArray(current.attack_path) && current.attack_path.length > 0) ? (
-                <div style={{ background: 'rgba(18, 24, 33, 0.6)', padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ background: 'var(--surface-2-glass, rgba(18, 24, 33, 0.6))', padding: '12px 16px', borderRadius: '8px', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))' }}>
                   <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', marginBottom: '4px' }}>
                     ATTACK PATH
                   </div>
-                  <div style={{ fontSize: '13px', color: '#FFFFFF', fontFamily: 'JetBrains Mono' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--text, #F8FAFC)', fontFamily: 'JetBrains Mono' }}>
                     {current.attackPath || current.attack_path.join(' → ')}
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function AuditQueueView({ onToast, onNavigate }) {
 
               {/* Reviewer Comment Input */}
               <div>
-                <label style={{ fontSize: '12px', color: '#94A3B8', display: 'block', marginBottom: '6px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-muted, #94A3B8)', display: 'block', marginBottom: '6px' }}>
                   Security Engineer Triage Notes (Optional)
                 </label>
                 <textarea
@@ -210,11 +210,11 @@ export default function AuditQueueView({ onToast, onNavigate }) {
                   onChange={(e) => setComment(e.target.value)}
                   style={{
                     width: '100%',
-                    background: '#040609',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--surface-2-glass, rgba(20, 26, 45, 0.5))',
+                    border: '1px solid var(--border)',
                     borderRadius: '8px',
                     padding: '10px 14px',
-                    color: '#FFFFFF',
+                    color: 'var(--text, #F8FAFC)',
                     fontFamily: 'Inter',
                     fontSize: '13px',
                   }}

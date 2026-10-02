@@ -1,7 +1,13 @@
 import React, { useState } from 'react'
 
-export default function AgentPipelineView({ workspace, scanning = false, onNavigate }) {
-  const [selectedAgent, setSelectedAgent] = useState('manager')
+export default function AgentPipelineView({ workspace, scanning = false, onNavigate, initialAgent = 'manager' }) {
+  const [selectedAgent, setSelectedAgent] = useState(initialAgent || 'manager')
+
+  React.useEffect(() => {
+    if (initialAgent) {
+      setSelectedAgent(initialAgent)
+    }
+  }, [initialAgent])
   const logs = workspace?.execution_logs || []
 
   // Check which agents have actually completed based on execution logs
@@ -112,7 +118,7 @@ export default function AgentPipelineView({ workspace, scanning = false, onNavig
 
       {!workspace && !scanning ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8', maxWidth: '1080px', width: '100%' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             No Active Pipeline Execution
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
@@ -127,7 +133,7 @@ export default function AgentPipelineView({ workspace, scanning = false, onNavig
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '28px', width: '100%', maxWidth: '1080px' }}>
+        <div className="pipeline-two-col-layout">
           {/* Left: Workflow Node Graph */}
           <div className="pipeline-graph-container">
             {agentNodes.map((agent, idx) => (
@@ -165,35 +171,35 @@ export default function AgentPipelineView({ workspace, scanning = false, onNavig
 
               <div>
                 <div className="inspector-section-label">AGENT NAME</div>
-                <div className="inspector-section-val" style={{ color: '#FFFFFF', fontWeight: 600 }}>
+                <div className="inspector-section-val" style={{ color: 'var(--text, #F8FAFC)', fontWeight: 600 }}>
                   {activeNode.name}
                 </div>
               </div>
 
               <div>
                 <div className="inspector-section-label">CORE ENGINE</div>
-                <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#D6A84F' }}>
+                <div className="inspector-section-val" style={{ fontFamily: 'JetBrains Mono', color: '#38BDF8' }}>
                   {activeNode.engine}
                 </div>
               </div>
 
               <div>
                 <div className="inspector-section-label">INPUT CONTRACT</div>
-                <div className="inspector-section-val" style={{ color: '#CBD5E1' }}>
+                <div className="inspector-section-val" style={{ color: 'var(--text-lavender, #CBD5E1)' }}>
                   {activeNode.input}
                 </div>
               </div>
 
               <div>
                 <div className="inspector-section-label">OUTPUT ARTIFACT</div>
-                <div className="inspector-section-val" style={{ color: '#CBD5E1' }}>
+                <div className="inspector-section-val" style={{ color: 'var(--text-lavender, #CBD5E1)' }}>
                   {activeNode.output}
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '12px' }}>
+              <div style={{ borderTop: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))', paddingTop: '12px' }}>
                 <div className="inspector-section-label">RESPONSIBILITY &amp; ARCHITECTURE</div>
-                <div className="inspector-section-val" style={{ color: '#94A3B8', lineHeight: '1.5' }}>
+                <div className="inspector-section-val" style={{ color: 'var(--text-muted, #94A3B8)', lineHeight: '1.5' }}>
                   {activeNode.desc}
                 </div>
               </div>
@@ -202,17 +208,17 @@ export default function AgentPipelineView({ workspace, scanning = false, onNavig
             {/* Live Execution Logs */}
             {logs.length > 0 && (
               <div className="scc-panel-card" style={{ padding: '16px' }}>
-                <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted, #64748B)', fontFamily: 'JetBrains Mono', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>
                   AUDIT TRACE LOGS ({logs.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '240px', overflowY: 'auto' }}>
                   {logs.map((l, i) => (
-                    <div key={i} style={{ background: '#040609', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '6px', padding: '8px 10px', fontSize: '11.5px', fontFamily: 'JetBrains Mono' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#D6A84F' }}>
+                    <div key={i} style={{ background: 'var(--surface-2-glass, rgba(4, 6, 9, 0.7))', border: '1px solid var(--border-subtle, rgba(255, 255, 255, 0.06))', borderRadius: '6px', padding: '8px 10px', fontSize: '11.5px', fontFamily: 'JetBrains Mono' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#38BDF8' }}>
                         <span>{l.agent}</span>
-                        <span style={{ color: '#64748B' }}>{l.action}</span>
+                        <span style={{ color: 'var(--muted, #64748B)' }}>{l.action}</span>
                       </div>
-                      <div style={{ color: '#94A3B8', marginTop: '3px' }}>
+                      <div style={{ color: 'var(--text-muted, #94A3B8)', marginTop: '3px' }}>
                         {Object.entries(l)
                           .filter(([k]) => k !== 'agent' && k !== 'action')
                           .map(([k, v]) => `${k}: ${v}`)

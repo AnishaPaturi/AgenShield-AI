@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
@@ -94,12 +95,21 @@ class WorkspaceStore:
                     name TEXT NOT NULL,
                     password TEXT NOT NULL,
                     org_name TEXT,
+                    phone TEXT,
+                    avatar TEXT,
                     providers TEXT,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
                 """
             )
+            # Ensure phone and avatar columns exist in existing SQLite databases
+            for col_name, col_type in [("phone", "TEXT"), ("avatar", "TEXT")]:
+                try:
+                    conn.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};")
+                except sqlite3.OperationalError:
+                    pass
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS verification_codes (
@@ -125,18 +135,19 @@ class WorkspaceStore:
             # Pre-seed default enterprise accounts in database
             now_str = datetime.now(UTC).isoformat()
             default_accounts = [
-                ("usr-admin-001", "admin@agentshield.ai", "Security Admin", "Password123!", "AgentShield Enterprise", "email,google,github"),
-                ("usr-alex-002", "alex@company.com", "Alex Henderson", "Password123!", "Acme Cloud Infrastructure", "email,github"),
-                ("usr-support-003", "agentsheildai@gmail.com", "AgentShield AI Admin", "Password123!", "AgentShield Security", "email,google,github"),
+                ("usr-admin-001", "admin@agentshield.ai", "Security Admin", "Password123!", "AgentShield Enterprise", "+1 (555) 019-2834", "", "email,google,github"),
+                ("usr-alex-002", "alex@company.com", "Alex Henderson", "Password123!", "Acme Cloud Infrastructure", "+1 (555) 438-9102", "", "email,github"),
+                ("usr-support-003", "agentsheildai@gmail.com", "AgentShield AI Admin", "Password123!", "AgentShield Security", "+1 (555) 892-3710", "", "email,google,github"),
             ]
-            for uid, em, nm, pw, org, prov in default_accounts:
+            for uid, em, nm, pw, org, ph, av, prov in default_accounts:
                 conn.execute(
                     """
-                    INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(email) DO NOTHING;
+                    INSERT INTO users (user_id, email, name, password, org_name, phone, avatar, providers, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(email) DO UPDATE SET
+                        phone = coalesce(users.phone, excluded.phone);
                     """,
-                    (uid, em.strip().lower(), nm, pw, org, prov, now_str, now_str),
+                    (uid, em.strip().lower(), nm, pw, org, ph, av, prov, now_str, now_str),
                 )
             conn.commit()
 
@@ -268,7 +279,7 @@ class WorkspaceStore:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT user_id, email, name, password, org_name, providers, created_at, updated_at FROM users WHERE lower(email) = lower(?)",
+                    "SELECT user_id, email, name, password, org_name, phone, avatar, providers, created_at, updated_at FROM users WHERE lower(email) = lower(?)",
                     (email.strip(),),
                 )
                 row = cursor.fetchone()
@@ -289,29 +300,160 @@ class WorkspaceStore:
                 conn.commit()
                 return cursor.rowcount > 0
 
-    def save_user(
-        self, email: str, name: str, password: str, org_name: str = "", providers: str = "email"
-    ) -> dict[str, Any]:
-        """Save a new user or update an existing user."""
+    def update_user_profile(
+        self,
+        email: str,
+        name: str | None = None,
+        phone: str | None = None,
+        org_name: str | None = None,
+        avatar: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Update user profile fields in SQLite database."""
         now_str = datetime.now(UTC).isoformat()
-        user_id = f"usr-{int(datetime.now(UTC).timestamp())}"
+        fields_to_update = []
+        values = []
+        if name is not None:
+            fields_to_update.append("name = ?")
+            values.append(name.strip())
+        if phone is not None:
+            fields_to_update.append("phone = ?")
+            values.append(phone.strip())
+        if org_name is not None:
+            fields_to_update.append("org_name = ?")
+            values.append(org_name.strip())
+        if avatar is not None:
+            fields_to_update.append("avatar = ?")
+            values.append(avatar.strip())
+
+        if not fields_to_update:
+            return self.get_user_by_email(email)
+
+        fields_to_update.append("updated_at = ?")
+        values.append(now_str)
+        values.append(email.strip().lower())
+
+        with self._lock:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                query = f"UPDATE users SET {', '.join(fields_to_update)} WHERE lower(email) = lower(?)"
+                cursor.execute(query, tuple(values))
+                conn.commit()
+
+        return self.get_user_by_email(email)
+
+    def update_user_email(self, old_email: str, new_email: str) -> bool:
+        """Update a user's email address in the database."""
+        now_str = datetime.now(UTC).isoformat()
+        with self._lock:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "UPDATE users SET email = ?, updated_at = ? WHERE lower(email) = lower(?)",
+                    (new_email.strip().lower(), now_str, old_email.strip().lower()),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+
+    def save_user(
+        self, email: str, name: str, password: str, org_name: str = "", phone: str = "", avatar: str = "", providers: str = "email"
+    ) -> dict[str, Any]:
+        """Save a new user or update an existing user with automatic provider linking."""
+        clean_email = email.strip().lower()
+        now_str = datetime.now(UTC).isoformat()
+
+        # Check if user already exists to merge providers and preserve custom data
+        existing = self.get_user_by_email(clean_email)
+        if existing:
+            user_id = existing.get("user_id") or f"usr-{int(datetime.now(UTC).timestamp())}"
+            # Merge providers
+            ex_provs = {p.strip().lower() for p in (existing.get("providers") or "").split(",") if p.strip()}
+            new_provs = {p.strip().lower() for p in providers.split(",") if p.strip()}
+            merged_providers = ",".join(sorted(ex_provs | new_provs))
+
+            # Preserve existing non-empty password if new password is blank
+            effective_password = password if password else (existing.get("password") or "")
+            # Preserve existing customized name if new name is a generic placeholder
+            placeholders = {"google user", "github developer", "github_user", "agentshield user", ""}
+            effective_name = (
+                name.strip()
+                if name and name.strip().lower() not in placeholders
+                else (existing.get("name") or name.strip() or "Security Operator")
+            )
+            effective_org = org_name.strip() if org_name.strip() else (existing.get("org_name") or "")
+            effective_phone = phone.strip() if phone.strip() else (existing.get("phone") or "")
+            effective_avatar = avatar.strip() if avatar.strip() else (existing.get("avatar") or "")
+            created_at = existing.get("created_at") or now_str
+        else:
+            user_id = f"usr-{uuid.uuid4().hex[:12]}"
+            merged_providers = ",".join(sorted({p.strip().lower() for p in providers.split(",") if p.strip()}))
+            effective_password = password
+            effective_name = name.strip() or "Security Operator"
+            effective_org = org_name.strip()
+            effective_phone = phone.strip()
+            effective_avatar = avatar.strip()
+            created_at = now_str
+
         with self._lock:
             with self._get_connection() as conn:
                 conn.execute(
                     """
-                    INSERT INTO users (user_id, email, name, password, org_name, providers, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO users (user_id, email, name, password, org_name, phone, avatar, providers, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(email) DO UPDATE SET
                         name = excluded.name,
                         password = excluded.password,
                         org_name = excluded.org_name,
+                        phone = excluded.phone,
+                        avatar = excluded.avatar,
                         providers = excluded.providers,
                         updated_at = excluded.updated_at;
                     """,
-                    (user_id, email.strip().lower(), name.strip(), password, org_name.strip(), providers, now_str, now_str),
+                    (
+                        user_id,
+                        clean_email,
+                        effective_name,
+                        effective_password,
+                        effective_org,
+                        effective_phone,
+                        effective_avatar,
+                        merged_providers,
+                        created_at,
+                        now_str,
+                    ),
                 )
                 conn.commit()
-        return self.get_user_by_email(email) or {}
+        return self.get_user_by_email(clean_email) or {}
+
+    def unlink_user_provider(self, email: str, provider: str) -> dict[str, Any]:
+        """Safely unlink an OAuth provider from a user account."""
+        clean_email = email.strip().lower()
+        clean_provider = provider.strip().lower()
+        user = self.get_user_by_email(clean_email)
+        if not user:
+            raise ValueError("User not found.")
+
+        current_provs = {p.strip().lower() for p in (user.get("providers") or "").split(",") if p.strip()}
+        if clean_provider not in current_provs:
+            return user
+
+        has_password = bool(user.get("password") and user.get("password").strip())
+        remaining_provs = current_provs - {clean_provider}
+
+        if not has_password and len(remaining_provs) == 0:
+            raise ValueError(
+                f"Cannot disconnect {provider.title()}. It is the only sign-in method on your account. Please set a password first."
+            )
+
+        updated_provs_str = ",".join(sorted(remaining_provs))
+        now_str = datetime.now(UTC).isoformat()
+        with self._lock:
+            with self._get_connection() as conn:
+                conn.execute(
+                    "UPDATE users SET providers = ?, updated_at = ? WHERE lower(email) = lower(?)",
+                    (updated_provs_str, now_str, clean_email),
+                )
+                conn.commit()
+        return self.get_user_by_email(clean_email) or {}
 
     def save_verification_code(self, email: str, code: str, ttl_seconds: int = 600) -> None:
         """Store a verification code with an expiry timestamp (default 10 minutes)."""

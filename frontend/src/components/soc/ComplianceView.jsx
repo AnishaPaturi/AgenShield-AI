@@ -5,11 +5,11 @@ export default function ComplianceView({ workspace, onNavigate }) {
 
   const { frameworks, controls } = useMemo(() => {
     const fwMap = {
-      'SOC 2': { name: 'SOC 2 Type II', violations: 0, total: 50 },
-      'HIPAA': { name: 'HIPAA Security Rule', violations: 0, total: 50 },
-      'PCI-DSS': { name: 'PCI-DSS v4.0', violations: 0, total: 50 },
-      'NIST': { name: 'NIST SP 800-53', violations: 0, total: 50 },
-      'CIS': { name: 'CIS Benchmarks', violations: 0, total: 50 },
+      'SOC 2': { name: 'SOC 2 Type II', violations: 0 },
+      'HIPAA': { name: 'HIPAA Security Rule', violations: 0 },
+      'PCI-DSS': { name: 'PCI-DSS v4.0', violations: 0 },
+      'NIST': { name: 'NIST SP 800-53', violations: 0 },
+      'CIS': { name: 'CIS Benchmarks', violations: 0 },
     }
 
     const ctrlMap = {}
@@ -45,14 +45,16 @@ export default function ComplianceView({ workspace, onNavigate }) {
     })
 
     const fwList = Object.entries(fwMap).map(([k, v]) => {
-      const satisfied = Math.max(0, v.total - v.violations)
-      const pct = Math.round((satisfied / v.total) * 100)
-      const color = pct >= 85 ? '#22C55E' : pct >= 70 ? '#F59E0B' : '#EF4444'
+      const pct = v.violations === 0 ? 100 : Math.max(0, 100 - (v.violations * 20))
+      const status = v.violations === 0 ? 'COMPLIANT' : v.violations >= 3 ? 'NON-COMPLIANT' : 'AT RISK'
+      const color = v.violations === 0 ? '#22C55E' : v.violations >= 3 ? '#DC2626' : '#F59E0B'
+      const statusText = v.violations === 0 ? 'Zero Violations Detected' : `${v.violations} ${v.violations === 1 ? 'Violation' : 'Violations'} Flagged`
       return {
         name: v.name,
         pct,
+        status,
         color,
-        controls: `${satisfied}/${v.total}`,
+        statusText,
       }
     })
 
@@ -84,7 +86,7 @@ export default function ComplianceView({ workspace, onNavigate }) {
 
       {!workspace || findings.length === 0 ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             No Compliance Data Available
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
@@ -107,7 +109,7 @@ export default function ComplianceView({ workspace, onNavigate }) {
             {frameworks.map((f) => (
               <div key={f.name} className="compliance-meter-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'Outfit', fontSize: '14.5px', fontWeight: 700, color: '#FFFFFF' }}>
+                  <span style={{ fontFamily: 'Outfit', fontSize: '14.5px', fontWeight: 700, color: 'var(--text, #F8FAFC)' }}>
                     {f.name}
                   </span>
                   <span style={{ fontFamily: 'JetBrains Mono', fontSize: '15px', fontWeight: 700, color: f.color }}>
@@ -122,8 +124,8 @@ export default function ComplianceView({ workspace, onNavigate }) {
                   ></div>
                 </div>
 
-                <div style={{ fontSize: '11px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
-                  {f.controls} Controls Satisfied
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'JetBrains Mono' }}>
+                  {f.statusText}
                 </div>
               </div>
             ))}
@@ -154,9 +156,9 @@ export default function ComplianceView({ workspace, onNavigate }) {
                 <tbody>
                   {controls.map((c) => (
                     <tr key={c.id}>
-                      <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#D6A84F' }}>{c.id}</td>
+                      <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700, color: '#DC2626' }}>{c.id}</td>
                       <td style={{ fontFamily: 'JetBrains Mono', fontSize: '12px' }}>{c.framework}</td>
-                      <td style={{ color: '#FFFFFF', fontWeight: 500 }}>{c.title}</td>
+                      <td style={{ color: 'var(--text, #F8FAFC)', fontWeight: 500 }}>{c.title}</td>
                       <td>
                         <span
                           style={{
@@ -169,21 +171,21 @@ export default function ComplianceView({ workspace, onNavigate }) {
                               c.status === 'PASSED'
                                 ? 'rgba(34, 197, 94, 0.15)'
                                 : c.status === 'WARNING'
-                                ? 'rgba(249, 115, 22, 0.15)'
-                                : 'rgba(239, 68, 68, 0.15)',
+                                ? 'rgba(100, 116, 139, 0.15)'
+                                : 'rgba(220, 38, 38, 0.15)',
                             color:
                               c.status === 'PASSED'
                                 ? '#22C55E'
                                 : c.status === 'WARNING'
-                                ? '#F97316'
-                                : '#EF4444',
+                                ? '#94A3B8'
+                                : '#DC2626',
                           }}
                         >
                           {c.status === 'PASSED' ? '✓ PASSED' : c.status === 'WARNING' ? '⚠ WARNING' : '✕ FAILED'}
                         </span>
                       </td>
                       <td style={{ fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
-                        <span style={{ color: c.status === 'FAILED' ? '#EF4444' : '#F97316' }}>
+                        <span style={{ color: c.status === 'FAILED' ? '#DC2626' : '#94A3B8' }}>
                           {c.findings} finding(s)
                         </span>
                       </td>

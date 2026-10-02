@@ -30,17 +30,17 @@ export default function ResearchLabView({ workspaces = [] }) {
       })
     })
 
-    const avgConsensus = consensusCount > 0 ? Math.round((consensusSum / consensusCount) * 100) : 0
-    const passRate = totalPatches > 0 ? Math.round((validatedPatches / totalPatches) * 100) : 100
-    const autoPatchRate = totalFindings > 0 ? Math.round(((totalFindings - humanReviewCount) / totalFindings) * 100) : 100
+    const avgConsensus = consensusCount > 0 ? `${Math.round((consensusSum / consensusCount) * 100)}%` : 'N/A'
+    const passRate = totalPatches > 0 ? `${Math.round((validatedPatches / totalPatches) * 100)}%` : 'N/A'
+    const autoPatchRate = totalFindings > 0 ? `${Math.round(((totalFindings - humanReviewCount) / totalFindings) * 100)}%` : 'N/A'
 
     return [
       { label: 'Workspaces Evaluated', val: `${workspaces.length}`, sub: 'Active Scan Sessions', color: '#38BDF8' },
-      { label: 'Total Findings Identified', val: `${totalFindings}`, sub: 'Vulnerabilities Triaged', color: '#F97316' },
-      { label: 'Ensemble Consensus', val: `${avgConsensus}%`, sub: 'Multi-LLM Calibration', color: '#D6A84F' },
-      { label: 'Patch Validation Rate', val: `${passRate}%`, sub: 'Passed Static Linters', color: '#22C55E' },
-      { label: 'Auto-Remediation Rate', val: `${autoPatchRate}%`, sub: 'C_ens >= 0.85 Threshold', color: '#22C55E' },
-      { label: 'Human Reviews Required', val: `${humanReviewCount}`, sub: 'Escalated to Audit Queue', color: '#EF4444' },
+      { label: 'Total Findings Identified', val: `${totalFindings}`, sub: 'Vulnerabilities Triaged', color: '#DC2626' },
+      { label: 'Ensemble Consensus', val: avgConsensus, sub: 'Multi-LLM Calibration', color: '#DC2626' },
+      { label: 'Patch Validation Rate', val: passRate, sub: 'Passed Static Linters', color: '#22C55E' },
+      { label: 'Auto-Remediation Rate', val: autoPatchRate, sub: 'C_ens >= 0.85 Threshold', color: '#22C55E' },
+      { label: 'Human Reviews Required', val: `${humanReviewCount}`, sub: 'Escalated to Audit Queue', color: '#DC2626' },
     ]
   }, [workspaces])
 
@@ -57,7 +57,7 @@ export default function ResearchLabView({ workspaces = [] }) {
 
       {workspaces.length === 0 ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             No Empirical Scan Data Available
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
