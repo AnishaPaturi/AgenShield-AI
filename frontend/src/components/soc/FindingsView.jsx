@@ -1,34 +1,123 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { Search, ShieldAlert, AlertTriangle, CheckCircle2, ArrowRight, X } from 'lucide-react'
+import CopyButton from '../common/CopyButton.jsx'
 
 export default function FindingsView({ workspace, onNavigate }) {
   const [filter, setFilter] = useState('ALL')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [patchFilter, setPatchFilter] = useState('ALL') // ALL, AUTO, MANUAL
   const [selectedFinding, setSelectedFinding] = useState(null)
 
   const rawFindings = workspace?.report?.findings || []
-  const filtered = filter === 'ALL' ? rawFindings : rawFindings.filter((f) => f.severity === filter)
+
+  // Filter findings based on severity, patch eligibility, and keyword search
+  const filtered = useMemo(() => {
+    return rawFindings.filter((f) => {
+      // Severity filter
+      if (filter !== 'ALL' && f.severity !== filter) return false
+      // Patch filter
+      if (patchFilter === 'AUTO' && !f.auto_patchable) return false
+      if (patchFilter === 'MANUAL' && f.auto_patchable) return false
+      // Search query filter (matches title, rule_id, affected_resource, description)
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase()
+        const matchTitle = (f.title || '').toLowerCase().includes(q)
+        const matchRule = (f.rule_id || '').toLowerCase().includes(q)
+        const matchRes = (f.affected_resource || '').toLowerCase().includes(q)
+        const matchDesc = (f.description || '').toLowerCase().includes(q)
+        if (!matchTitle && !matchRule && !matchRes && !matchDesc) return false
+      }
+      return true
+    })
+  }, [rawFindings, filter, patchFilter, searchQuery])
+
+  // Count metrics for quick filter strip
+  const counts = useMemo(() => {
+    return {
+      all: rawFindings.length,
+      critical: rawFindings.filter((f) => f.severity === 'CRITICAL').length,
+      high: rawFindings.filter((f) => f.severity === 'HIGH').length,
+      medium: rawFindings.filter((f) => f.severity === 'MEDIUM').length,
+      low: rawFindings.filter((f) => f.severity === 'LOW').length,
+      autoPatch: rawFindings.filter((f) => f.auto_patchable).length,
+    }
+  }, [rawFindings])
 
   return (
     <div className="findings-investigation-view">
-      {/* Header with Filters */}
-      <div className="scc-header-row">
+      {/* Header with Title and Search/Filters */}
+      <div className="scc-header-row" style={{ alignItems: 'flex-start' }}>
         <div>
           <h2 className="scc-title">Security Findings &amp; Investigation</h2>
           <p className="scc-subtitle">
-            Every vulnerability calibrated with blast radius analysis, attack paths, and compliance control mappings.
+            Autonomous threat prioritization with blast radius analysis, attack paths, and compliance control mappings.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
-            <button
-              key={s}
-              className={`tab-btn ${filter === s ? 'active' : ''}`}
-              style={{ fontSize: '11.5px', padding: '6px 12px' }}
-              onClick={() => setFilter(s)}
-            >
-              {s}
-            </button>
-          ))}
+        {/* Search bar & Filter Pills */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end', minWidth: '300px' }}>
+          {/* Keyword Search Input */}
+          <div style={{ position: 'relative', width: '100%' }}>
+            <Search
+              size={14}
+              style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }}
+            />
+            <input
+              type="text"
+              placeholder="Search findings, rule ID, resource..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '6px 10px 6px 30px',
+                background: 'rgba(20, 26, 40, 0.7)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '6px',
+                fontSize: '12px',
+                color: '#F1F5F9',
+                outline: 'none',
+              }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* Severity Pills */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            {[
+              { id: 'ALL', label: `ALL (${counts.all})` },
+              { id: 'CRITICAL', label: `CRITICAL (${counts.critical})` },
+              { id: 'HIGH', label: `HIGH (${counts.high})` },
+              { id: 'MEDIUM', label: `MED (${counts.medium})` },
+              { id: 'LOW', label: `LOW (${counts.low})` },
+            ].map((s) => (
+              <button
+                key={s.id}
+                className={`tab-btn ${filter === s.id ? 'active' : ''}`}
+                style={{ fontSize: '11px', padding: '4px 10px' }}
+                onClick={() => setFilter(s.id)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -37,17 +126,18 @@ export default function FindingsView({ workspace, onNavigate }) {
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
           {rawFindings.length === 0 ? (
             <div>
-              <p style={{ fontSize: '15px', color: '#FFFFFF', marginBottom: '8px' }}>
-                No security findings detected
+              <ShieldAlert size={40} style={{ color: '#10B981', margin: '0 auto 12px', opacity: 0.8 }} />
+              <p style={{ fontSize: '15px', color: 'var(--text, #F8FAFC)', marginBottom: '8px', fontWeight: 600 }}>
+                No Security Findings Detected
               </p>
-              <p style={{ fontSize: '13px' }}>
+              <p style={{ fontSize: '13px', maxWidth: '440px', margin: '0 auto 16px' }}>
                 {workspace
-                  ? 'No vulnerabilities were identified in this template.'
+                  ? 'No vulnerabilities were identified in this template definition.'
                   : 'No workspace is currently selected. Click "New Scan" to evaluate an IaC template.'}
               </p>
               <button
                 className="btn-start-analysis"
-                style={{ marginTop: '16px', padding: '8px 20px', fontSize: '13px' }}
+                style={{ padding: '8px 20px', fontSize: '13px' }}
                 onClick={() => onNavigate('new-scan')}
               >
                 ⚡ Run New Scan
@@ -55,14 +145,17 @@ export default function FindingsView({ workspace, onNavigate }) {
             </div>
           ) : (
             <p style={{ fontSize: '14px' }}>
-              No findings matching severity filter <b>{filter}</b>.
+              No findings matching the current search &amp; severity filters.
             </p>
           )}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }} role="region" aria-live="polite" aria-label="Security findings list">
           {filtered.map((f) => {
-            const confidencePct = Math.round((f.confidence_score || 0.9) * 100)
+            const confidenceDisplay =
+              typeof f.confidence_score === 'number'
+                ? `${Math.round(f.confidence_score * 100)}%`
+                : '—'
             const complianceList = Array.isArray(f.compliance_mappings)
               ? f.compliance_mappings
               : Array.isArray(f.compliance)
@@ -85,33 +178,37 @@ export default function FindingsView({ workspace, onNavigate }) {
                 </div>
 
                 {/* Target & IaC Format */}
-                <div style={{ fontSize: '13px', color: '#94A3B8', fontFamily: 'JetBrains Mono' }}>
-                  {f.provider && <b style={{ color: '#FFFFFF' }}>{f.provider} · </b>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-muted, #94A3B8)', fontFamily: 'JetBrains Mono', flexWrap: 'wrap' }}>
+                  {f.provider && <b style={{ color: 'var(--text, #FFFFFF)' }}>{f.provider} · </b>}
                   {f.iac_type && <span>{f.iac_type} · </span>}
-                  <span style={{ color: '#D6A84F' }}>{f.affected_resource}</span>
+                  <span style={{ color: '#38BDF8' }}>{f.affected_resource}</span>
+                  {f.affected_resource && (
+                    <CopyButton text={f.affected_resource} size={12} ariaLabel={`Copy resource identifier ${f.affected_resource}`} />
+                  )}
                 </div>
 
                 {/* Meta Grid: Confidence, Blast Radius, Rule */}
                 <div className="finding-inv-meta-grid">
                   <div>
                     <span>Confidence: </span>
-                    <b>{confidencePct}%</b>
+                    <b>{confidenceDisplay}</b>
                   </div>
                   {f.blast_radius !== undefined && (
                     <div>
                       <span>Blast Radius: </span>
-                      <b style={{ color: f.blast_radius >= 6 ? '#EF4444' : '#F97316' }}>
+                      <b style={{ color: '#F59E0B' }}>
                         {f.blast_radius} assets
                       </b>
                     </div>
                   )}
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>Rule ID: </span>
                     <b>{f.rule_id}</b>
+                    {f.rule_id && <CopyButton text={f.rule_id} size={11} ariaLabel={`Copy rule ${f.rule_id}`} />}
                   </div>
                   <div>
                     <span>Auto-Patch: </span>
-                    <b style={{ color: f.auto_patchable ? '#22C55E' : '#F97316' }}>
+                    <b style={{ color: f.auto_patchable ? 'var(--ok, #34D399)' : '#F59E0B' }}>
                       {f.auto_patchable ? 'ELIGIBLE' : 'MANUAL TRIAGE'}
                     </b>
                   </div>
@@ -120,7 +217,7 @@ export default function FindingsView({ workspace, onNavigate }) {
                 {/* Attack Path Flow (if present) */}
                 {Array.isArray(f.attack_path) && f.attack_path.length > 0 && (
                   <div className="attack-path-investigation">
-                    <div style={{ fontSize: '11px', color: '#EF4444', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
+                    <div style={{ fontSize: '11px', color: 'var(--primary, #E11D48)', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
                       ⚡ EXPLOIT ATTACK PATH
                     </div>
                     <div className="attack-path-nodes-flow">
@@ -196,7 +293,7 @@ export default function FindingsView({ workspace, onNavigate }) {
             <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <span className={`sev-badge ${selectedFinding.severity}`}>{selectedFinding.severity}</span>
-                <h3 style={{ margin: '8px 0 4px', color: '#FFFFFF', fontFamily: 'Outfit' }}>
+                <h3 style={{ margin: '8px 0 4px', color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit' }}>
                   {selectedFinding.title}
                 </h3>
                 <div style={{ fontSize: '12px', color: '#64748B', fontFamily: 'JetBrains Mono' }}>
@@ -205,14 +302,14 @@ export default function FindingsView({ workspace, onNavigate }) {
               </div>
 
               {selectedFinding.description && (
-                <div style={{ background: 'rgba(18, 24, 33, 0.7)', padding: '14px', borderRadius: '8px', fontSize: '13px', color: '#CBD5E1', lineHeight: '1.6' }}>
+                <div style={{ background: 'rgba(20, 26, 40, 0.75)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '14px', borderRadius: '8px', fontSize: '13px', color: '#CBD5E1', lineHeight: '1.6' }}>
                   <b>Impact Assessment:</b><br />
                   {selectedFinding.description}
                 </div>
               )}
 
               {(selectedFinding.remediation || selectedFinding.remediation_hint) && (
-                <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '14px', borderRadius: '8px', fontSize: '13px', color: '#86EFAC' }}>
+                <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '14px', borderRadius: '8px', fontSize: '13px', color: '#86EFAC' }}>
                   <b>Remediation Strategy:</b><br />
                   {selectedFinding.remediation || selectedFinding.remediation_hint}
                 </div>
