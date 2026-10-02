@@ -47,7 +47,7 @@ export default function ConsensusView({ workspace, onNavigate }) {
 
       {!hasData ? (
         <div className="scc-panel-card" style={{ padding: '48px 24px', textAlign: 'center', color: '#94A3B8' }}>
-          <p style={{ fontSize: '16px', color: '#FFFFFF', marginBottom: '8px' }}>
+          <p style={{ fontSize: '16px', color: 'var(--text, #F8FAFC)', marginBottom: '8px' }}>
             No Consensus Data Available
           </p>
           <p style={{ fontSize: '13px', maxWidth: '480px', margin: '0 auto' }}>
@@ -72,16 +72,16 @@ export default function ConsensusView({ workspace, onNavigate }) {
                 <div key={m.name} className="model-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="model-name">{m.name}</span>
-                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#D6A84F' }}>
+                    <span style={{ fontFamily: 'JetBrains Mono', fontSize: '11px', color: '#DC2626' }}>
                       ENSEMBLE NODE
                     </span>
                   </div>
                   <div style={{ fontSize: '13px', color: '#CBD5E1' }}>
-                    Evaluations: <b style={{ color: '#FFFFFF' }}>{m.count} findings</b>
+                    Evaluations: <b style={{ color: 'var(--text, #F8FAFC)' }}>{m.count} findings</b>
                   </div>
                   <div style={{ fontSize: '13px', color: '#94A3B8' }}>
                     Confidence Index:{' '}
-                    <b style={{ color: '#FFFFFF', fontFamily: 'JetBrains Mono' }}>
+                    <b style={{ color: 'var(--text, #F8FAFC)', fontFamily: 'JetBrains Mono' }}>
                       {m.avg}%
                     </b>
                   </div>
@@ -89,7 +89,7 @@ export default function ConsensusView({ workspace, onNavigate }) {
               ))
             ) : (
               <div className="model-card" style={{ gridColumn: '1 / -1' }}>
-                <div style={{ fontSize: '14px', color: '#FFFFFF', fontWeight: 600 }}>
+                <div style={{ fontSize: '14px', color: 'var(--text, #F8FAFC)', fontWeight: 600 }}>
                   Active Ensemble Pipeline
                 </div>
                 <div style={{ fontSize: '12.5px', color: '#94A3B8', marginTop: '6px' }}>
@@ -107,7 +107,7 @@ export default function ConsensusView({ workspace, onNavigate }) {
             <div className="consensus-pct">{consensusPct}%</div>
             <div style={{ fontSize: '13px', color: '#CBD5E1', marginTop: '6px' }}>
               Agreement Level:{' '}
-              <b style={{ color: isAutoPatch ? '#22C55E' : '#F97316' }}>
+              <b style={{ color: isAutoPatch ? '#22C55E' : '#DC2626' }}>
                 {isAutoPatch ? 'HIGH · Exceeds Safety Threshold' : 'LOW · Divergence Detected'}
               </b>
             </div>
@@ -116,8 +116,8 @@ export default function ConsensusView({ workspace, onNavigate }) {
           {/* Decision Banner */}
           <div
             style={{
-              background: isAutoPatch ? 'rgba(34, 197, 94, 0.1)' : 'rgba(249, 115, 22, 0.12)',
-              border: `1px solid ${isAutoPatch ? 'rgba(34, 197, 94, 0.35)' : 'rgba(249, 115, 22, 0.35)'}`,
+              background: isAutoPatch ? 'rgba(34, 197, 94, 0.1)' : 'rgba(220, 38, 38, 0.12)',
+              border: `1px solid ${isAutoPatch ? 'rgba(34, 197, 94, 0.35)' : 'rgba(220, 38, 38, 0.35)'}`,
               borderRadius: '10px',
               padding: '20px 24px',
               display: 'flex',
@@ -131,7 +131,7 @@ export default function ConsensusView({ workspace, onNavigate }) {
               <div style={{ fontSize: '11px', color: isAutoPatch ? '#86EFAC' : '#FDBA74', fontFamily: 'JetBrains Mono', fontWeight: 700 }}>
                 GOVERNANCE DECISION
               </div>
-              <div style={{ fontSize: '16px', fontWeight: 700, color: '#FFFFFF', fontFamily: 'Outfit', marginTop: '2px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text, #F8FAFC)', fontFamily: 'Outfit', marginTop: '2px' }}>
                 {isAutoPatch ? 'AUTO-REMEDIATION ELIGIBLE (C_ens >= 0.85)' : 'HUMAN REVIEW REQUIRED (C_ens < 0.85)'}
               </div>
               <div style={{ fontSize: '12.5px', color: '#94A3B8', marginTop: '4px' }}>
