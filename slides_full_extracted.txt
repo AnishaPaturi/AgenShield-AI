@@ -1,0 +1,1001 @@
+*** SLIDE 1 ***
+1 ===
+1 (Images: ['ppt/media/image2.png']) ===
+Kmit
+KO
+KESHAV MEMORIAL INSTITUTE OF TECHNOLOGY
+AN AUTONOMOUS INSTITUTION- ACCREDITED BY NAAC WITH'A' GRADE
+Narayanaguda, Hyderabad.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 2 ***
+2 ===
+2 (Images: ['ppt/media/image3.png']) ===
+ABSTRACT
+The proposed system introduces an Al-driven multi-agent security framework that combines
+Large Language Models (LLMs) and Retrieval-Augmented Generation (RAG) to intelligently
+analyze Infrastructure-as-Code (laC) templates. A continuously updated cloud security
+knowledge base stores best practices and compliance standards to enhance detection accuracy.
+Unlike traditional static analysis tools, the framework performs context-aware security
+analysis to identify complex cloud misconfigurations that depend on resource relationships
+and deployment context. It achieves an 85% detection rate with approximately 15% false
+positives, while providing natural-language remediation guidance integrated directly into
+CI/CD pipelines for automated secure deployments.
+The current evaluation is limited to AWS CloudFormation templates across
+10 sample configurations, demonstrating the effectiveness of Al-assisted cloud security
+analysis while highlighting opportunities for broader multi-cloud support.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 3 ***
+3 ===
+3 (Images: ['ppt/media/image5.png', 'ppt/media/image4.png']) ===
+IEEE Access
+pel eae ccs sat
+S| RESEARCH ARTICLE |
+LLM Agentic Workflow for Automated
+Vulnerability Detection and Remediation in
+Infrastructure-as-Code
+DDHEER TOPRANI! AND VAY K. MADISETTIO?, (Fellow, IEEE)
+teed cpg nape tener ay Aen cas
+SSSR
+Conepning ator Vins K Masi em gnch a)
+| ABSTRACT This paper presents a multi-agent, Al-driven strategy employing Large Language Models
+(LLMs), retrieval-augmented generation, and a continuously updated knowledge base for the detection and
+æemediation of security vulnerabilities win cloud frameworks. By examining Infastucture as Code (aC)
+templates alongside pertinent best-practice snippet, the system discems context-specife msconfiguations
+commonly overlooked by sai tools, achieving a detection rate of 85% with some occurrences of False
+positives. Automated remediation guidance, anchored in cument security standard, provides actionable
+æSolutions that seamlessly integrate into standard continuous integration/continuous development (CUCD)
+æworkflows, Experimental results indicate the solution's efficacy and scalability. heralding a proactive, context-
+ware approach to la security.
+INDEX TERMS tnfastrutue-s-coe, large language models, vulnerability detection, security automation,
+CUCD, LLM woekfiows.
+1. ntRopucTION presents challenges, particularly wha vulnerabilities stem
+æSecurity vulnerabilities inherent in automated infastracture from subtle, contex-specitic errors that traditional static
+definitions present substantial risks within contemporary analysis equently falls wo detest. Existing methodologies,
+BASE PAPER
+@ Core Objective & Problem Statement
++ Develop an Ai-driven pre-deployment (shift-Left) lac security workflow.
++ Combine LIMs + Retrieval-Augmented Generation (RAG) for context-aware vulnerability detection.
++ Address limitations of rule-based tools like Checkov/CDK-Nag and post-deployment CSPM.
++ Detect compound, multi-resource cloud misconfigurations and provide remediation advice.
+Architecture ⌐ Working
+IEEE ACCESS PAPER RAG Retrieval Agent Extract resources from CloudFormation.
+AWS Security Knowledge Base Retrieve AWS & CIS best practices.
+Claude 3.5 Sonnet Detection Agent Semantic reasoning using LLM.
+Markd Re rt Generate Generate remediatic yestic
+Insert Screenshot Here a erate ret DCE SIS
+. fil Experimental Results limitations
+(Recommended siz Detection Rate: 85% AWS CloudFormation only.
+430 x 610 px) False Positive Rate: 15% No Terratorm/Kubernetes support.
+Execution Time: 80-100 s Single LIM reasoning,
+Reduced hallucinations using RAG grounding. No secrets scanning.
+No validation harness.
+No compliance mapping.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 4 ***
+4 ===
+4 (Images: ['ppt/media/image6.png']) ===
+LITERATURE SURVEY
+Comparative Analysis Existing Approaches
+es ù ù proposed ⌐ Static Analysis (Checkov, KICS): High false positive:
+and misses contextual vulnerabilities.
+Multi-cloud
+Hixeen x Bs Bs Y * Dynamic Analysis (SPM): Detects issues only after
+Context-aware x a v v cloud deployment.
+PNET 3 R R a * ML-Based Detection (GLITCH): Requires labelled
+datasets and cannot generate fixes.
+Cry x x & g ½ LLM-Based Workflows: Single-cloud support with
+Knowledge Graph x x x v hallucination risks.
+Research Gaps References
+* Single-cloud limitations Toprani & Madisetti (2025)
+* High false positives Miali et al. (2024)
+* No automatic remediation Saavedra & Ferreira (2022)
+* Hallucination-prone LIM outputs
+* Limited compliance validation
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 5 ***
+5 ===
+5 (Images: ['ppt/media/image7.png']) ===
+EXISTING SYSTEM
+Problem Workflow Results
+* lac misconfigurations lead to serious | Mattie value |
+cloud security risks.
+CloudFormation Template Precision 85%
+* Static scanners generate false
+positives and miss contextual a Recall 85%
+vulnerabilities.
+RAG Retrieval Fl score 85%
+* CSPM tools detect issues only after (opensearch + Titan Embeddings)
+cloud deployment. Scan Time 851s
+encode IM {RAG based preg + AWS CloudFormation only.
+deployment security analysis. Claude 3.5 Sonnet
+(Vulnerability Detection) 0 Roexiogsibbgem im
++ No developer feedback loop.
+I + Knowledge base requires continuous
+Markdown Security Report updates.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 6 ***
+6 ===
+6 (Images: ['ppt/media/image8.png']) ===
+ADVANTAGES OF
+EXISTING SYSTEM
+Automated Detection
+æAutomatically scans laC templates t.
+without manual intervention.
+fentify security vulnerabilities
+Specialized Al agents perform analysis, detection, remediation,
+validation, and reporting efficiently.
+E æAgent Architecture
+Validation agents verify findings before reporting, improving accuracy
+and reliability.
+Enterprise Scalability
+æSupports large-scale cloud infrastructures and multiple Infrastructure
+as-Code templates.
+| Reduced False Positives
+Automatic Remediation
+Generates secure code fixes for detected vulneral
+developer effort.
+reducing
+Context-Aware Analysis
+UMs understand infrastructure context and detect logical security issues
+beyond rule-based scanners.
+Faster DevSecOps
+Provides rapid security assessments and integrates seamlessly into
+CIICD pipelines.
+Improved Cloud Security
+Prevents common misconfigurations such as open security groups, weak
+IAM policies, and insecure storage.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 7 ***
+7 ===
+7 (Images: ['ppt/media/image9.png']) ===
+DISADVANTAGES OF EXISTING
+SYSTEM
+LLM Dependency
+system performance depends heavily on the capability and quality of
+the underlying Large Language Model.
+igh Computational Cost
+Executing multiple Al agents and LLMs increases CPU/GPU usage and
+operational expenses.
+æAl decisions and remediation logic are not always transparent, making
+æaudits more difficult
+[= ability
+Limited Security Coverage
+Focuses mainly on laC vulnerabilities and does not address runtime
+threats or configuration drift.
+Hallucination Risk
+æAl may generate incorrect or insecure remediation suggestions that
+require manual verification.
+Increased Response Time
+Multi-agent collaboration introduces additional latency during
+vulnerability analysis.
+Privacy Concerns
+Sending lac templates to cloud-hosted LLMs may expose sensitive
+infrastructure information.
+No Continuous Learning
+The workflow does not automatically learn from user feedback or
+previous remediation outcomes.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 8 ***
+8 ===
+8 (Images: ['ppt/media/image10.png']) ===
+PROPOSED SYSTEM
+Objective Developer / IDE / CI-CD
+æAutonomous multi-agent framework that secures Infrastructure-
+as-Code across AWS, Azure and GCP by detecting vulnerabilities, Manager Agent
+generating secure patches and validating them before
+deployment.
+AST Parser + Secrets Scanner
+Key Features
+RAG Knowledge Base
+( Multi-Cloud & Multi-lac Support
+( RAG-Powered Threat intelligence Security Analyst + Multi-LLM Voting
+( Multi-LLM Consensus Voting Remediation Agent
+Sandbox Validation
+( Automated Code Patch Generation
+Localstack Sandbox Validation
+Compliance Report
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 9 ***
+9 ===
+9 (Images: ['ppt/media/image11.png']) ===
+ADVANTAGES OF
+PROPOSED SYSTEM
+Multi-Cloud & Multi-lac. Context-Aware Accuracy Validated Auto-Patching
+# AWS, Azure, @CP Hybrid AST parsing * Executable code patches
+# Terraform, CFN, KBs & Helm = Mult-uM ensemble + Lnter + Locatstack validation
++ Confidence scoring
+Security & Audit Readiness Shift-Left Efficiency Adaptive Feedback Loop
++ secrets scanning + 10 & C/(CD integration + Accopt/reject feedback
++ S0C2, HIPAA, PCI-OSS, NIST + siMpre-fitering ½Suppresses redundant exceptions
++ Blast-rodius ranking
+Existing Systems vs. AgentShield Al
+Dimension Existing syst. æAgentshiold At
+Cloud Scope Single cloud (aws) Multi Cloud (AWS, Azure, GCP)
+Parsing Rule based Hybrid AST + dependency graph
+æAccuracy Single model, 15% false positives Multi-LLM + confidence scoring
+Remediation æText-only suggestions Validated code diff patches
+Patch Testing None Linters + Locatstack sandbox
+Secret Scanning Ignored Dedicated Gitleaks/truffieHog agent
+Compliance æGeneric best-practice advice 'S0C2, HIPAA, PCI-DSS, NIST mapping
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 10 ***
+10 ===
+10 (Images: ['ppt/media/image12.png']) ===
+DISADVANTAGES OF
+PROPOSED SYSTEM
+Higher Cost Higher Scan Latency External API & Privacy Limits
++ Mult-UM ensombie costs more than tree local liners. + Static linters:1-5 see. + Requires internet and eloud-hosted LM endpoints.
++ Vector D8 / RAG adds hosting and compute overhead + Pipaline execution: 30-20 sec. + Air-gapped organizations cannot use extornal APIs
++ Slow for frequent git commits. + Local medels require powerful Pus.
+æsystem Complexity æComplex lac Edge Cases Risk of Over-Remediation
++ Many moving parts: LangGtaph, vector D8, scanners, + Deeply nested conditions remain challenging + -B% of patches may be overly conservative.
+sandbores. + Remote state extraction is dificult +  Sxceptions must be pre-loaded to avoid workflow
++ Aaure/6CP emulation maturity is lower. disruption
+Comparison of Approaches
+Factor Traditional Static Linters Paper (Toprani et al.) æAgentshield Ai (Proposed)
+Execution Cost Free (local execution) Moderato (singlo-iLM API) High (mutd-tuM + vector 08)
+æscan Speed Uta-fast (1-5 sec) Moderate (80-100 sec) Moderate (30-90 sec)
+æSetup Compioxity low Low (simple pipeline) High (mutt-agent + 08)
+Accuracy & Patches Low (false positives, no patches) Moderate (text advice) High (validated code dis)
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 11 ***
+11 ===
+11 (Images: ['ppt/media/image13.png']) ===
+Architecture Flow Diagram
+User & CI/CD Layer
+System Entrypoint
+Developer Laptop
+& all LangGraph
+DevOps Orchestrator
+Engineer (Manager Agent)
+o=_ Manage State
+(Cj & Dynamic Flow
+=D
+| cl/CcD
+ClManager _Pipeline
+Submit laC
+Templates
+Developer Interface / VS Code
+Bax aÖ.
+Laptop IDE CI/CD Pipeline
+_ùùùù
+Hybrid AST Parser
+Agent
+D>) gts
+Convert files into
+structured AST,
+Resource dependency
+graphs
+Compound Risk
+~ Orchestrator
+Secrets Scanner
+Agent
+a, Gitleaks &
+TruffleHog
+Users coins to
+Engines
+hardcoded credentials
+Developer Syntax Linters
+Feedback Log (terraform validate/tflint)
+(Dynamic prompt tuning) : Ñ
+; Jt: | {  LocalStack Sandbox
+Developer fail OK Test
+feedback Report
+Generator
+Knowledge Retrieval & Validation Hub
+Validation Harness
+Knowledge Core & RAG Subsystem
+= =a
+Vector DB (Qdrant/Chroma)
+Cloud Security Advisories
+Live
+Scraper
+Service
+RAG Query ù>
+Agent
+a [> ù = |
+Compliance Frameworks
+Context (SOC2/HIPAA/PCI/NIST)
+Queries
+t Update risks
+Multi-LLM Ensemble Engine
+Agent mS
+Z Valid?
+Claude 3.5 _| Prediction agent
+Sonnet Agent ale dal in
+OpenAl GPT- | Multi-opomediation
+RAG Query 4o do Agent and voting agents
+Agent J 4
+eras Consensus &
+see Matti SIPANe High Confidence?
+Feedback :
+& Multi-LLM Voting Block
+: |
+gS Remediation & Code
+Patching Subsystem
+J2:
+12:
+> eee Automated Code
+Cea Patches/Diffs
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 12 ***
+12 ===
+12 (Images: ['ppt/media/image15.png', 'ppt/media/image14.png', 'ppt/media/image16.png']) ===
+ARCHITECTURE DIAGRAM EXPLANATION
+AgentShield Al - Autonomous Multi-Agent Framework for Multi-Cloud laC Security
+;.
+@ user & ci/cp Laver
+* Developers, DevOps engineers
+aid Gmanegorsiitors ig
+templates (.tf, .yml, json) via
+Wie
+Ly
+(2) ORCHESTRATION & ANALYSIS AGENTS
+Hybrid AST Parser Agent
+[a
+ey
+a
++ Converts laC files into
+structured AST.
+* Builds resource dependency
+æraphe.
+LangGraph = ù =
+Orchestrator Secrets Scanner Agent
+(Manager Agent) + Scans for hardcoded secrets
+Using GitLeaks & TruffleHog.
+*# Detects tokens, keys, and.
+credentials.
+Manages State
+& Dynamic Flow
+Agents work in parallel and share state through LangGraph.
+⌐ ⌐ CONTEXT-AWARE RISK RETRIEVAL
+KNOWLEDGE CORE & RAG SUBSYSTEM
+RAG Query Agent
+(Context Queries) =) ne
+Retrieves relevant (a d
+ats | il
+> Cloud Security Advisories
+RAG Query Agent
+(Contre Queries) FE). compliance Famenors
+glo (5002, HIPAA, PCL NIST
+cea ah tii
+(7% Adaptive Feedback Loop Validated Auto-Patching
+Captures accept/eject decisions
+Per patch and improves future
+=Y atts not just advice.
+recommendations.
+Generates executable code
+Linters + tests validate patches.
+vulnerabilities and suggested fixes.
+Prediction + Severity + Remediation + Consensus + Voting
+Developer Lay
+es ea IDE, laptop or CI/CD pipelines.
+½Tis is the entry point forthe
+security analysis workflow.
+DevOps IDE + Templates are forwarded to
+Engineer the orchestration layer for
+e25 procesing
+& ░ ░
+even
+ciManager
+| i Pipeline
+B) submit ac Templates
+a r
+⌐ uit -Lum ENSEMBLE ENGINE
+cousadl + Matiple LLM agents analyze rks
+Somat ont tnd generate remediation suggetions
+Sana + Agent speciizeinpredton
+Agent seventy assessment, emettion
+ah Multi-IPA & + Consensus mechanism ensures
+Consensus Agent high confidence and reduces.
+fate postves.
+MM
+Voting Block + Fina output includes ranked
+lac Templates </>] Parsed & Structured
+(4, ym, json) > AST + Dependency. >
+Submitted fr K Graph
+⌐ vauipation HARNESS | ⌐ REMEDIATION & PATCHING SUBSYSTEM
+Syntax Lnters a
+eee g pees | huvarea Code + Applies validated patches and
+Factoc/oine sgenersies code if
+Æ + LocalStack sandbox runs isolated |
+Leeack Sander GD) | tes toahita tr ½Ensures compliance wth secu
+½any check fils feedback T=] Seeurity & Compliance polis and best practices.
+æ æ sent buck to agents for e-aais =@ validation
+a: Yes aN iad fief omneration« '* Final secure laC code is ready
+Sat > >< tne > LI) Pevtrmen for deployment in mul-cloud
+ey Bo Ready Output coronene
+No Lo no
+Validate > Test ù Verify > Feedback | Fix ù Validate > Secure -> Deploy
+END-TO-END ARCHITECTURE FLOW
+Secrets Scanned Context Retrieved Sp Multi-LLM Analysis Validation Harness = [ùù] Auto Patching Secure laC Ready
+Githeaks & = ù> (RAG + Knowledge ùP (|S & Consensus ù> ALinters + Sandboxùp |</>] & Code Ditfs for Deployment
+TruffleHog) Sources) YYö (Ensemble Engine) Runtime Tests) ù) Generated (Multi-Cloud)
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 13 ***
+13 ===
+13 (Images: ['ppt/media/image17.png']) ===
+Purpose
+Automate detection, verification,
+remediation and validation of security
+vulnerabilities in multi-cloud
+Infrastructure-as-Code using
+autonomous Al agents.
+ANALYSIS AGENTS
+@
+y Terraform
+Manager / Router Agent
+State orchestration & task routing
+Hybrid AST Parser
+AST & resource dependency analysis
+Secrets Scanner
+Gitleaks + TruffleHog detection
+&f SECURITY KNOWLEDGE
+Software Requirements Specification
+CIS Benchmarks
+Users Inputs Outputs
+⌐ Cloud /DevOps Engineers ⌐ Terraform HCL e Vulnerability findings
+Security & Compliance Auditors AWS CloudFormation ⌐ Git diff remediation patches
+@ DevSecOps Administrators ó Kubernetes manifests Compliance reports
+Helm charts ó Validated fixes
+Security policies & feedback
+& AWS CloudFormation Kubernetes
+SECURITY & REMEDIATION
+RAG Query Agent
+CIS, NIST & security knowledge
+/ æ \
+i 1 \
+\
+i Hl
+AgentShield AL
+Remediation Agent
+\ Automated unified Git diff
+\ Stateful Multi-Agent Security Engine /
+\ /
+ZX LANGGRAPH ORCHESTRATION Validator Agent
+Linters + LocalStack sandbox
+NIST 800-53 A CvE Records 5} Compliance Policies
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 14 ***
+14 ===
+14 (Images: ['ppt/media/image18.png']) ===
+oe SYSTEM REQUIREMENTS
+Functional & Technical Specification
+AgentShield Al ù requirements, quality attributes and deployment environment
+Functional Requirements
+Accept laC templates in .tf, json,
+-yamland yml formats and initialize
+AgentShield execution state.
+Detect exposed credentials, tokens
+and private keys using Gitleaks,
+TruffleHog and entropy detection.
+Perform multi-LLM vulnerability
+verification using Claude 3.5 Sonnet
+and GPT-40 ensemble voting.
+Validate generated patches using
+Static linters and LocalStack
+sandbox execution.
+op High-Level System Flow
+FR 01-08
+Parse Terraform, CloudFormation,
+Kubernetes and Helm templates into
+structured ASTs and resource graphs.
+Retrieve relevant CIS, NIST, CVE and
+cloud security policies through
+vector-based RAG.
+Generate syntactically correct unified
+Git diff patches for vulnerable
+resource blocks.
+Generate compliance reports and
+capture developer ACCEPT / REJECT /
+MODIFY feedback.
+@ P
+ee oa
+Developer/  ~* ùlaCIngestion AST Parser ad Secrets
+CV/CD / IDE & Manager + Dependency Graph Scanner
+te | Non-Functional Requirements
+Performance
+| $20 sec scan for <500 LOC. |
+Secret Protection
+100% detected secrets
+removed from LLM prompts.
+Self-Healing
+Up to 3 validation retry attempts.
+ie t=
+L*) ia
+« Software & Hardware Requirements
+Extensibility
+New laC formats through
+modular parser modules.
+< > Software stack
+Python 3.12+ ⌐ LocalStack
+LangGraph/LangChain ⌐ æTerraform/ Kubernetes / Helm
+⌐ FastAPI * Checkov/ tfsec / KICS
+⌐ Qdrant / ChromaDB ⌐ Gitleaks / TruffleHog
+⌐ Docker + Docker Compose ó React / VS Code Extension
+QUALITY
+Accuracy
+False-positive target below 5%.
+Sandboxing
+LocalStack isolated from
+production cloud.
+Availability
+Target API uptime of 99.5%.
+Maintainability
+Target 285% backend
+unit-test coverage.
+ENVIRONMENT
+Hardware / Environment
+8+ CPU cores recommended
+32 GB RAM or higher
+200 GB+ storage
+GPU optional
+Stable network connection
+Docker Engine 24+
+Docker Compose v2
+Cloud or on-premise deployment
+END-TO-END AGENTIC PIPELINE
+Ss
+Ss &« ie oO
+RAG Security Multi-LLM Remediation ies Validate +
+Ensemble Git Diff Compliance Report
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 15 ***
+15 ===
+15 (Images: ['ppt/media/image19.png']) ===
+m= SYSTEM ARCHITECTURE
+AgentShield Al ù Overall Workflow
+Stateful 8-Agent DevSecOps Pipeline with RAG, Multi-LLM Consensus & Self-Healing Validation
+Ingestion & Pre-Processing Knowledge & Context Analysis & Consensus Remediation & Validation Delivery & Continuous
+Receive and prepare multi-cloud laC Enrichment Engine Generate and validate secure patches Learning
+Connect aC context with security policy Mult-mode! vulnerability verification Report, deliver and leam from feedback
+Remediation Agent
+9 Synthesise unified Git iff
+ee / Pe /ClCD RAG Query Agent Security Analyst Agent 4 be patches for vulnerable Report & Feedback Agent
+submit laC template æ ap Combines AST context, resource blocks = i
+(Terraform, CloudFormation, Retrieve relevant security caraiaiceriies akibenet Generate compliance reports
+Kubernetes, Helm) controls, best practices and Maitgs + and audit logs
+| attack paths {
+Parallel LLM Analysis
+2 Manager / Router Agent
+Validates template and ╗ ╗ Al º >
+Code & Sandbox
+Validator Agent J
+Static linting + sandbox
+execution Developer / VS Code
+Ñ Pe </> Beco f
+5 Of Static Linting
+orchestrates workfiow state Vector Database ae 7 Define ngs ane paces
+Claude 3.5 GPT-4o terraform validate / (Accept / Reject / Modify)
+aa al aos) Sonnet OpenAl ccfnlint / kube-linter
+' ' æ |
+LocalStack Sandbox
+Runtime dry-run validation Developer Feedback Store
+Store feedback for
+Retry Yes continuous improvement
+Y a
+yr
+4
+8 | P| æSecurity Knowledge Sources Consensus Engine
+ofe Cons 2 0.80? zy
+~ A
+Hybrid AST cam O i B @ (Ensemble Voting)
+Parser Agent Scanner Agent t
+cis NIST sOC2_ùHIPAA (Cae I
+Parse laC and build Detect and mask No (Low Confidence)
+9 Benchmarks 800-53 v
+AST+dependency _ credentials (Gitleaks gis Y
+graph + TruffleHog) Human-in-the-Loop
+e > (ag) Retry (Max 3 Attempts) Improve future analysis
+By Audit Queue Feed errors back to remediation BBE (c+ Lum prompts)
+T  Negative-shot
+{prompt adaptation
+Yes (High Confidence)
+@@ AgentShieldWorkspace a INITIALIZED PARSED ] ENRICHED ANALYZED ro REMEDIATING rv) COMPLETED i @ = ESCALATED >
+@@ State Lifecycle (Ingestion) (AST & SEC) S pc & (Su) (Report/Logs) ! @ HUMANAUDIT
+text) (Validation)
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 16 ***
+16 ===
+16 (Images: ['ppt/media/image20.png']) ===
+Class Architecture
+=] Enumerations & Value Objects =] Core Data Contracts (Pydantic v2) ⌐ Autonomous Agents
++ agent id: str
+i i template_id : st + node_id: str
+½enumeration╗ ½enumeration╗ 4 fienanrer a gir + Rode_type : str + execute_workflow()
+æTERRAFORM AWS + raw_content : str 1 parsesto 1" + name : str Ths Ot tart Sine: int ASTParserAgent
+f : > J
+CLOUDFORMATION AZURE + iac_type: laCType : - po an str + end_line : int eo + agent_id: str
+KUBERNETES CGE gaseous ocr + dependencies :list(str] + valdate_line_range() + parse_template()
+HELM MULTI_CLOUD + parsed_ast : dict + resolved_parameters : dict
+UNKNOWN UNKNOWN + created_at : datetime + metadata : dict yo) SecreteScannerigent
+id: str
+1 + findnodes.by type0) wees
+lyzed fc s myat + scan_secrets()
+½enumeration╗ ½enumeration╗ i na
+VulnerabilityFinding mapped to ComplianceMapping VulnerabilityReport AgentShieldWorkspace + agent_id: str
+CRITICAL PENDING + finding id: str Joue 0.2 | + framewerk:Complaneftamenerk| | + report id: str + workspac saretrieveleontext()
+HIGH æSYNTAX_VALIDATED + rule_id: str ùùù> + controlid str > + template_id: str ace , ,
+MEDIUM æSANDBOX PASSED + title: str + title: str + total_findings : int LI Sati ocgn SecurityAnalysisAgent
+Low APPLIED + description : str | + description : str + overall_risk_score : float + attack_graph : dict + agent_id: str
+INFORMATIONAL REJECTED eeasiy Bei + generated at:datetme > Syecution logs: ist dict] + analyze_vulnerabilties()
++ confic eles at ot
+5 + auto_patchable : bool | + patch id: str + get_summary(): dict F
+ComplianceFramework + requires_human_review : bool | + finding_id : str eae pu + gerarae patos)
+EE + affected resource :str + target_file : str
+Lal + start_line : int + resource _type : str + original_code : str ValidatorAgent
+7 + attack path: list{str] + patched_code : str
+soc2 + end_fine : int aren ts | + tnified diff: str an + agent id: str
+Soca *  feniediationtbint tf a ValidationCheckResult æSessciscine)
+PCLDSS + validate_ine_range() 7 Soe ata Remesotonsaus 1 _voklatedby 0." + check name : str
+NIST_800_53 Melanson + passed : bool Reg maepodicedbacksgent
+CIS_BENCHMARK + created_at : datetime + output : str + agent id: str
+CS + error: str + generate _report()
+Fed Workspace State Lifecycle < Legend
+⌐ INITIALIZED _ PARSED Pp ANALYZED REMEDIATED () COMPLETED a ôOe ante!
+(ingestion) (AST & SEC) (Ensemble) (Validated) (Report / Logs) ooraZero ons, peainetiance
+1. One ormany ---╗ Dependency
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 17 ***
+17 ===
+17 (Images: ['ppt/media/image21.png']) ===
+ùù SYSTEM DESIGN
+UML Sequence Diagram
+AgentShield Al: End-to-End Execution Trace from Template Submistion to Sandbox-Validated Remediation and Feedback
+ô Ñ oO So iti 2)
+>
+a <b @ B ░ &
+Manager / AST Parser Secrets Scanner RAG Query Vector DB æSecurity Analyst Multi-LLM Ensemble æHuman Audit Remediation Validator LocalStack
+Router Agent æAgent æAgent (Qdrant) Agent (Claude + GPT-40) æQueue æAgent æAgent æSandbox
+i H H H | 9.generate_patch() |
+H Status: INTIALIZED
+Patch
+|g. (United ci on ⌐
+7. paralll_prompt) : H
+10. validate patch) |
+Model A + Model +
+H Top-3 CiS/NIST u H i
+H cin orca { Compute Consensus Sore | [feop Mc Rates i
+H H cens = Ew: Ñ)/N H i
+' i ; ù<ù i ;
+: i i | 8 excaate. to tinged i
+| 17. submit feedback() i ! i H i | 15.generate_report) |
+i + i + + be + >)
+| 16. deliver_results() | ' 1 i i 1 (JSON / POF / Markdown)
+i ( Frings Pots | Pos
+i \ { ; Store Feedback
+1. Ingestion & Pre-Processing 2. Knowledge & Context Enrichment 3, Analysis & Consensus Engine 4, Remediation & Self-Healing Validation _5. Delivery & Continuous Learning
+= . a
+@ùm@ Execution Flow ga) Ingestion of Context Enrichment ⌐ Analysis & Consensus {2 Remediation & Validation Bi Reporting & Feedback
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 18 ***
+18 ===
+18 (Images: ['ppt/media/image22.png']) ===
+ùùù= SYSTEM DESIGN
+M4 I: a
+UML Statechart Diagram Dae pe: St Mate Dagan
+Scope: End-to-End Workflow Lifecycle
+AgenitShield Al: Lifecycle of AgentShieldWorkspace and PatchDiff from Template Ingestion to Final Remediation
+1. INITIALIZED 2. PARSING & SCANNING 3. CONTEXT ENRICHING 4. ANALYZING & CONSENSUS
+Receive and validate template AST parsing and secret detection RAG-based security knowledge retrieval Multi-LLM vulnerability verification
+| (concurrent)
+| 5 5 Extract Resource Types Dispatch Prompts
+Validating Input | Ping *ST Parsing cme Identify cloud resources 1TH Query Claude 3.5 Sonnet
+oe Check file exists Parse laC template feniGtlea and GPT-4o in parallel
+a & valid extension ufleHiog Ñ nm
+at + it Query Vector DB al | Evaluate Findings
+= - Hybrid search (Qdrant / ChromaDB) Compare model outputs
+start ingestion) oO Pesce variables Redact Secrets stax seowt.rexdy CIS, NIST, SOC2, HIPAA context enrched
+No: iat Preevaluate variables aa Steet caine
+ùù> 1 credentials Y Compute Consensus
+Log syntax error | Attach Policies Cens = 2(w;- V;)/N
+Build Dependency Enrich with security controls
+Yes Graph and best practices
+No Human Audit Queue
+| Cons 2 0.85? > ùù> Route to security
+Schema Valid CaS
+Guise Tae AST & Secrets Ready Context Enriched Yes ,
+(hI) | Parsed AST + Masked Code Policy + AST context ready æAuto Patchable ⌐ eal
+Proceed to remediation
+| flag_auto_patchable()
+5. REMEDIATION 6. VALIDATION (Self-Healing) 7. REPORTING 8. DEVELOPER FEEDBACK
+Generate secure patches Static + runtime validation with retries Compliance reports and delivery Collect feedback and learn
+= : ( = Map Compliance Receive Decision
+Generate Unified Diff DiffReady sake pues) Static Linting LocalStack Sandbox CIs, NIST, SOC2, HIPAA Accept / Reject / Modify
+⌐ RABY synthesize patch using -> Targeted patch for" terraform validate / -> Runtime dry-run controls æawait feedback()
+prompt templates vnerable resources clint /kubesintr deployment es sacle i's] store Feedback
+1 | æ @ æSON / PDF / Markdown Update feedback store
+; ; Improve Future Analysis
+fecdleror feral) Yes Falied Escala +@ End Present to Developer Negative-shot
+Exhausted retries Send findings + patches prompt adaptation
+y
+AgentShieldWorkspace Lifecycle States
+INITIALIZED
+lp PARSED
+(Ingestion)
+(AST & SEC)
+Ss
+=
+ENRICHED
+(RAG Context)
+ANALYZED
+(Ensemble)
+REMEDIATING
+(Validation)
+iv}
+COMPLETED
+(Report / Logs)
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 19 ***
+19 ===
+19 (Images: ['ppt/media/image23.png']) ===
+SYSTEM DESIGN
+UML Deployment Diagram
+(agentshield scan)
+<<artifact>>
+Git Pre-Commit Hook
+(:pre-commit-hooks yam!)
+= 4
+Local Disk Storage
+s
+Target laC Repository
+(*.tf, ôyam, *json) |
+Local Developer Config
+(eny, rules.yaml)
+<<device>>
+Developer Workstation
+(Client Node)
+<<execution environment>>
+a HTTP/REST &
+VS Code / Terminal WebSockets
+<cartifact>> 2000
+æAgentShield VS Code Extension =)
+(UI, Diff Visualizer)
+CLI/ API
+<cartifact>> :8000
+AgentShiedCLE
+<<execution environment>>
+Local Docker Host / Container Engine
+[ ú0} <contsiner>> agentshield-backenctlatest
+<<execution environment>>
+| Python 3.12 Runtime
+ap <<artifact>> <<artifact>> <<artifact>>
+Gam FastAPI Server > LangGraph Multi-Agent </> Hybrid AST
+| GHD (8000 REST &WebSockets) Core Engine
+(8 Specialized Agents) (HCL2, CFN, K8s
+2 Parsers)
+| Embedded Native Binaries
+Terraform CLI De cirri ô
+| (16+) AG cfrsint /ubevat 0 gitleaks /truffiehog
+ee =
+A grec / REST HTTP REST
+16333 4566
+ó <<container>> <<container>>
+| & adrant/qdrant:latest & localstack/localstack:latest
+<<artifact>> <sartifact>>
+Ss Qdrant Vector Database LocalStack Gateway
+Vee (6333 REST / :6334 gRPC) (4566 HTTP/REST) |
+SS agrant_data/ Emulated AWS Services
+BS (Wolume Mount) ($3, 1AM, EC2, CloudFormation)
+ùù
+<<cloud>>
+External Frontier LLM Infrastructure
+Heel /TLS1.3
+<<cloud service>> <<cloud service>>
+(art oy? æAuth) æAnthropic Claude 3.5 Sonnet OpenAl GPT-40
+apianthropic.com:443 apiopenai.com:443
+½
+<<cloud>>
+Remote Version Control & Cl/CD
+⌐
+<<cloud service>>
+GitHub Actions Runner
+(Automated PR Scan)
+& Supporting External Services (optional)
+ry 0 a
+Cloud Provider APIs Security Databases Notification Services
+(AWS / Azure / GCP) (CIS, NIST, CVE) (Email / Slack / Teams)
+Communication Protocols | fj
+|
+HTTP/REST
+(Port 8000)
+gRPC
+(Port 6333)
+HTTP REST
+WebSockets |
+| (Port 4566)
+(Real-time updates)
+HTTPS /TLS 1.3
+(Port 443)
+Containerized Deployment
+(Docker Compose)
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 20 ***
+20 ===
+20 (Images: ['ppt/media/image24.png']) ===
+mus SYSTEM DESIGN
+UML Use Case Diagram
+DevOps / Cloud
+Developer
+Submit templates,
+view reports, apply fixes
+]
+Security &
+Compliance Auditor
+Review findings,
+validate compliance
+o
+System / DevSecOps
+Administrator
+Manage policies, configure
+system, monitor agents
+æ⌐ UC-01: Submit iaC Template
+UC-02: Parse AST & Build Dependency Graph
+UC-03: Scan for Secrets
+UC-04: Retrieve Security Knowledge (RAG)
+UC-05: Analyze Vulnerabilities (Multi-LLM)
+oO AgentShield Al
+DevSecOps Multi-Agent Platform
+UC-01
+Submit laC Template
+<<include>>
+UC-06
+Generate Remediation
+uc-02 Patch (Unified Diff)
+Parse AST &
+Build Dependency Graph
+| <cinclude>>
+\
+<cextend>>
+[Validation Failed)
+uc-03 UC-07
+Validate Patch
+Scan for Secrets (Static + Sandbox) ie
+retry_with_errors()
+uc-04 | cinclude>>
+Retrieve Security eee
+Knowledge (RAG) 4 Uc-09 flow @ontdercel
+a Generate Compliance >
+Report
+UC-05
+Analyze Vulnerabilities
+(Multi-LLM)
+<cinglude>>
+UCc-11
+æStore Developer Feedback
+& Improve Models
+! e Relationships
+poee > <<include>> (Mandatory sub-function)
+⌐ UC-06: Generate Remediation Patch |
+* UC-07: Validate Patch (Static + Sandbox)
+* UC-08: Self Healing Retry
+⌐ UC-09: Generate Compliance Report | 1
+UC-10; Human AuditQueue > <<extend>> (Conditional / Optional flow)
+UC-11: Store Developer Feedback
+Human Audit
+uc-10 I isolated environment
+i
+1
+Queue i i >
+i 1 lector
+i | @« _AUrant Vector DB
+gRPC/REST | Qa : :
+.6333/:6334) | Nas ofience Ebeckings)
+ù$ù> | store andretrieve
+1
+1
+1
+1
+eS
+uc-08
+Self-Healing Retry
+(Max 3 Attempts)
+HTTP/REST GitHub Actions
+(API Calls) (CI/CD Pipeline) |
+Trigger automated scans
+æon PR/ commits
++
+External LLM APIs.
+(Claude 3.5 / GPT-40)
+Provide security analysis
+and recommendations
+LocalStack Sandbox
+(Local AWS Runtime)
+Validate patches in
+security knowledge
+Enable automated, intelligent and secure analysis,
+remediation and validation of multi-cloud Infrastructure-as-Code
+using autonomous Al agents with human oversight.
+==================================================
+--------------------------------------------------
+
+============================================================
+
+*** SLIDE 21 ***
+21 ===
+21 (Images: ['ppt/media/image25.png']) ===
+KESHAV MEMORIAL INSTITUTE OF TECHNOLOGY
+AN AUTONOMOUS INSTITUTION- ACCREDITED BY NAAC WITH 'A' GRADE
+Narayanaguda, Hyderabad.
+Thank You
+==================================================
+--------------------------------------------------
+
+============================================================
+

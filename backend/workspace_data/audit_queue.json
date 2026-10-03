@@ -1,6 +1,6 @@
 [
   {
-    "item_id": "df4258e5-8ef1-4245-9c28-8e2ee7776f27",
+    "item_id": "3d702c91-e1fe-4a0c-91ac-f2cb88cb13ff",
     "finding_id": "f-api-1",
     "workspace_id": "test-ws-1",
     "file_path": "main.tf",
@@ -38,8 +38,8 @@
       "aws_s3_bucket.my_data"
     ],
     "blast_radius": 2,
-    "created_at": "2026-10-01T08:35:35.158813Z",
-    "reviewed_at": "2026-10-01T08:35:35.217889Z",
+    "created_at": "2026-10-03T06:02:25.169253Z",
+    "reviewed_at": "2026-10-03T06:02:25.227952Z",
     "reviewer": "api_sec_engineer",
     "reviewer_comment": "Approved via Web UI",
     "metadata": {}
